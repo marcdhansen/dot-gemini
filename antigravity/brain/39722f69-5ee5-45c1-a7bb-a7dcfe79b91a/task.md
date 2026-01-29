@@ -1,0 +1,31 @@
+# 📋 Task: ACE Optimization & Visualization
+
+- [/] **Pre-Flight Check (PFC)**
+  - [x] Tool Check (`bd`, `uv`, `docker`)
+  - [x] Context Check (`ROADMAP.md`, `ImplementationPlan.md`)
+  - [x] Status Check (`bd ready`)
+  - [/] Flight Director PFC script check
+  - [x] Navigation Check (`GLOBAL_INDEX.md`)
+- [x] **Task 1: Graph Visualization & Construction Testing (lightrag-b8r) [P0]**
+  - [x] Research existing graph visualization options in LightRAG or external tools.
+  - [x] Extract Beekeeping test data from `docs/LightRAG-simple and fast retrieval-augmented generation.pdf`.
+  - [x] Ingest Beekeeping data and verify low-level/high-level retrieval.
+  - [x] Compare LightRAG graph construction with Neo4j/MemGraph examples.
+  - [x] Implement/Verify a dedicated visualizer in WebUI (Sigma.js).
+  - [x] Update `walkthrough.md` with results.
+- [x] **Task 2: ACE Phase 3 Implementation (lightrag-q29) [P1]**
+  - [x] Research Reflector/Curator logic.
+  - [x] Implement Reflector logic for automated graph repair.
+  - [x] Implement Curator logic for graph modification/deletion.
+  - [x] Integrate Phase 3 into the ACE loop in `LightRAG` core.
+  - [x] Verify graph repair with Beekeeping plumbing test.
+- [ ] **Task 3: UI Integration**
+  - [ ] Add reranking toggles to WebUI.
+  - [ ] Add ACE controls to WebUI.
+  - [ ] Verify Beekeeping graph in WebUI.
+
+- [ ] **Return To Base (RTB)**
+  - [ ] Beads Update
+  - [ ] Quality Gates (Linters, Tests)
+  - [ ] Sync & Push
+  - [ ] Flight Director RTB check

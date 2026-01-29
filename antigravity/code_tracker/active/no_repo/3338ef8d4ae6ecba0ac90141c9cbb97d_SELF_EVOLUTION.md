@@ -1,0 +1,144 @@
+£-# Self-Evolution Tracker
+
+This document tracks ideas for continuous improvement of both the AI agent capabilities and the LightRAG system. Ideas are prioritized and regularly reassessed.
+
+## Active Improvement Areas
+
+### Agent Workflow Improvements
+
+| Idea | Priority | Status | Notes |
+| :--- | :--- | :--- | :--- |
+| Update memory.md with learnings after each session | p0 | `lightrag-xxx` | Capture patterns, preferences, discoveries |
+| Proactively suggest improvements after tasks | p0 | Active | Built into workflow |
+
+### System Improvements
+
+| Idea | Priority | Status | Notes |
+| :--- | :--- | :--- | :--- |
+| ACE framework integration | p1 | âœ“ Done | Core GRC loop implemented |
+| Semantic Highlighting | p1 | âœ“ Backend | Zilliz model integrated |
+| RAGAS evaluation baseline | p1 | âœ“ Done | Baseline scores generated |
+| Pytest for Manual Testing | p0 | Active | Framework established with `--run-manual` |
+
+---
+
+## Learning Resources
+
+### ACE Framework (Agentic Context Engineering)
+
+- [ACE GitHub Repo](https://github.com/ace-agent/ace)
+- Core concept: Evolve context through Generator â†’ Reflector â†’ Curator cycle
+- Key insight: Incremental delta updates prevent context collapse
+- Application: Use for improving agent memory and playbook
+
+### MemEvolve
+
+- [MemEvolve GitHub Repo](https://github.com/bingreeky/MemEvolve)
+- Focus: Meta-evolution of agent memory systems.
+
+### Beads Best Practices
+
+- Always add descriptions to issues
+- Close with detailed reasons for future reference
+- Keep planning docs and issues in sync
+
+### Operational Learnings
+
+- **Git Repository Location**: The git root is nested in `LightRAG/`. ALWAYS run git commands from `/Users/marchansen/antigravity_lightrag/LightRAG`. The workspace root is NOT a git repository.
+- **Large File Type-Checking**: For large files (e.g., `core.py` > 4000 lines), standard IDE linting may lag or fail. Use `npx -y pyright /path/to/file` for a definitive check.
+- **Tokenizer Handling**: Always check if `self.tokenizer` is initialized before calling `encode()` in `core.py` to prevent `AttributeError: NoneType has no attribute 'encode'`.
+
+### Anti-Patterns Logged
+
+- **Indiscriminate Thought Injection**: Avoid "faithfully" inserting internal monologues or placeholder comments into production code. It causes syntax errors and pollutes the codebase. **Correction**: Extract only functional code for edits and double-check indentation markers.
+- **Shadow Parameter Mismatches**: Passing positional arguments to complex async function signatures can lead to type mismatches if the target signature includes many optional arguments or `*` markers. **Correction**: Prefer keyword arguments (e.g., `merge_strategy=merge_strategy`) for clarity and type-safe calls.
+
+### Model Selection Criteria
+
+When evaluating LLM models, consider these tradeoffs:
+
+| Criterion | Question | Priority |
+| :--- | :--- | :--- |
+| **Speed** | What are the fastest models? | High for iteration |
+| **Quality** | Does output meet requirements? | High for production |
+| **No-code-change** | Can swap via .env only? | High for flexibility |
+| **Context window** | Fits our document sizes? | Required |
+| **Cost** | Token/API costs acceptable? | Varies |
+
+**Current findings (2026-01-19):**
+
+- `llama3.2:3b`: Best balance (12.65 t/s, good entity extraction)
+- `qwen2.5-coder:1.5b`: Fastest (35 t/s) but poor quality for RAG tasks
+- `mistral-nemo`: Good quality but slow (3.14 t/s)
+- Embedding: `nomic-embed-text:v1.5` (only dedicated option)
+
+---
+
+## Improvement Backlog
+
+### High Priority (p0/p1)
+
+- [ ] Establish feedback loop for capturing user preferences
+- [ ] Create templates for common task types
+- [ ] Define metrics for measuring improvement
+
+### Medium Priority (p2)
+
+- [ ] Experiment with different prompt structures
+- [ ] Analyze which beads patterns work best
+- [ ] Document anti-patterns to avoid
+
+### Ideas to Explore
+
+- How can the Reflector component critique completed work?
+- What metadata should be captured per interaction?
+- How to measure "improvement" quantitatively?
+- **Prompt Tracking**: What is a solution that will track agent prompts and responses? (Investigate Langfuse/Custom logging)
+- **MemGPT/Letta**: Investigate adding MemGPT (open source version of Letta) to the observability section.
+- **Agentic RAG**: What additional functionality should the agent have?
+  - Pick retrieval method(s)?
+  - Pick LLM for a given task?
+  - Pick chunking method/size/overlap?
+
+---
+
+## Technical Experiments Backlog
+
+### RAG Modes Evaluation
+
+Compare performance and quality across:
+
+- [ ] Naive RAG
+- [ ] Local RAG
+- [ ] Global RAG
+- [ ] Hybrid RAG
+- [ ] Mix (Graph + Vector)
+
+### Graph Storage & Hierarchy
+
+- [ ] Framework for testing different strategies (e.g., contextual chunking, late chunking).
+- [ ] Support for cold graph storage (Neo4j for demos).
+- [ ] Support for temporal graphs (How to test?).
+- [ ] Self-healing capabilities like Greptile.
+- [ ] Review [n8n harness video](https://youtu.be/RQq3aMV7a5g?si=qfsbiuSGN33DVMrZ) for additional ideas.
+
+---
+
+## Review Log
+
+| Date | Reviewer | Changes Made |
+|------|----------|--------------|
+| 2026-01-19 | Initial | Created document |
+| 2026-01-23 | Antigravity | Standardized Pytest for manual testing; Updated priorities. |
+| 2026-01-28 | Antigravity | Logged anti-patterns regarding code injection and parameter mismatches. Updated model profiling. |
+
+---
+
+## Principles
+
+1. **Proactive improvement**: Don't wait for problems; actively seek better approaches
+2. **Learn from feedback**: Capture what works, discard what doesn't
+3. **Incremental evolution**: Small, focused improvements compound over time
+4. **Sync with beads**: Every improvement idea should become a trackable issue
+5. **Reassess regularly**: Priorities shift; re-evaluate periodically
+  *cascade08 ¢*cascade08¢¥ *cascade08¥¦*cascade08¦§ *cascade08§©*cascade08©¬ *cascade08¬­*cascade08­® *cascade08®°*cascade08°³ *cascade08³´*cascade08´µ *cascade08µ·*cascade08·º *cascade08º»*cascade08»Ì *cascade08ÌÎ*cascade08ÎÑ *cascade08ÑÒ*cascade08ÒÓ *cascade08ÓÕ*cascade08ÕØ *cascade08ØÙ*cascade08ÙÚ *cascade08ÚÜ*cascade08Üß *cascade08ßà*cascade08àá *cascade08áã*cascade08ãæ *cascade08æç*cascade08çµ *cascade08µ·*cascade08·º *cascade08º»*cascade08»¼ *cascade08¼¾*cascade08¾Á *cascade08ÁÂ*cascade08ÂÃ *cascade08ÃÅ*cascade08ÅÈ *cascade08ÈÉ*cascade08É£- *cascade082Lfile:///Users/marchansen/antigravity_lightrag/.agent/rules/SELF_EVOLUTION.md
