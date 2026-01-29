@@ -69,4 +69,4 @@ This is the central directory for all project-specific planning, tracking, and i
 
 ---
 Last Updated: 2026-01-28
-Š"(d63f7ea31caf9e2a40fa9f0682e5a92db04415da2Nfile:///Users/marchansen/antigravity_lightrag/LightRAG/.agent/rules/ROADMAP.md:6file:///Users/marchansen/antigravity_lightrag/LightRAG
+Š"(c927de12a977efdff810173207b1be81e2e7d4e02Nfile:///Users/marchansen/antigravity_lightrag/LightRAG/.agent/rules/ROADMAP.md:6file:///Users/marchansen/antigravity_lightrag/LightRAG

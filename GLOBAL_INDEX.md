@@ -11,6 +11,7 @@ across the system.
 - [MISSION_NOMENCLATURE.md](MISSION_NOMENCLATURE.md) - Terms and Definitions
 - [SELF_EVOLUTION_GLOBAL.md](SELF_EVOLUTION_GLOBAL.md) - Global Self-Evolution Strategy
 - [HOW_TO_USE_BEADS.md](HOW_TO_USE_BEADS.md) - Beads Usage Guide
+- [CROSS_COMPATIBILITY.md](CROSS_COMPATIBILITY.md) - Design for multi-IDE/agent support
 
 ## 📚 Projects
 

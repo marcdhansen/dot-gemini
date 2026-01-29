@@ -259,3 +259,14 @@ Here are the common Beads (bd) sync problems and their solutions based on offici
 
 1. Run `cat .git/info/exclude`.
 2. Edit the file to remove the `.beads/` line, or run `sed -i '' '/\.beads\//d' .git/info/exclude`.
+3. "Operation Not Permitted" or "Failed to rename"
+
+**Problem**: `bd ready` or other commands fail with `failed to rename file: ... .beads/issues.jsonl: operation not permitted`.
+**Cause**: This often happens on macOS when `.beads/issues.jsonl` is ignored by Git but something else is accessing it, or if there's a file lock conflict.
+**Solution**:
+
+1. Ensure `.beads/issues.jsonl` is NOT in your `.gitignore`. Beads expects the JSONL file to be tracked in Git for synchronization.
+2. If it was in `.gitignore`, remove it and run `git add .beads/issues.jsonl`.
+3. Stop any background Beads daemons: `bd daemon stop`.
+4. Try running the command again.
+5. If the issue persists, check if any sync tools (like iCloud, Dropbox, or a file watcher) are locking the `.beads` directory.
