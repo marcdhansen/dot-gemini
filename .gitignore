@@ -1,5 +1,16 @@
 **
 !**/
+
+# Exclude large/session-specific directories
+history/
+antigravity-browser-profile/
+extensions/
+tmp/
+commands/
+antigravity/code_tracker/
+antigravity/conversations/
+antigravity/implicit/
+
 !**/*.md
 !.gitignore
 !README.md
