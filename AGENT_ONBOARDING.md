@@ -28,12 +28,26 @@ Run the **Pre-Flight Check (PFC)** to align with the current project state:
 python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --pfc
 ```
 
-### ⚡ Turbo-Bootstrap (Recommended)
+### ⚡ Enhanced Turbo-Bootstrap (Recommended)
 
-You can automate steps 2-4 by running the initialization script:
+You can automate the complete onboarding process including service startup and verification:
 
 ```bash
-./scripts/agent-init.sh
+./scripts/enhanced-agent-init.sh
+```
+
+**Enhanced Features:**
+- ✅ Comprehensive environment validation (tools, paths, Docker)
+- ✅ Port conflict detection and reporting
+- ✅ Automated service startup (Automem + Langfuse)
+- ✅ Health check verification with retry logic
+- ✅ Service auto-recovery (single restart attempt)
+- ✅ Integration smoke testing (memory storage/retrieval)
+- ✅ Detailed error reporting and troubleshooting guidance
+
+**Fallback (basic mode):**
+```bash
+./scripts/agent-init.sh  # Original toolchain + PFC only
 ```
 
 ## 4. Connect to Project Brain
@@ -57,13 +71,52 @@ You MUST execute the **Return To Base (RTB)** procedure before ending your sessi
 
 This project uses **Automem** for graph+vector long-term memory across sessions.
 
+### Quick Setup (Enhanced Bootstrap)
+```bash
+# Automem is automatically started and verified by enhanced-agent-init.sh
+./scripts/enhanced-agent-init.sh
+```
+
+### Manual Setup (Fallback)
 1. **Initialize Automem**: If not already running, navigate to `~/GitHub/verygoodplugins/automem` and run `make dev`.
-2. **Contextual Awareness**: Query Automem at the start of a session for relevant patterns, preferences, and session-spanning context.
-3. **Capture**: Ensure significant session learnings are stored in Automem during the `/reflect` phase.
+2. **Verify Health**: Check service health at `http://localhost:8001/health`
+3. **Contextual Awareness**: Query Automem at the start of a session for relevant patterns, preferences, and session-spanning context.
+4. **Capture**: Ensure significant session learnings are stored in Automem during the `/reflect` phase.
+
+### Authentication
+- **API Token**: `AUTOMEM_API_TOKEN=test-token` (default)
+- **Admin Token**: `ADMIN_API_TOKEN=test-admin-token` (default)
+- **Health Check**: No authentication required
+
+### Service Details
+- **Flask API**: Port 8001 (health endpoint: `/health`)
+- **FalkorDB**: Port 6380 (graph database)
+- **Qdrant**: Port 6333 (vector database)
 
 ## 7. Observability (Langfuse)
 
 This project uses **Langfuse** for tracing LLM calls and RAGAS evaluations.
 
-1. **Local Langfuse**: Ensure a local Langfuse instance is accessible (usually via Docker).
-2. **Verification**: After running any query, check for new traces in Langfuse to ensure observability is operational.
+### Quick Setup (Enhanced Bootstrap)
+```bash
+# Langfuse is automatically started and verified by enhanced-agent-init.sh
+./scripts/enhanced-agent-init.sh
+```
+
+### Manual Setup (Fallback)
+1. **Local Langfuse**: Navigate to `langfuse_docker/` and run `docker-compose up -d`.
+2. **Verification**: Check health at `http://localhost:3000/api/public/health`
+3. **Web UI Access**: http://localhost:3000 with credentials `pk-lf-lightrag` / `sk-lf-lightrag`
+4. **Trace Verification**: After running any query, check for new traces in Langfuse to ensure observability is operational.
+
+### Service Details
+- **Web UI**: Port 3000 (health: `/api/public/health`)
+- **Worker**: Port 3030 (background processing)
+- **PostgreSQL**: Port 5432 (primary storage)
+- **Redis**: Port 6379 (job queue)
+
+## 📚 Additional Documentation
+
+- **📖 Service Setup Guide**: `SERVICE_SETUP.md` - Comprehensive service configuration and troubleshooting
+- **🔧 Troubleshooting**: Check `SERVICE_SETUP.md` for common issues and solutions
+- **🐳 Docker Reference**: Service-specific Docker commands and configuration
