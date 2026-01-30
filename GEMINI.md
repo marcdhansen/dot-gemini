@@ -75,6 +75,15 @@ These rules define the universal behavior and operational standards for agents a
 - `bd ready`: List tasks with no unsatisfied blockers.
 - `bd sync`: Flush current state to Git and push to remote.
 - `bd doctor --fix`: Check and fix common database issues.
+- **Protocol for Parallel Agents**:
+    1. **Unique Assignment**: Explicitly assign issues using labels (e.g., `bd update <id> --set-labels agent:alpha`) to prevent overlap.
+    2. **Frequent Sync**: Run `bd sync` at the start of PFC and end of RTB to maintain state consistency across agent instances.
+    3. **Dependency Management**: Use `bd dep` to establish clear work orders, ensuring agents do not start tasks with unsatisfied blockers.
+    4. **Health Maintenance**: Proactively run `bd doctor --fix` if any database locks or sync conflicts are detected.
+- **Git Isolation for Parallel Agents**:
+    1. **Branch-per-Task**: Each agent must work on a dedicated branch (e.g., `git checkout -b task/lightrag-123`).
+    2. **Explicit Staging**: Never use `git add .`. Stage only the specific files modified (e.g., `git add tests/test_highlight.py`).
+    3. **Worktree Strategy**: For simultaneous work on the same machine, use `bd worktree create <name>` to isolate filesystem changes.
 - **Detailed Guide**: [HOW_TO_USE_BEADS.md](HOW_TO_USE_BEADS.md)
 
 ## 📝 Markdown Standards
@@ -110,7 +119,7 @@ These rules define the universal behavior and operational standards for agents a
   - Project Rules: Workspace root or `.agent/rules/`
   - Project Brain/Planning: `~/.gemini/antigravity/brain/PROJECT_ID/`
 - **Preference**: ALWAYS search the web for potential solutions to tool errors (like `bd sync` failure) before asking the user to intervene.
-- **Troubleshooting**: If `bd sync` fails with "git add failed", manually run `git add .`, `git commit`, and `git push` to resolve the state mismatch.
+- **Troubleshooting**: If `bd sync` fails (e.g., "git add failed" or "import requires SQLite storage backend"), manually run `git add .`, `git commit`, and `git push` to resolve the state mismatch, then run `bd doctor --fix` if needed.
 - **Testing**: Local test environments with local LLMs often require significantly higher timeouts (120s-300s) than default configurations (30s).
 - **Testing**: Increased `top_k` (e.g., 20) in retrieval tests improves recall reliability in crowded local vector stores.
 - **WTU (Wrap This Up)**: When the user says "let's wrap this up" or "WTU", explicitly verify that all steps in the **Return To Base (RTB)** checklist (including Web UI verification) have been completed successfully before ending the session.

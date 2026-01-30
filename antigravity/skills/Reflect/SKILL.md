@@ -44,6 +44,52 @@ Bridge between ACE reflector outputs and Reflect skill workflow.
 python scripts/ace_integration_bridge.py test
 ```
 
+### 3. `skill_version_manager.py` (Version Management)
+
+Tag-based versioning and rollback system for skill files.
+
+**Usage**:
+
+```bash
+# Create a learning tag
+python scripts/skill_version_manager.py tag --skill SkillName --description "Learning description"
+
+# List all versions
+python scripts/skill_version_manager.py list
+
+# List versions for specific skill
+python scripts/skill_version_manager.py list --skill Reflect
+
+# Rollback to previous version of skill
+python scripts/skill_version_manager.py rollback-previous --skill Reflect
+
+# Rollback to specific tag
+python scripts/skill_version_manager.py rollback --tag learning_20260130_004834_reflect
+
+# Compare versions
+python scripts/skill_version_manager.py compare --tag learning_20260130_004834_reflect
+
+# Clean up old tags (keep latest 20)
+python scripts/skill_version_manager.py cleanup --keep 20
+```
+
+### 4. `proactive_improvements.py` (Proactive Suggestions)
+
+Analyzes patterns across learnings, flight diagnostics, and code to suggest proactive improvements.
+
+**Usage**:
+
+```bash
+# Full pattern analysis and suggestion generation
+python scripts/proactive_improvements.py analyze
+
+# Show top suggestions
+python scripts/proactive_improvements.py suggest
+
+# Track suggestion outcome
+python scripts/proactive_improvements.py track --suggestion-id "Focus area" --outcome implemented --notes "Successfully implemented"
+```
+
 ### 2. `reflect_assistant.py` (Legacy)
 
 Helper script for basic memory discovery and rule auditing.
@@ -104,15 +150,16 @@ Formulate an update that integrates the new learning into the target `SKILL.md`.
 
 ### 5. Execution & Versioning
 
-**Enhanced Approach**: Use learnings layer for safe, tracked updates.
+**Enhanced Approach**: Use learnings layer for safe, tracked updates with version management.
 
-1. **Review Learnings**: Check pending learnings with `enhanced_reflect.py --pending-learnings`
+1. **Review Learnings**: Check pending learnings with `enhanced_reflect_system.py --pending-learnings`
 2. **Apply Updates**: High-confidence learnings can be applied automatically or with user approval
 3. **Learnings Layer**: Changes are tracked in `~/.gemini/learnings/applied_learnings.json` with timestamps
 4. **Skill Update**: Use the `Edit` tool to modify the target `SKILL.md` file
-5. **Git Versioning**: If the skills directory is a Git repository, commit the change with a message: `docs(skills): update [skill name] with session learnings [tag: learning_YYYYMMDD]`
+5. **Version Management**: Use `skill_version_manager.py` to create tagged versions: `python scripts/skill_version_manager.py tag --skill SkillName --description "Learning description"`
+6. **Rollback Safety**: Automatic backup tags created before rollbacks for safe experimentation
 
-**Tag-Based Versioning**: Each learning is tagged with `learning_YYYYMMDD_HHMMSS` for easy rollback and tracking.
+**Tag-Based Versioning**: Each learning gets a unique tag `learning_YYYYMMDD_HHMMSS_skillname` with full rollback capability.
 
 ## Examples
 
@@ -141,7 +188,8 @@ At the conclusion of a task or session (RTB):
 4. **ACE Insights**: Include any graph quality lessons from ACE reflector analysis.
 5. **Strategy Evolution**: Propose rule updates for `GEMINI.md` or other skills.
 6. **Next Steps**: Explicitly list specific Beads issues created or remaining.
-7. **Review Learnings**: Check `enhanced_reflect.py --pending-learnings` for any missed insights.
+7. **Review Learnings**: Check `enhanced_reflect_system.py --pending-learnings` for any missed insights.
+8. **Proactive Review**: Run `proactive_improvements.py analyze` to identify systemic improvement opportunities.
 
 ## 📋 Mission Reflection Template
 
@@ -153,6 +201,16 @@ Use this structure when performing a "/reflect" during or after a mission:
 * **Process Gaps**: [e.g., "No check for X before step Y"]
 * **Strategy Evolution**: [e.g., "Always use YAML for extraction with small models"]
 * **Proposed Updates**: [List of SKILL.md or GEMINI.md changes]
+
+### 8. Continuous Improvement Loop
+
+**Proactive Pattern Analysis**: Run `proactive_improvements.py suggest` regularly to:
+- Identify recurring issues before they become problems
+- Spot trending topics needing specialized attention  
+- Find opportunities for automated improvements
+- Track learning application effectiveness
+
+**Feedback Integration**: Use `proactive_improvements.py track` to record outcomes and refine suggestion quality over time.
 
 ## Vision & Future Improvements
 

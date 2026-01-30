@@ -128,7 +128,17 @@ While the agent will handle most interactions, you can use these commands in you
 - `bd create`: Creates a new issue.
 - `bd update`: Updates an issue's status.
 - `bd close`: Closes a completed issue.
-- `bd sync`: Forces an immediate flush of the database to the JSONL file and pushes to the remote git repo. [[16](https://github.com/frankbria/iris/blob/main/docs/beads-migration-guide.md), [17](https://finance.yahoo.com/news/google-dev-tools-manager-makes-182854202.html#:~:text=A%20development%20task%20will%20usually%20start%20as,a%20more%20robust%20requirement%20doc%20in%20Markdown.), [18](https://gitbetter.substack.com/p/git-cli-bring-github-to-the-command#:~:text=Creating%20an%20issue%20Creating%20a%20simple%20issue,issue%20with%20the%20respective%20title%20and%20body.), [19](https://medium.com/google-cloud/using-gemini-cli-to-create-a-gemini-cli-config-repo-519399e25d9a), [20](https://github.com/steveyegge/beads/blob/main/AGENT_INSTRUCTIONS.md#:~:text=Agent%20Session%20Workflow%20Without%20bd%20sync%20%2C,still%20dirty%20bd%20sync%20forces%20immediate%20flush/commit/push)]
+- `bd sync`: Forces an immediate flush of the database to the JSONL file and pushes to the remote git repo.
+- `bd worktree create <name>`: Create a new Git worktree with an automatic Beads database redirect, allowing parallel development in a separate directory without losing issue context.
+
+## Parallel Development Strategy
+
+To work on multiple tasks simultaneously or with multiple agents:
+
+1. **Create a Worktree**: Run `bd worktree create <task-name>`. This creates a new directory where you can branch and commit independently.
+2. **Branching**: In the new worktree, create a task-specific branch: `git checkout -b task/lightrag-N`.
+3. **Commit Discipline**: Always stage specific files (`git add path/to/file`) instead of using bulk commands like `git add .`.
+4. **Sync**: Run `bd sync` as usual. Beads will handle the synchronization of the issue database across all worktrees.
 
 _AI responses may include mistakes._
 
@@ -240,9 +250,11 @@ Here are the common Beads (bd) sync problems and their solutions based on offici
 **Problem**: Multiple AI agents create or update issues simultaneously.
 **Solution**:
 
-- **Use `bd sync` Often**: Regularly sync to keep local state in check.
-- **Assign Unique Work**: Define specific, non-overlapping tasks for agents.
-- **Use `bd doctor`**: If corruption occurs, run `bd doctor --fix`.
+- **Assign Unique Work**: Define specific, non-overlapping tasks for agents by using unique labels (e.g., `agent:alpha`, `agent:beta`).
+- **Use `bd sync` Often**: Regularly sync (at the start and end of every session/turn) to keep local state in check and avoid merge conflicts.
+- **Dependency Tracking**: Use `bd dep` to establish clear work orders, ensuring agents do not start tasks with unsatisfied blockers.
+- **Use `bd doctor`**: If database locks or corruption occurs due to concurrency, run `bd doctor --fix`.
+- **Swarm Coordination**: For complex epics, use `bd swarm` to manage a DAG of parallelizable tasks. Regardless of the tool, ensure each agent is working on a distinct issue in the `ready` state.
 
 ### 4. Sync Branch is Protected
 
