@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-01-30T00:44:55.059421",
+  "query": "What are the key achievements of Albert Einstein?",
+  "repairs": [
+    {
+      "action": "delete_relation",
+      "source": "Einstein",
+      "target": "gravity",
+      "reason": "Newton discovered gravity, not Einstein"
+    },
+    {
+      "action": "delete_entity",
+      "name": "light bulb",
+      "reason": "Light bulb was invented by Edison, not mentioned in source text"
+    },
+    {
+      "action": "merge_entities",
+      "sources": [
+        "AE",
+        "Albert E."
+      ],
+      "target": "Albert Einstein",
+      "reason": "Same person, should be unified"
+    }
+  ],
+  "type": "graph_repair"
+}

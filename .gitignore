@@ -1,19 +1,33 @@
+# 1. Global Ignore Logic
 **
 !**/
 
-# Exclude large/session-specific directories
-history/
-antigravity-browser-profile/
-extensions/
-tmp/
-commands/
-antigravity/code_tracker/
-antigravity/conversations/
-antigravity/implicit/
-
+# 2. Allow specific high-value file types
 !**/*.md
+!**/*.json
+!**/*.yaml
+!**/*.py
+!**/*.sh
+!**/*.txt
+!**/RECOVERY*.md
+!**/SESSION*.md
 !.gitignore
-!README.md
+
+# 3. EXCLUDE - High-churn transient directories (Dead Zones)
+# These override the global allow rules above.
+antigravity/code_tracker/**
+antigravity/conversations/**
+antigravity/implicit/**
+antigravity/brain/**
+history/**
+antigravity-browser-profile/**
+extensions/**
+tmp/**
+commands/**
+**/__pycache__/**
+*.pyc
+
+# 4. Global Rule Files
 !GEMINI.md
 !GLOBAL_INDEX.md
 !MISSION_NOMENCLATURE.md

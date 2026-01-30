@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-01-30T00:44:55.057913",
+  "query": "What are the key achievements of Albert Einstein?",
+  "response": "Albert Einstein discovered gravity and invented the light bulb in 1905.",
+  "insights": [
+    "Response contains factual inaccuracies about Einstein's achievements",
+    "Should include more specific details about his actual contributions",
+    "Missing context about the time period and his actual work"
+  ],
+  "type": "reflection_insight"
+}

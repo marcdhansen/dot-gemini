@@ -1,0 +1,278 @@
+[
+  {
+    "timestamp": "2026-01-30T00:51:24.316407",
+    "flight_patterns": {
+      "pfc_failures": {
+        "beads_failure": 1,
+        "task_md_missing": 1
+      },
+      "rtb_warnings": {
+        "uncommitted_changes": 1,
+        "pre_commit_failed": 1
+      },
+      "repeated_issues": [],
+      "frequency_analysis": {
+        "beads_failure": 1,
+        "task_md_missing": 1,
+        "uncommitted_changes": 1,
+        "pre_commit_failed": 1
+      }
+    },
+    "learning_patterns": {
+      "total_pending": 7,
+      "categories": {
+        "unknown": 4,
+        "accuracy_improvement": 1,
+        "completeness_improvement": 2
+      },
+      "sources": {
+        "conversation": 3,
+        "ace_reflector": 3,
+        "ace_graph_reflector": 1
+      },
+      "priorities": {
+        "medium": 5,
+        "low": 2
+      },
+      "trending_topics": [
+        [
+          "albert",
+          7
+        ],
+        [
+          "user:",
+          6
+        ],
+        [
+          "javascript",
+          6
+        ],
+        [
+          "always",
+          5
+        ],
+        [
+          "assistant:",
+          5
+        ]
+      ],
+      "unapplied_high_priority": []
+    },
+    "code_patterns": {
+      "error_keywords": {
+        "wrong": 1
+      },
+      "improvement_keywords": {
+        "improve": 3
+      },
+      "language_specific": {
+        "javascript": 3,
+        "java": 3,
+        "go": 4
+      },
+      "tool_usage": {}
+    },
+    "suggestions": [
+      {
+        "type": "topic_focus",
+        "priority": "medium",
+        "title": "Focus area: 'albert'",
+        "description": "The topic 'albert' appears frequently in recent learnings (7 times). Consider creating dedicated guidelines or training for this area.",
+        "suggested_actions": [
+          "Create specialized skill for this topic",
+          "Update documentation with best practices",
+          "Consider automated checks for this area"
+        ],
+        "pattern_evidence": {
+          "source": "trending_analysis",
+          "topic": "albert",
+          "frequency": 7
+        }
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-01-30T00:51:24.316407",
+    "flight_patterns": {
+      "pfc_failures": {
+        "beads_failure": 1,
+        "task_md_missing": 1
+      },
+      "rtb_warnings": {
+        "uncommitted_changes": 1,
+        "pre_commit_failed": 1
+      },
+      "repeated_issues": [],
+      "frequency_analysis": {
+        "beads_failure": 1,
+        "task_md_missing": 1,
+        "uncommitted_changes": 1,
+        "pre_commit_failed": 1
+      }
+    },
+    "learning_patterns": {
+      "total_pending": 7,
+      "categories": {
+        "unknown": 4,
+        "accuracy_improvement": 1,
+        "completeness_improvement": 2
+      },
+      "sources": {
+        "conversation": 3,
+        "ace_reflector": 3,
+        "ace_graph_reflector": 1
+      },
+      "priorities": {
+        "medium": 5,
+        "low": 2
+      },
+      "trending_topics": [
+        [
+          "albert",
+          7
+        ],
+        [
+          "user:",
+          6
+        ],
+        [
+          "javascript",
+          6
+        ],
+        [
+          "always",
+          5
+        ],
+        [
+          "assistant:",
+          5
+        ]
+      ],
+      "unapplied_high_priority": []
+    },
+    "code_patterns": {
+      "error_keywords": {
+        "wrong": 1
+      },
+      "improvement_keywords": {
+        "improve": 3
+      },
+      "language_specific": {
+        "javascript": 3,
+        "java": 3,
+        "go": 4
+      },
+      "tool_usage": {}
+    },
+    "suggestions": [
+      {
+        "type": "topic_focus",
+        "priority": "medium",
+        "title": "Focus area: 'albert'",
+        "description": "The topic 'albert' appears frequently in recent learnings (7 times). Consider creating dedicated guidelines or training for this area.",
+        "suggested_actions": [
+          "Create specialized skill for this topic",
+          "Update documentation with best practices",
+          "Consider automated checks for this area"
+        ],
+        "pattern_evidence": {
+          "source": "trending_analysis",
+          "topic": "albert",
+          "frequency": 7
+        }
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-01-30T00:51:24.316407",
+    "flight_patterns": {
+      "pfc_failures": {
+        "beads_failure": 1,
+        "task_md_missing": 1
+      },
+      "rtb_warnings": {
+        "uncommitted_changes": 1,
+        "pre_commit_failed": 1
+      },
+      "repeated_issues": [],
+      "frequency_analysis": {
+        "beads_failure": 1,
+        "task_md_missing": 1,
+        "uncommitted_changes": 1,
+        "pre_commit_failed": 1
+      }
+    },
+    "learning_patterns": {
+      "total_pending": 7,
+      "categories": {
+        "unknown": 4,
+        "accuracy_improvement": 1,
+        "completeness_improvement": 2
+      },
+      "sources": {
+        "conversation": 3,
+        "ace_reflector": 3,
+        "ace_graph_reflector": 1
+      },
+      "priorities": {
+        "medium": 5,
+        "low": 2
+      },
+      "trending_topics": [
+        [
+          "albert",
+          7
+        ],
+        [
+          "user:",
+          6
+        ],
+        [
+          "javascript",
+          6
+        ],
+        [
+          "always",
+          5
+        ],
+        [
+          "assistant:",
+          5
+        ]
+      ],
+      "unapplied_high_priority": []
+    },
+    "code_patterns": {
+      "error_keywords": {
+        "wrong": 1
+      },
+      "improvement_keywords": {
+        "improve": 3
+      },
+      "language_specific": {
+        "javascript": 3,
+        "java": 3,
+        "go": 4
+      },
+      "tool_usage": {}
+    },
+    "suggestions": [
+      {
+        "type": "topic_focus",
+        "priority": "medium",
+        "title": "Focus area: 'albert'",
+        "description": "The topic 'albert' appears frequently in recent learnings (7 times). Consider creating dedicated guidelines or training for this area.",
+        "suggested_actions": [
+          "Create specialized skill for this topic",
+          "Update documentation with best practices",
+          "Consider automated checks for this area"
+        ],
+        "pattern_evidence": {
+          "source": "trending_analysis",
+          "topic": "albert",
+          "frequency": 7
+        }
+      }
+    ]
+  }
+]

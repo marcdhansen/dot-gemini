@@ -1,0 +1,56 @@
+[
+  {
+    "source": "conversation",
+    "content": {
+      "line_number": 1,
+      "pattern": "Don't use",
+      "line": "User: Don't use var for variable declarations, always use const and let instead.",
+      "context": "User: Don't use var for variable declarations, always use const and let instead.\nAssistant: I understand. I'll update my JavaScript coding practices to use const and let.\n",
+      "confidence": "high",
+      "type": "avoidance_rule"
+    },
+    "type": "skill_update",
+    "id": "learning_20260130_004254_0",
+    "created_at": "2026-01-30T00:42:54.364172",
+    "status": "applied",
+    "applied_at": "2026-01-30T00:58:00.000000",
+    "applied_to": "JavaScript",
+    "version_tag": "learning_20260130_005914_javascript"
+  },
+  {
+    "source": "conversation",
+    "content": {
+      "line_number": 4,
+      "pattern": "Instead of",
+      "line": "User: No, that's wrong approach. Instead of using jQuery, prefer vanilla JavaScript for simple DOM manipulations.",
+      "context": "Assistant: I understand. I'll update my JavaScript coding practices to use const and let.\n\nUser: No, that's wrong approach. Instead of using jQuery, prefer vanilla JavaScript for simple DOM manipulations.\nAssistant: Understood. I'll avoid jQuery and use vanilla JavaScript for simple operations.\n",
+      "confidence": "high",
+      "type": "avoidance_rule"
+    },
+    "type": "skill_update",
+    "id": "learning_20260130_004254_1",
+    "created_at": "2026-01-30T00:42:54.365504",
+    "status": "applied",
+    "applied_at": "2026-01-30T00:58:00.000000",
+    "applied_to": "JavaScript",
+    "version_tag": "learning_20260130_005914_javascript"
+  },
+  {
+    "source": "conversation",
+    "content": {
+      "line_number": 7,
+      "pattern": "Always check",
+      "line": "User: Always check for null values before accessing object properties.",
+      "context": "Assistant: Understood. I'll avoid jQuery and use vanilla JavaScript for simple operations.\n\nUser: Always check for null values before accessing object properties.\nAssistant: Got it. I'll implement proper null checking patterns.",
+      "confidence": "high",
+      "type": "best_practice"
+    },
+    "type": "skill_update",
+    "id": "learning_20260130_004254_2",
+    "created_at": "2026-01-30T00:42:54.366581",
+    "status": "applied",
+    "applied_at": "2026-01-30T00:58:00.000000",
+    "applied_to": "coding-standards",
+    "version_tag": "learning_20260130_005920_coding_standards"
+  }
+]

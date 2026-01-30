@@ -1,0 +1,92 @@
+[
+  {
+    "source": "ace_reflector",
+    "content": {
+      "query": "What are the key achievements of Albert Einstein?",
+      "response_sample": "Albert Einstein discovered gravity and invented the light bulb in 1905.",
+      "insight": "Response contains factual inaccuracies about Einstein's achievements",
+      "timestamp": "2026-01-30T00:44:55.054744",
+      "category": "accuracy_improvement"
+    },
+    "type": "ace_quality_insight",
+    "priority": "low",
+    "id": "learning_20260130_004455_3",
+    "created_at": "2026-01-30T00:44:55.055326",
+    "status": "pending"
+  },
+  {
+    "source": "ace_reflector",
+    "content": {
+      "query": "What are the key achievements of Albert Einstein?",
+      "response_sample": "Albert Einstein discovered gravity and invented the light bulb in 1905.",
+      "insight": "Should include more specific details about his actual contributions",
+      "timestamp": "2026-01-30T00:44:55.055737",
+      "category": "completeness_improvement"
+    },
+    "type": "ace_quality_insight",
+    "priority": "medium",
+    "id": "learning_20260130_004455_4",
+    "created_at": "2026-01-30T00:44:55.056584",
+    "status": "pending"
+  },
+  {
+    "source": "ace_reflector",
+    "content": {
+      "query": "What are the key achievements of Albert Einstein?",
+      "response_sample": "Albert Einstein discovered gravity and invented the light bulb in 1905.",
+      "insight": "Missing context about the time period and his actual work",
+      "timestamp": "2026-01-30T00:44:55.056940",
+      "category": "completeness_improvement"
+    },
+    "type": "ace_quality_insight",
+    "priority": "low",
+    "id": "learning_20260130_004455_5",
+    "created_at": "2026-01-30T00:44:55.057524",
+    "status": "pending"
+  },
+  {
+    "source": "ace_graph_reflector",
+    "content": {
+      "query": "What are the key achievements of Albert Einstein?",
+      "repairs": [
+        {
+          "action": "delete_relation",
+          "source": "Einstein",
+          "target": "gravity",
+          "reason": "Newton discovered gravity, not Einstein"
+        },
+        {
+          "action": "delete_entity",
+          "name": "light bulb",
+          "reason": "Light bulb was invented by Edison, not mentioned in source text"
+        },
+        {
+          "action": "merge_entities",
+          "sources": [
+            "AE",
+            "Albert E."
+          ],
+          "target": "Albert Einstein",
+          "reason": "Same person, should be unified"
+        }
+      ],
+      "summary": {
+        "total_repairs": 3,
+        "action_breakdown": {
+          "delete_relation": 1,
+          "delete_entity": 1,
+          "merge_entities": 1
+        },
+        "reason_patterns": {},
+        "severity": "medium"
+      },
+      "timestamp": "2026-01-30T00:44:55.058173",
+      "severity": "medium"
+    },
+    "type": "ace_graph_repair",
+    "priority": "medium",
+    "id": "learning_20260130_004455_6",
+    "created_at": "2026-01-30T00:44:55.058861",
+    "status": "pending"
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "general": {
+    "checkpointing": {
+      "enabled": true
+    },
+    "preferredEditor": "zed",
+    "previewFeatures": true,
+    "vimMode": false
+  },
+  "ui": {
+    "theme": "ANSI",
+    "footer": {
+      "hideContextPercentage": false
+    },
+    "showMemoryUsage": true,
+    "showModelInfoInChat": true
+  },
+  "mcpServers": {
+    "MCP_DOCKER": {
+      "command": "docker",
+      "args": [
+        "mcp",
+        "gateway",
+        "run"
+      ]
+    }
+  },
+  "tools": {
+    "useRipgrep": true,
+    "autoAccept": true,
+    "shell": {
+      "showColor": true
+    }
+  },
+  "security": {
+    "auth": {
+      "selectedType": "openai-compatible",
+      "openaiCompatible": {
+        "baseUrl": "http://127.0.0.1:11434/v1",
+        "apiKey": "ollama",
+        "modelName": "llama3.2:3b"
+      }
+    }
+  },
+  "experimental": {
+    "skills": true
+  },
+  "context": {
+    "fileFiltering": {
+      "respectGitIgnore": false
+    }
+  }
+}
