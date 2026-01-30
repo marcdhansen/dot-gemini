@@ -13,9 +13,40 @@ Implement the "correct once, never again" philosophy by analyzing the current se
 
 ## 🛠️ Tools & Scripts
 
-### 1. `reflect_assistant.py` (Experimental)
+### 1. `enhanced_reflect_system.py` (Enhanced System)
 
-Helper script for automating memory discovery and rule auditing.
+Comprehensive reflection system integrating PFC/RTB diagnostics with conversation analysis.
+
+**Usage**:
+
+```bash
+# Full comprehensive analysis (recommended)
+python scripts/enhanced_reflect_system.py --comprehensive conversation.log
+
+# Flight diagnostics only
+python scripts/enhanced_reflect_system.py --flight-diagnostics
+
+# Conversation analysis only
+python scripts/enhanced_reflect_system.py --analyze-conversation conversation.log
+
+# Show pending learnings
+python scripts/enhanced_reflect_system.py --pending-learnings
+```
+
+### 2. `ace_integration_bridge.py` (ACE Integration)
+
+Bridge between ACE reflector outputs and Reflect skill workflow.
+
+**Usage**:
+
+```bash
+# Test ACE integration
+python scripts/ace_integration_bridge.py test
+```
+
+### 2. `reflect_assistant.py` (Legacy)
+
+Helper script for basic memory discovery and rule auditing.
 
 **Usage**:
 
@@ -31,15 +62,21 @@ python scripts/reflect_assistant.py audit "Always use YAML" .
 
 ### 1. Analyze the Session
 
-Scan the conversation history (system prompts, user inputs, and your outputs) to identify:
+**Enhanced Approach**: Use `enhanced_reflect.py --comprehensive conversation.log` for automated analysis.
+
+**Manual Analysis**: Scan the conversation history (system prompts, user inputs, and your outputs) to identify:
 
 * **Corrections:** Instances where the user said "No," "Wrong," "Don't do X," or "Actually, use Y."
 * **Preferences:** Explicit instructions regarding coding style, naming conventions, or output formats (e.g., "Use `const` instead of `var`," "Always check for SQL injections").
 * **Success Patterns:** Approaches that elicited positive feedback.
-* **Mission Diagnostics:**
-  * **PFC/RTB Failures:** Analyze `Flight Director` logs for repeated warnings or errors (e.g., beads sync issues, missing documentation).
+* **Mission Diagnostics (Automatically Analyzed):**
+  * **PFC/RTB Failures:** Enhanced system automatically analyzes `FlightDirector` outputs for patterns (e.g., beads sync issues, missing documentation, git uncommitted changes).
   * **Tool Friction:** Note instances where tools failed or were used inefficiently (e.g., repetitive `ls` calls when `Glob` would have worked).
   * **Cleanup Oversights:** Identify temporary files or processes that were not properly terminated during RTB.
+
+**Learnings Layer**: All significant findings are automatically stored in `~/.gemini/learnings/pending_learnings.json` for review and application.
+
+**ACE Integration**: Graph quality insights from ACE reflector are automatically captured via `ace_integration_bridge.py` and stored as high-priority learnings.
 
 ### 2. Categorize Findings
 
@@ -67,10 +104,15 @@ Formulate an update that integrates the new learning into the target `SKILL.md`.
 
 ### 5. Execution & Versioning
 
-Upon user approval:
+**Enhanced Approach**: Use learnings layer for safe, tracked updates.
 
-1. **Edit:** Use the `Edit` tool to append or modify the `SKILL.md` file.
-2. **Commit (Optional):** If the skills directory is a Git repository, commit the change with a message: `docs(skills): update [skill name] with session learnings`.
+1. **Review Learnings**: Check pending learnings with `enhanced_reflect.py --pending-learnings`
+2. **Apply Updates**: High-confidence learnings can be applied automatically or with user approval
+3. **Learnings Layer**: Changes are tracked in `~/.gemini/learnings/applied_learnings.json` with timestamps
+4. **Skill Update**: Use the `Edit` tool to modify the target `SKILL.md` file
+5. **Git Versioning**: If the skills directory is a Git repository, commit the change with a message: `docs(skills): update [skill name] with session learnings [tag: learning_YYYYMMDD]`
+
+**Tag-Based Versioning**: Each learning is tagged with `learning_YYYYMMDD_HHMMSS` for easy rollback and tracking.
 
 ## Examples
 
@@ -80,15 +122,26 @@ Upon user approval:
 **User:** "/reflect The button styles were wrong."
 **Model:** "Understood. Scanning session for button style corrections... I see you requested `rounded-md` and `px-4`. I will add this to the 'UI Guidelines' section of `frontend/SKILL.md`."
 
-### 6. Post-Mission Debrief
+### 6. ACE Integration
+
+The LightRAG ACE reflector (`lightrag/ace/reflector.py`) feeds into the broader Reflect skill workflow:
+
+* **Graph Quality Reflection**: ACE reflector analyzes RAG/graph quality issues
+* **Learning Integration**: ACE reflection outputs are automatically stored as high-priority learnings
+* **Cross-Domain Learning**: Graph quality insights may inform broader coding practices and patterns
+* **Quality Standards**: ACE findings help establish data quality standards for other skills
+
+### 7. Post-Mission Debrief
 
 At the conclusion of a task or session (RTB):
 
 1. **Summarize Work**: Provide a clear list of what was accomplished (Beads issues closed).
 2. **Execution Stats**: Note any tool failures, significant latencies, or repetitive steps.
-3. **Lessons Learned**: Highlight key discoveries or pattern shifts.
-4. **Strategy Evolution**: Propose rule updates for `GEMINI.md` or other skills.
-5. **Next Steps**: Explicitly list specific Beads issues created or remaining.
+3. **Lessons Learned**: Highlight key discoveries or pattern shifts (automatically captured in learnings layer).
+4. **ACE Insights**: Include any graph quality lessons from ACE reflector analysis.
+5. **Strategy Evolution**: Propose rule updates for `GEMINI.md` or other skills.
+6. **Next Steps**: Explicitly list specific Beads issues created or remaining.
+7. **Review Learnings**: Check `enhanced_reflect.py --pending-learnings` for any missed insights.
 
 ## 📋 Mission Reflection Template
 
