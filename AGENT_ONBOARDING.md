@@ -2,12 +2,12 @@
 
 To initialize this project in a new environment or with a new agent (e.g., OpenCode, Claude CLI), follow these steps:
 
-1. **Read the Bootstrap Guide**: Immediately read `.agent/BOOTSTRAP.md` to understand project-specific initialization.
-2. **Run the Bootstrap Script**: Execute `./scripts/agent-init.sh` to automatically verify your toolchain and get up to speed on the mission state.
+1. **Read Bootstrap Guide**: Immediately read `.agent/BOOTSTRAP.md` to understand project-specific initialization.
+2. **Run Bootstrap Script**: Execute `./scripts/agent-init.sh` to automatically verify your toolchain and get up to speed on the mission state.
 
 ## 1. Anchor to Global Memory
 
-Identify the global configuration directories.
+Identify global configuration directories.
 > "Read the Global Agent Rules in `~/.gemini/GEMINI.md` and follow the Standard Mission Protocol (SMP). Use the Global Index at `~/.gemini/GLOBAL_INDEX.md` as your primary navigation map."
 
 ## 2. Verify Tool Availability
@@ -57,6 +57,34 @@ Read the following files to understand the mission status:
 1. `.agent/rules/ROADMAP.md`: High-level navigation.
 2. `.agent/rules/ImplementationPlan.md`: Technical breakdown.
 3. Execute `bd ready`: To see current unblocked tasks.
+
+### 📁 Updated Documentation Structure
+**Important**: Documentation structure was reorganized for better organization:
+
+```bash
+docs/
+├── sop/                     # SOP & Protocols (symbolic links to global sources)
+│   ├── global-configs/    # → ~/.gemini/ (GEMINI.md, GLOBAL_INDEX.md, etc.)
+│   ├── skills/            # → ../.agent/skills/
+│   └── workspace/          # → workspace_docs/
+├── project/                 # LightRAG-specific documentation
+│   ├── test_inputs/      # Historical test documents (preserved)
+│   ├── ARCHITECTURE.md
+│   ├── EVALUATION.md
+│   └── subsystems/
+├── external/                # External references and PDFs
+└── cross-ide/             # Cross-IDE and cross-agent compatibility
+```
+
+### 🔍 Key Navigation Changes:
+- **SOP Reference**: `docs/sop/global-configs/GEMINI.md` (symbolic link to `~/.gemini/GEMINI.md`)
+- **Project Docs**: `docs/project/` (LightRAG-specific)
+- **Test Data**: `docs/project/test_inputs/` (Historical test documents)
+- **Comprehensive Index**: `docs/sop/global-configs/GLOBAL_INDEX.md` (symbolic link to `~/.gemini/GLOBAL_INDEX.md`)
+- **Skills**: `docs/sop/skills/` (symbolic link to `../.agent/skills/`)
+
+### 🎯 Critical Test Document Recovery:
+**Note**: All test documents were accidentally deleted during cleanup but completely restored from git history and properly organized in `docs/project/test_inputs/`. This demonstrates importance of content verification before deletion.
 
 ## 5. Standard Mission Loop (RTB)
 
