@@ -10,10 +10,11 @@ These rules define the universal behavior and operational standards for agents a
 2. **Context Check**: Read `.agent/rules/ROADMAP.md` and `.agent/rules/ImplementationPlan.md` to understand current state.
 3. **Status Check**: Run `bd ready` to see active tasks.
 4. **Issue Check**: Ensure a Beads issue exists for the current objective. If not, create one using `bd create`.
-5. **Flight Director**: Use the `Flight Director` skill to verify that all PFC procedures are strictly followed. Run: `python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --pfc`
+5. **Flight Director**: Use the `Flight Director` skill to verify that all PFC procedures are strictly followed. Run: `python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --pfc`. **NOTE**: Approvals in `task.md` are only valid for 4 hours; stale timestamps will block takeoff.
 6. **Navigation Check**: Verify readability of `~/.gemini/GLOBAL_INDEX.md` and confirm access to the current project's entry in the index.
 7. **Markdown Check**: Run `markdownlint` on planning documents to ensure rendering integrity.
 8. **Initialization**: Formulate the initial task list and announce the starting objective.
+9. **Execution Handshake**: For high-impact or long-running tasks, explicitly list the next steps and wait for a "Go" signal before initiating execution.
 
 ## ✈️ In-Flight Operations (IFO)
 
@@ -58,7 +59,8 @@ These rules define the universal behavior and operational standards for agents a
 9. **Verification**: Ensure `git status` shows up-to-date with origin.
 10. **Handoff**: Provide a clear summary of what was done, **list specific Beads issues created**, what skills were used, any suggestions for skill management, and what should be done next.
 11. **Self-Evolution**: Execute the `reflect` skill (e.g., `/reflect`) to analyze the session for "memories"—specific corrections, preferences, or tool friction—and update relevant `SKILL.md` files or global rules to permanently implement the "correct once, never again" philosophy.
-12. **Post-Mission Debrief**: Include a comprehensive debrief summary after all work is completed. This should cover:
+12. **Clear Plan Approval**: Remove or neutralize the `## Approval` marker in `task.md` to prevent accidental auto-starts in the next session.
+13. **Post-Mission Debrief**: Include a comprehensive debrief summary after all work is completed. This should cover:
     - **Process Review**: Successes and friction points in the development cycle.
     - **Lessons Learned**: Significant technical or strategic discoveries.
     - **Strategy Evolution**: Suggestions for rule modifications, skill improvements, or anti-pattern logging.

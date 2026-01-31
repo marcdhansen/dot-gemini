@@ -110,17 +110,48 @@ docs/
 
 **Note**: All test documents were accidentally deleted during cleanup but completely restored from git history and properly organized in `docs/project/test_inputs/`. This demonstrates importance of content verification before deletion.
 
-## 6. Standard Mission Loop (RTB)
+## 6. Standard Development Workflow (Spec-Driven TDD)
+
+This project follows **spec-driven Test-Driven Development (TDD)**. All work must follow this workflow:
+
+### A. Specification First
+1. **Read the specification** for the feature/bug you're implementing
+2. **Understand requirements** completely before writing any code
+3. **Ask clarifying questions** if the specification is ambiguous
+
+### B. Test-Driven Development
+1. **Write failing tests** that match the specification requirements
+2. **Run tests** to confirm they fail (red phase)
+3. **Implement minimal code** to make tests pass (green phase)
+4. **Refactor** while keeping tests passing (refactor phase)
+
+### C. Quality Gates
+Before any code is considered complete:
+
+```bash
+# Run all quality checks
+pytest                    # Run tests
+ruff check                # Lint code
+ruff format               # Format code
+mypy                      # Type checking (if applicable)
+```
+
+### D. Integration Verification
+1. **Manual testing** for UI/API changes
+2. **Integration tests** for cross-component features
+3. **Performance tests** for critical paths (if applicable)
+
+## 7. Standard Mission Loop (RTB)
 
 You MUST execute the **Return To Base (RTB)** procedure before ending your session:
 
-1. Run project-specific linters/tests.
+1. **Run quality gates** (tests, linters, formatters).
 2. Update/Close Beads issues.
 3. Execute `/reflect` to save session learnings to `~/.gemini/GEMINI.md`.
 4. **Run `./scripts/agent-end.sh`** - Clean up your session lock file.
 5. Run `bd sync` and `git push`.
 
-## 7. Long-Term Memory (Automem)
+## 8. Long-Term Memory (Automem)
 
 This project uses **Automem** for graph+vector long-term memory across sessions.
 
@@ -150,7 +181,7 @@ This project uses **Automem** for graph+vector long-term memory across sessions.
 - **FalkorDB**: Port 6380 (graph database)
 - **Qdrant**: Port 6333 (vector database)
 
-## 8. Observability (Langfuse)
+## 9. Observability (Langfuse)
 
 This project uses **Langfuse** for tracing LLM calls and RAGAS evaluations.
 
