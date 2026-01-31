@@ -88,5 +88,20 @@
     "id": "learning_20260130_004455_6",
     "created_at": "2026-01-30T00:44:55.058861",
     "status": "pending"
+  },
+  {
+    "source": "conversation",
+    "content": {
+      "line_number": 4,
+      "pattern": "always use",
+      "line": "[ASSISTANT]: Understood. I will always use YAML for extraction with small models.",
+      "context": "[ASSISTANT]: I'll check the prompts. It seems the entity extraction prompt doesn't explicitly look for 'Person' in some cases.\n[USER]: No, actually, use YAML for all extractions from now on. It parses better for these small models.\n[ASSISTANT]: Understood. I will always use YAML for extraction with small models.\n",
+      "confidence": "high",
+      "type": "best_practice"
+    },
+    "type": "skill_update",
+    "id": "learning_20260130_232624_4",
+    "created_at": "2026-01-30T23:26:24.908305",
+    "status": "pending"
   }
 ]
