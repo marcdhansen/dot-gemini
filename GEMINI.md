@@ -21,11 +21,12 @@ These rules define the universal behavior and operational standards for agents a
 **GUIDELINES: Operational standards during execution.**
 
 1. **Autopilot**: Keep `task.md` updated as the living source of truth.
-2. **Turbulence**: If a step fails, investigate logs and documentation before asking the user.
-3. **Black Box**: Record significant decisions in `implementation_plan.md` or `walkthrough.md`.
-4. **Course Correction**: If the plan needs to change, switch to PLANNING mode and update artifacts first.
-5. **UI Testing**: For code changes that affect the UI, the agent must test the state by running the browser and monitoring the output. Only after automatic UI validation should the user be asked to manually verify the UI.
-6. **UI Integrity**: Use Playwright to verify any changes that affect the UI. This is a standard rule for UI modifications.
+2. **Spec-Driven TDD**: Every functional change must start with a specification and a failing test case (Red phase) before implementation (Green phase).
+3. **Turbulence**: If a step fails, investigate logs and documentation before asking the user.
+4. **Black Box**: Record significant decisions in `implementation_plan.md` or `walkthrough.md`.
+5. **Course Correction**: If the plan needs to change, switch to PLANNING mode and update artifacts first.
+6. **UI Testing**: For code changes that affect the UI, the agent must test the state by running the browser and monitoring the output. Only after automatic UI validation should the user be asked to manually verify the UI.
+7. **UI Integrity**: Use Playwright to verify any changes that affect the UI. This is a standard rule for UI modifications.
 
 ## 🛬 Return To Base (RTB)
 
@@ -70,6 +71,20 @@ These rules define the universal behavior and operational standards for agents a
 1. **ROADMAP.md**: High-level navigation and current objective status (stored in `.agent/rules/`).
 2. **ImplementationPlan.md**: Detailed technical breakdown and phase tracking (stored in `.agent/rules/`).
 3. **Beads (`bd`)**: Granular task management and dependency tracking.
+
+## 🧪 Spec-Driven TDD Protocol
+
+All development MUST follow the Spec-Driven Test-Driven Development (TDD) cycle:
+
+1. **Specification**: Define the objective, requirements, and success criteria in `task.md` or `ImplementationPlan.md`.
+2. **Test Selection/Creation**:
+    - Identify existing tests that should pass.
+    - Create new test cases (Python `pytest` or WebUI `playwright`) that verify the new functionality or reproduce the bug.
+    - **MANDATORY**: Run the tests and confirm they FAIL (Red phase).
+3. **Implementation**: Write the minimum amount of code required to make the tests pass.
+4. **Verification**: Run the tests and confirm they PASS (Green phase).
+5. **Refactor**: Improve the code while ensuring tests remain green.
+6. **Audit**: For LLM-based features, run benchmarks/audits to ensure no regression in quality (accuracy, latency).
 
 ## 🐚 Beads Field Manual
 
