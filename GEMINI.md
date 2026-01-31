@@ -6,15 +6,16 @@ These rules define the universal behavior and operational standards for agents a
 
 **MANDATORY: Run at the start of every session.**
 
-1. **Tool Check**: Verify all required tools (e.g., `bd`, `uv`, `docker`) are available.
-2. **Context Check**: Read `.agent/rules/ROADMAP.md` and `.agent/rules/ImplementationPlan.md` to understand current state.
-3. **Status Check**: Run `bd ready` to see active tasks.
-4. **Issue Check**: Ensure a Beads issue exists for the current objective. If not, create one using `bd create`.
-5. **Flight Director**: Use the `Flight Director` skill to verify that all PFC procedures are strictly followed. Run: `python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --pfc`. **NOTE**: Approvals in `task.md` are only valid for 4 hours; stale timestamps will block takeoff.
-6. **Navigation Check**: Verify readability of `~/.gemini/GLOBAL_INDEX.md` and confirm access to the current project's entry in the index.
-7. **Markdown Check**: Run `markdownlint` on planning documents to ensure rendering integrity.
-8. **Initialization**: Formulate the initial task list and announce the starting objective.
-9. **Execution Handshake**: For high-impact or long-running tasks, explicitly list the next steps and wait for a "Go" signal before initiating execution.
+1. **Isolation Check**: Ensure you are working on a dedicated branch (not `main` or `master`) and ideally in a dedicated worktree (e.g., path contains `task-`).
+2. **Tool Check**: Verify all required tools (e.g., `bd`, `uv`, `docker`) are available.
+3. **Context Check**: Read `.agent/rules/ROADMAP.md` and `.agent/rules/ImplementationPlan.md` to understand current state.
+4. **Status Check**: Run `bd ready` to see active tasks.
+5. **Issue Check**: Ensure a Beads issue exists for the current objective. If not, create one using `bd create`.
+6. **Flight Director**: Use the `Flight Director` skill to verify that all PFC procedures (including Git isolation) are strictly followed. Run: `python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --pfc`. **NOTE**: Approvals in `task.md` are only valid for 4 hours; stale timestamps will block takeoff.
+7. **Navigation Check**: Verify readability of `~/.gemini/GLOBAL_INDEX.md` and confirm access to the current project's entry in the index.
+8. **Markdown Check**: Run `markdownlint` on planning documents to ensure rendering integrity.
+9. **Initialization**: Formulate the initial task list and announce the starting objective.
+10. **Execution Handshake**: For high-impact or long-running tasks, explicitly list the next steps and wait for a "Go" signal before initiating execution.
 
 ## ✈️ In-Flight Operations (IFO)
 

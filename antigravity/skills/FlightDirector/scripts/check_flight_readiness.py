@@ -24,10 +24,45 @@ def run_command(command, cwd=None):
         return None, 1
 
 
+def check_git_isolation():
+    """Verify the agent is NOT on main/master and is using an isolated path."""
+    print("🛡️ Checking Git Isolation...")
+    errors = []
+
+    # 1. Check current branch
+    branch_cmd = "git rev-parse --abbrev-ref HEAD"
+    branch, code = run_command(branch_cmd)
+    if code == 0:
+        if branch in ["main", "master"]:
+            errors.append(
+                f"❌ Git Isolation Violation: Currently on prohibited branch '{branch}'. "
+                "Use 'git checkout -b task/name' or 'bd worktree create name'."
+            )
+        else:
+            print(f"✅ Branch: {branch}")
+    else:
+        errors.append("❌ Git Isolation Check: Could not determine current branch.")
+
+    # 2. Check path for isolation keywords (optional but recommended)
+    cwd = str(Path.cwd())
+    if "task-" not in cwd.lower() and "worktree" not in cwd.lower() and branch not in cwd:
+        # This is a soft check, some users might just use branches. 
+        # But global rules prefer worktrees for parallel agents.
+        print("⚠️ Path Isolation: No isolated path detected (e.g., 'task-' prefix).")
+    else:
+        print("✅ Path Isolation: Detected")
+
+    return errors
+
+
 def check_pfc():
-    """Pre-Flight Check: Verify Beads issue and Task artifact."""
+    """Pre-Flight Check: Verify Beads issue, Task artifact, and Isolation."""
     print("🛫 Initiating Pre-Flight Check (PFC)...")
     errors = []
+
+    # 0. Check Git Isolation (MANDATORY)
+    isolation_errors = check_git_isolation()
+    errors.extend(isolation_errors)
 
     # 1. Check Beads
     bd_check, code = run_command("bd ready")
