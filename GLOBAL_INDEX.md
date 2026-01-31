@@ -5,12 +5,14 @@
 
 ## 🧠 Global Memory & Rules
 
-- [GEMINI.md](GEMINI.md) - Global Agent Rules
-- [MISSION_NOMENCLATURE.md](MISSION_NOMENCLATURE.md) - Terms and Definitions
-- [SELF_EVOLUTION_GLOBAL.md](SELF_EVOLUTION_GLOBAL.md) - Global Self-Evolution Strategy
-- [HOW_TO_USE_BEADS.md](HOW_TO_USE_BEADS.md) - Beads Usage Guide
-- [CROSS_COMPATIBILITY.md](CROSS_COMPATIBILITY.md) - Design for multi-IDE/agent support
-- [AGENT_ONBOARDING.md](AGENT_ONBOARDING.md) - Agent Onboarding Guide
+**IMPORTANT**: Global standards have moved to the standardized `~/.agent/` structure. See the [Global Agent Hub](~/.agent/README.md) for the complete documentation.
+
+- **Main Hub**: [~/.agent/README.md](~/.agent/README.md) - Global Agent Coordination Center
+- **Global Rules**: [~/.agent/docs/sop/GEMINI.md](~/.agent/docs/sop/GEMINI.md) - Global Agent Rules (SMP)
+- **Standards**: [~/.agent/docs/sop/](~/.agent/docs/sop/) - Complete Standard Operating Procedures
+- **Skills**: [~/.agent/skills/](~/.agent/skills/) - Universal agent capabilities
+
+*Legacy files remain in this directory for backward compatibility but are deprecated in favor of the ~/.agent/ structure.*
 
 ## 📚 Projects
 
@@ -63,13 +65,18 @@
 
 ## 🧰 Skills
 
-- **Global**
-  - [Flight Director](antigravity/skills/FlightDirector/SKILL.md)
-  - [Librarian](antigravity/skills/Librarian/SKILL.md)
-  - [Quality Analyst](antigravity/skills/QualityAnalyst/SKILL.md)
-  - [Reflect](antigravity/skills/Reflect/SKILL.md)
-  - [JavaScript](antigravity/skills/JavaScript/SKILL.md)
-  - [Coding Standards](antigravity/skills/coding-standards/SKILL.md)
+**IMPORTANT**: Global skills have moved to the standardized `~/.agent/skills/` structure.
+
+- **Global Skills Hub**: [~/.agent/skills/README.md](~/.agent/skills/README.md) - Universal capabilities
+- **Available Skills**: [~/.agent/skills/](~/.agent/skills/) - All global agent skills
+- **Flight Director**: [~/.agent/skills/FlightDirector/SKILL.md](~/.agent/skills/FlightDirector/SKILL.md)
+- **Librarian**: [~/.agent/skills/Librarian/SKILL.md](~/.agent/skills/Librarian/SKILL.md)
+- **Quality Analyst**: [~/.agent/skills/QualityAnalyst/SKILL.md](~/.agent/skills/QualityAnalyst/SKILL.md)
+- **Reflect**: [~/.agent/skills/Reflect/SKILL.md](~/.agent/skills/Reflect/SKILL.md)
+- **JavaScript**: [~/.agent/skills/JavaScript/SKILL.md](~/.agent/skills/JavaScript/SKILL.md)
+- **Coding Standards**: [~/.agent/skills/coding-standards/SKILL.md](~/.agent/skills/coding-standards/SKILL.md)
+
+*Legacy skill links remain for backward compatibility.*
 
 - **Workspace Skills**
   - [UI](../antigravity_lightrag/.agent/skills/ui/SKILL.md)
