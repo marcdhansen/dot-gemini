@@ -20,7 +20,66 @@ which bd uv python git
 
 *If `bd` is missing, run `bd onboard` or follow the guide in `~/.gemini/HOW_TO_USE_BEADS.md`.*
 
-## 3. Initialize Mission Readiness (PFC)
+## 3. Check for Active Agents (Multi-Agent Coordination)
+
+**CRITICAL**: Before starting work, check if other agents are currently active on this project to avoid conflicts.
+
+### Multi-Agent Coordination Protocol
+
+This project uses a **session lock system** to coordinate multiple agents working simultaneously.
+
+#### Step A: Check Active Sessions
+```bash
+./scripts/agent-status.sh
+```
+
+**If other agents are active:**
+- Review what tasks they're working on
+- Choose a different task from `bd ready`
+- Or coordinate with them before proceeding
+- **Never work on the same task simultaneously without coordination**
+
+#### Step B: Create Your Session Lock
+Once you've selected a task, register your session:
+
+```bash
+./scripts/agent-start.sh --task-id <issue-id> --task-desc "Brief description of work"
+```
+
+**Example:**
+```bash
+./scripts/agent-start.sh --task-id lightrag-993 --task-desc "Implement agent coordination system"
+```
+
+This creates a lock file in `.agent/session_locks/` that other agents can see.
+
+#### Step C: Clean Up When Done
+Always end your session properly:
+
+```bash
+./scripts/agent-end.sh
+```
+
+This removes your lock file and allows other agents to see you're no longer working.
+
+### Conflict Prevention Rules
+
+1. **Always run `agent-status.sh` before starting** - Check for active agents
+2. **Always run `agent-start.sh` when beginning work** - Register your session
+3. **Always run `agent-end.sh` when finishing** - Clean up your lock
+4. **Never work on the same issue as another active agent** without explicit coordination
+5. **Use separate branches** - Each agent should work on `agent/<name>/task-<id>`
+
+### SQLite Database Mode
+
+**Important**: This project uses beads with SQLite database (not JSONL-only mode) for better multi-agent coordination:
+- ACID guarantees prevent data corruption during concurrent access
+- Better query performance for complex task management
+- Automatic synchronization between agents via git
+
+The configuration is in `.beads/config.yaml`: `no-db: false`
+
+## 4. Initialize Mission Readiness (PFC)
 
 Run the **Pre-Flight Check (PFC)** to align with the current project state:
 
@@ -50,7 +109,7 @@ You can automate the complete onboarding process including service startup and v
 ./scripts/agent-init.sh  # Original toolchain + PFC only
 ```
 
-## 4. Connect to Project Brain
+## 5. Connect to Project Brain
 
 Read the following files to understand the mission status:
 
@@ -86,16 +145,17 @@ docs/
 ### 🎯 Critical Test Document Recovery:
 **Note**: All test documents were accidentally deleted during cleanup but completely restored from git history and properly organized in `docs/project/test_inputs/`. This demonstrates importance of content verification before deletion.
 
-## 5. Standard Mission Loop (RTB)
+## 6. Standard Mission Loop (RTB)
 
 You MUST execute the **Return To Base (RTB)** procedure before ending your session:
 
 1. Run project-specific linters/tests.
 2. Update/Close Beads issues.
 3. Execute `/reflect` to save session learnings to `~/.gemini/GEMINI.md`.
-4. Run `bd sync` and `git push`.
+4. **Run `./scripts/agent-end.sh`** - Clean up your session lock file.
+5. Run `bd sync` and `git push`.
 
-## 6. Long-Term Memory (Automem)
+## 7. Long-Term Memory (Automem)
 
 This project uses **Automem** for graph+vector long-term memory across sessions.
 
@@ -121,7 +181,7 @@ This project uses **Automem** for graph+vector long-term memory across sessions.
 - **FalkorDB**: Port 6380 (graph database)
 - **Qdrant**: Port 6333 (vector database)
 
-## 7. Observability (Langfuse)
+## 8. Observability (Langfuse)
 
 This project uses **Langfuse** for tracing LLM calls and RAGAS evaluations.
 
