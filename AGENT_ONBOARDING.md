@@ -149,7 +149,18 @@ You MUST execute the **Return To Base (RTB)** procedure before ending your sessi
 2. Update/Close Beads issues.
 3. Execute `/reflect` to save session learnings to `~/.gemini/GEMINI.md`.
 4. **Run `./scripts/agent-end.sh`** - Clean up your session lock file.
-5. Run `bd sync` and `git push`.
+5. **Push LightRAG repository**:
+   ```bash
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+6. **Push Global Memory (~/.gemini)**:
+   ```bash
+   cd ~/.gemini && git status
+   cd ~/.gemini && git add -A && git commit -m "Session learnings and SOP updates"
+   cd ~/.gemini && git push
+   ```
 
 ## 8. Long-Term Memory (Automem)
 
