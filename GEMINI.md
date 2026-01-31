@@ -27,6 +27,7 @@ These rules define the universal behavior and operational standards for agents a
 5. **Course Correction**: If the plan needs to change, switch to PLANNING mode and update artifacts first.
 6. **UI Testing**: For code changes that affect the UI, the agent must test the state by running the browser and monitoring the output. Only after automatic UI validation should the user be asked to manually verify the UI.
 7. **UI Integrity**: Use Playwright to verify any changes that affect the UI. This is a standard rule for UI modifications.
+8. **Container Management**: If it is necessary to bring up containers, run Docker without Docker Desktop to minimize resource consumption (e.g., use CLI-based alternatives like OrbStack or Colima).
 
 ## 🛬 Return To Base (RTB)
 
