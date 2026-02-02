@@ -8,7 +8,7 @@ To initialize this project in a new environment or with a new agent (e.g., OpenC
 ## 1. Anchor to Global Memory
 
 Identify global configuration directories.
-> "Read the Global Agent Rules in `~/.gemini/GEMINI.md` and follow the Standard Mission Protocol (SMP). Use the Global Index at `~/.gemini/GLOBAL_INDEX.md` as your primary navigation map."
+> "Read the Universal Agent Protocol in `~/.agent/AGENTS.md` and follow the Standard Mission Protocol (SMP). Use the Global Index at `~/.agent/docs/GLOBAL_INDEX.md` as your primary navigation map."
 
 ## 2. Verify Tool Availability
 

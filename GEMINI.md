@@ -1,6 +1,25 @@
-# 🌐 Global Agent Rules: Standard Mission Protocol (SMP)
+# 🌟 Gemini Agent Configuration
 
-These rules define the universal behavior and operational standards for agents across all workspaces.
+**Purpose**: Gemini-specific configuration and capabilities.
+
+## 🚀 **Universal Standards**
+
+For universal agent protocols, skills, and documentation:
+→ **Read** [~/.agent/AGENTS.md](~/.agent/AGENTS.md)
+
+## 🔧 **Gemini-Specific Configuration**
+
+- Google Accounts: [google_accounts.json](google_accounts.json)
+- Agent State: [state.json](state.json)
+- Provider Settings: (various config files)
+
+## 📚 **Complete Navigation**
+
+→ **Master Index**: [~/.agent/docs/GLOBAL_INDEX.md](~/.agent/docs/GLOBAL_INDEX.md)
+
+---
+
+*Universal protocols have moved to [~/.agent/AGENTS.md](~/.agent/AGENTS.md) for cross-agent compatibility.*
 
 ## 🛫 Pre-Flight Check (PFC)
 
