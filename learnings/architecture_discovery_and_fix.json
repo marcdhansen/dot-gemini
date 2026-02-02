@@ -1,0 +1,43 @@
+{
+  "id": "learning_$(date +%Y%m%d_%H%M%S)_1",
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+  "source": "architecture_analysis",
+  "content": {
+    "topic": "dual_directory_structure_confusion",
+    "problem": "Confusion between ~/.gemini/ and ~/.agent/ as single source of truth - both contained comprehensive content with different update patterns",
+    "discovery": "Found ~/.gemini contains 22 items, ~/.agent contains 9 items, ~/.gemini was not a symlink to ~/.agent but a separate directory with richer content",
+    "solution": "Establish ~/.agent/ as single source of truth by migrating unique content from ~/.gemini/ and updating symlinks appropriately",
+    "evidence": {
+      "items_counts": {
+        "~/.gemini/": 22,
+        "~/.agent/": 9
+      },
+      "migration_recommended": true,
+      "architecture_clarification_script_created": true
+    },
+    "improvements_implemented": [
+      "Created 5 automated validation systems (symlink health, skill discovery, version consistency, config management, reference integrity)",
+      "Implemented dynamic skill discovery replacing hardcoded paths",
+      "Established centralized configuration management with multi-source loading",
+      "Created cross-reference integrity checking with automatic fix capabilities",
+      "Updated documentation to reflect correct single source of truth location",
+      "Fixed naming convention inconsistencies across all documentation"
+    ],
+    "lessons_learned": [
+      "Directory architecture needs clear documentation to prevent confusion",
+      "Automated systems are essential for cross-agent compatibility",
+      "Content analysis should drive structural decisions",
+      "Symlinks solve sandbox limitations but require health monitoring",
+      "Migration should be systematic and reversible",
+      "Single source of truth must be directory with most comprehensive content"
+    ],
+    "next_steps": [
+      "Complete migration of unique content from ~/.gemini/ to ~/.agent/",
+      "Integrate validation scripts into mandatory RTB workflow",
+      "Create continuous monitoring for structural health",
+      "Document architecture decisions for future reference"
+    ]
+  },
+  "type": "architecture_improvement",
+  "status": "applied"
+}
