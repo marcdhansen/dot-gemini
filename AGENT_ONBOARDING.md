@@ -20,9 +20,31 @@ which bd uv python git
 
 *If `bd` is missing, run `bd onboard` or follow the guide in `~/.gemini/HOW_TO_USE_BEADS.md`.*
 
-## 3. Mission Readiness & Coordination (Multi-Agent Protocol)
+## 3. Agent System Selection: SMP vs OpenViking
 
-This project uses an automated **session coordination system** to prevent multiple agents from conflicting on the same task.
+This project supports **two agent systems**. Choose based on your requirements:
+
+### SMP (Standard Mission Protocol)
+- **Use for**: Established workflows, compatibility requirements
+- **Features**: File-based skills, proven stability
+- **Port**: :9621 for LightRAG integration
+
+### OpenViking (Enhanced Agent System)  
+- **Use for**: New projects, token efficiency, AI-powered workflows
+- **Features**: Dynamic skill discovery, conversation memory, 40% faster responses
+- **Port**: :9622 for LightRAG integration
+- **Setup**: See `.agent/skills/openviking/SKILL.md`
+
+**Quick OpenViking Setup:**
+```bash
+export OPENAI_API_KEY=your-key-here
+./openviking/scripts/manage.sh start
+./openviking/scripts/manage.sh status
+```
+
+## 4. Mission Readiness & Coordination (Multi-Agent Protocol)
+
+This project uses an automated **session coordination system** that supports both SMP and OpenViking agents to prevent conflicts on the same task.
 
 ### Step A: Initialize Mission & Session
 
@@ -35,11 +57,12 @@ Run the enhanced bootstrap script. This will check tool availability, show activ
 **What it does:**
 
 1. **Tool Check**: Verifies `bd`, `uv`, `python`, `git`.
-2. **Agent Status**: Shows who else is working and on what.
-3. **Registration**: Prompts for your Task ID and description.
-4. **Heartbeat**: Automatically starts a background heartbeat to keep your session active.
-5. **Conflict Check**: Calls Flight Director PFC to ensure no one else is on your task.
-6. **Persistence**: Ensures your session is labeled in Beads (`bd list`).
+2. **Agent System Detection**: Identifies SMP vs OpenViking availability.
+3. **Agent Status**: Shows who else is working and on what (both systems).
+4. **Registration**: Prompts for your Task ID and description.
+5. **Heartbeat**: Automatically starts a background heartbeat to keep your session active.
+6. **Conflict Check**: Calls Flight Director PFC to ensure no one else is on your task.
+7. **Persistence**: Ensures your session is labeled in Beads (`bd list`).
 
 ### Step B: Operational Rules
 
@@ -51,18 +74,21 @@ Run the enhanced bootstrap script. This will check tool availability, show activ
 
 If you need to manage your session manually:
 
-- `./scripts/agent-status.sh`: Check active/stale sessions.
+- `./scripts/agent-status.sh`: Check active/stale sessions (both SMP and OpenViking).
 - `./scripts/agent-start.sh --task-id <id>`: Start a new session.
 - `./scripts/agent-end.sh`: End current session and stop heartbeat.
+- `./openviking/scripts/manage.sh status`: OpenViking-specific service status.
 
 **Enhanced Features:**
 
 - ✅ Comprehensive environment validation (tools, paths, Docker)
+- ✅ Agent system detection (SMP vs OpenViking)
 - ✅ Port conflict detection and reporting
-- ✅ Automated service startup (Automem + Langfuse)
+- ✅ Automated service startup (Automem + Langfuse + OpenViking if available)
 - ✅ Health check verification with retry logic
 - ✅ Service auto-recovery (single restart attempt)
 - ✅ Integration smoke testing (memory storage/retrieval)
+- ✅ OpenViking performance baseline testing
 - ✅ Detailed error reporting and troubleshooting guidance
 
 **Fallback (basic mode):**
@@ -110,7 +136,34 @@ docs/
 
 **Note**: All test documents were accidentally deleted during cleanup but completely restored from git history and properly organized in `docs/project/test_inputs/`. This demonstrates importance of content verification before deletion.
 
-## 6. Standard Development Workflow (Spec-Driven TDD)
+## 6. Agent System Operations
+
+### SMP Workflow
+Traditional file-based skill system using `.agent/skills/` directory structure.
+
+### OpenViking Workflow  
+AI-powered agent system with dynamic skill discovery and enhanced conversation memory.
+
+**OpenViking Quick Reference:**
+- **Documentation**: `.agent/skills/openviking/SKILL.md`
+- **Management**: `./openviking/scripts/manage.sh`
+- **API Port**: 8000 (direct), 9622 (LightRAG integration)
+- **Memory System**: Redis-based conversation persistence
+- **Performance Target**: 40% faster, 20% fewer tokens than SMP
+
+**Health Verification:**
+```bash
+# OpenViking API health
+curl -f http://localhost:8000/health
+
+# OpenViking LightRAG integration health  
+curl -f http://localhost:9622/health
+
+# Performance comparison
+./openviking/scripts/manage.sh compare
+```
+
+## 7. Standard Development Workflow (Spec-Driven TDD)
 
 This project follows **spec-driven Test-Driven Development (TDD)**. All work must follow this workflow:
 
@@ -141,28 +194,41 @@ mypy                      # Type checking (if applicable)
 2. **Integration tests** for cross-component features
 3. **Performance tests** for critical paths (if applicable)
 
-## 7. Standard Mission Loop (RTB)
+## 8. Standard Mission Loop (RTB)
 
 You MUST execute the **Return To Base (RTB)** procedure before ending your session:
 
 1. **Run quality gates** (tests, linters, formatters).
 2. Update/Close Beads issues.
-3. Execute `/reflect` to save session learnings to `~/.gemini/GEMINI.md`.
-4. **Run `./scripts/agent-end.sh`** - Clean up your session lock file.
-5. **Push LightRAG repository**:
+3. **System-specific verification**:
+   - **SMP**: Verify session locks cleaned up
+   - **OpenViking**: Verify API health and memory persistence
+4. Execute `/reflect` to save session learnings to `~/.gemini/GEMINI.md`.
+5. **Run `./scripts/agent-end.sh`** - Clean up your session lock file.
+6. **Push LightRAG repository**:
    ```bash
    bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```
-6. **Push Global Memory (~/.gemini)**:
+7. **Push Global Memory (~/.gemini)**:
    ```bash
    cd ~/.gemini && git status
    cd ~/.gemini && git add -A && git commit -m "Session learnings and SOP updates"
    cd ~/.gemini && git push
    ```
 
-## 8. Long-Term Memory (Automem)
+**OpenViking RTB Additions:**
+```bash
+# Verify OpenViking services are healthy
+curl -f http://localhost:8000/health
+./openviking/scripts/manage.sh status
+
+# Optional: Performance comparison if testing
+./openviking/scripts/manage.sh compare > /tmp/rtb_comparison.log
+```
+
+## 9. Long-Term Memory Systems
 
 This project uses **Automem** for graph+vector long-term memory across sessions.
 
@@ -192,7 +258,7 @@ This project uses **Automem** for graph+vector long-term memory across sessions.
 - **FalkorDB**: Port 6380 (graph database)
 - **Qdrant**: Port 6333 (vector database)
 
-## 9. Observability (Langfuse)
+## 10. Observability (Langfuse)
 
 This project uses **Langfuse** for tracing LLM calls and RAGAS evaluations.
 
@@ -219,6 +285,8 @@ This project uses **Langfuse** for tracing LLM calls and RAGAS evaluations.
 
 ## 📚 Additional Documentation
 
+- **🤖 OpenViking Skill**: `.agent/skills/openviking/SKILL.md` - Complete OpenViking agent guide
 - **📖 Service Setup Guide**: `SERVICE_SETUP.md` - Comprehensive service configuration and troubleshooting
 - **🔧 Troubleshooting**: Check `SERVICE_SETUP.md` for common issues and solutions
 - **🐳 Docker Reference**: Service-specific Docker commands and configuration
+- **📊 OpenViking Guide**: `openviking/docs/experiment_guide.md` - A/B testing and migration procedures
