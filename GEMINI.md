@@ -1,5 +1,9 @@
 # 🌟 Gemini Agent Configuration
 
+**Scope**: **PROVIDER-SPECIFIC** — This file is ONLY for Gemini/Google-specific configuration.
+> [!IMPORTANT]
+> **NO UNIVERSAL PROTOCOLS**: Do not add SMP, PFC, or RTB procedures here. All universal protocols must reside in `~/.agent/AGENTS.md`.
+
 **Purpose**: Gemini-specific configuration and capabilities.
 
 ## 🚀 **Universal Standards**
