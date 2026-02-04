@@ -492,6 +492,23 @@ class BeadsIntegration:
         print("   Example: 1,3,5")
         print("   Press Enter to skip all tasks")
 
+        # Check for non-interactive environment
+        import sys
+        import os
+
+        is_non_interactive = (
+            not sys.stdin.isatty()
+            or os.getenv("CI")
+            or os.getenv("GITHUB_ACTIONS")
+            or os.getenv("AUTOMATED_MODE")
+        )
+
+        if is_non_interactive:
+            print(
+                "🤖 Non-interactive mode detected - Auto-selecting all recommended tasks"
+            )
+            return [rec["title"] for rec in recommendations]
+
         try:
             selection = input("Your selection: ").strip()
 
