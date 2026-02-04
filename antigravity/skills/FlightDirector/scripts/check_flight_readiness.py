@@ -375,10 +375,16 @@ def run_rtb(verbose: bool = False) -> bool:
     # Branch Info
     branch, is_feature = check_branch_info()
     branch_icon = check_mark(is_feature) if is_feature else warning_mark()
-    print(f"└── Branch: {branch_icon} {branch}")
+    print(f"├── Branch: {branch_icon} {branch}")
     if not is_feature and branch not in ["main", "master"]:
         warnings.append(f"Not on a feature branch: {branch}")
-    
+
+    # Reflection Check (Enforced at RTB to ensure it's not skipped)
+    reflect_ok, reflect_msg = check_reflection_invoked()
+    print(f"└── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
+    if not reflect_ok:
+        blockers.append("Reflection not captured - invoke /reflect (Mandatory for RTB)")
+
     print()
     
     # Summary
