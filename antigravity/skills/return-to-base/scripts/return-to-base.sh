@@ -20,6 +20,101 @@ check_success() {
 echo "🔍 1. Pre-Flight Validation"
 echo "---------------------------"
 
+# 1.1 Devil's Advocate Activation (STRONGLY RECOMMENDED)
+echo "👹 1.1. Devil's Advocate - Critical Thinking & Unbiased Feedback"
+echo "-----------------------------------------------------------"
+
+# Check if this is a start of a work session (no recent git activity)
+RECENT_ACTIVITY=$(git log --since="1 hour ago" --oneline | wc -l)
+if [ "$RECENT_ACTIVITY" -eq 0 ]; then
+    echo "🚀 NEW WORK SESSION DETECTED - Devil's Advocate Recommended"
+    echo ""
+    echo "📋 DEVIL'S ADVOCATE PERSONA:"
+    echo "   🔍 Skeptical Challenge: Question assumptions vigorously"
+    echo "   🎯 Counterargument Generation: Play devil's advocate rigorously"
+    echo "   ⚖️  Evidence Scrutiny: Demand specific data, reject anecdotes"
+    echo "   ⚡ Consequence Analysis: Highlight risks and negative outcomes"
+    echo "   🔬 Alternative Exploration: Different approaches with trade-offs"
+    echo ""
+    echo "🎯 UNBIASED FEEDBACK STRATEGY:"
+    echo "   • Challenge every assumption: 'What if this is wrong?'"
+    echo "   • Demand specific evidence: 'Show me the data'"
+    echo "   • Stress-test ideas: 'What are the 5 biggest problems?'"
+    echo "   • Consider alternatives: 'What if we did the opposite?'"
+    echo "   • Surface consequences: 'What could go wrong here?'"
+    echo "   • User perspective: 'How would this impact the user experience?'"
+    echo ""
+    echo "⚠️  ACTIVATION METHODS:"
+    echo "   • /devils-advocate - Activate for critical decision making"
+    echo "   • Integrate with PFC: /devils-advocate pfc"
+    echo "   • Include in reflection: /reflect --devils-mode"
+    echo ""
+    echo "🔥 REMINDER: Balanced thinking requires BOTH:"
+    echo "   • Strong advocacy for your approach (you)"
+    echo "   • Rigorous challenge from devil's perspective"
+    echo "   • User-centric focus throughout"
+    echo ""
+else
+    echo "✅ Ongoing session detected - devil's advocate setup skipped"
+    echo ""
+fi
+
+# 1.2 Mission Briefing (STRONGLY RECOMMENDED for new sessions)
+echo "🎯 1.2. Mission Briefing - Essential Pre-Mission Information"
+echo "--------------------------------------------------------"
+
+# 1.2 Reflection Preview (STRONGLY RECOMMENDED)
+echo "🧪 1.2. Reflection Preview - Prepare for Learning Capture"
+echo "------------------------------------------------------"
+
+# Check if this is the start of a work session (no recent git activity)
+RECENT_ACTIVITY=$(git log --since="1 hour ago" --oneline | wc -l)
+if [ "$RECENT_ACTIVITY" -eq 0 ]; then
+    echo "🎯 NEW WORK SESSION DETECTED - Reflection Preview Recommended"
+    echo ""
+    echo "📋 Key Areas to Watch During Work Session:"
+    echo "   🔧 Tool/Process Friction: When tools are slow, buggy, or inefficient"
+    echo "   📝 Corrections: Direct feedback like 'No,' 'Wrong,' or 'Actually, use Y'"
+    echo "   🎨 Preferences: Coding style or architectural choices"
+    echo "   ✅ Success Patterns: Approaches that work particularly well"
+    echo "   🚫 Failures: Mistakes, failed approaches, or dead ends"
+    echo "   🔄 Workarounds: Temporary fixes or alternative methods needed"
+    echo "   📊 Performance: Slow operations, memory issues, bottlenecks"
+    echo "   🤔 Confusion: Unclear requirements, ambiguous instructions"
+    echo "   🛑 Roadblocks: Issues that completely stop progress"
+    echo ""
+    echo "💡 REFLECTION CAPTURE STRATEGY:"
+    echo "   ✍️  Note friction points AS THEY HAPPEN (not retrospectively)"
+    echo "   🏷️  Tag issues with severity: [CRITICAL], [HIGH], [MEDIUM], [LOW]"
+    echo "   📐 Note exact error messages and solutions"
+    echo "   ⏰ Record time spent on different approaches"
+    echo "   🎯 Capture user preferences and corrections exactly"
+    echo "   🔗 Note dependencies and version conflicts"
+    echo ""
+    echo "📄 REFLECTION TEMPLATE (for end of session):"
+    echo "   • Objective: [Issue ID / Task Name]"
+    echo "   • Outcome: [Success / Partial / Failure]"
+    echo "   • Tool/Process Friction: [List friction points encountered]"
+    echo "   • Strategy Evolution: [What approach worked vs didn't]"
+    echo "   • Applied Memories: [SKILL.md files updated]"
+    echo ""
+    echo "🎓 READY TO START: You now know what to watch for!"
+    echo ""
+    
+    # Optional: Create a temporary friction log file
+    FRICTION_LOG=".session_friction_$(date +%Y%m%d_%H%M%S).md"
+    echo "# Session Friction Log - $(date)" > "$FRICTION_LOG"
+    echo "" >> "$FRICTION_LOG"
+    echo "## Quick Notes (add friction points as they happen)" >> "$FRICTION_LOG"
+    echo "- " >> "$FRICTION_LOG"
+    echo "📝 Created friction log: $FRICTION_LOG"
+    echo "💡 Add notes to this file during your work session"
+    echo ""
+else
+    echo "✅ Ongoing session detected - reflection preview skipped"
+    echo ""
+fi
+
 # Check git status
 echo "Checking git status..."
 GIT_STATUS=$(git status --porcelain)
@@ -184,6 +279,21 @@ if command -v bd &> /dev/null; then
     echo "📊 Checking beads status..."
     bd status || echo "💡 No active beads session"
     
+    # Check for any recently closed issues that need closure notes
+    echo "🔍 Checking for recently closed issues without closure notes..."
+    RECENTLY_CLOSED=$(bd list --status closed --limit 5 2>/dev/null | head -10)
+    if [ ! -z "$RECENTLY_CLOSED" ]; then
+        echo "📝 Recently closed issues found - checking for closure notes..."
+        echo "⚠️  REMINDER: Ensure all closed issues have comprehensive closure notes including:"
+        echo "   📁 File locations and descriptions"
+        echo "   🚀 Quick start instructions"
+        echo "   📖 Documentation references" 
+        echo "   🔧 Integration guidance"
+        echo "   📊 Production considerations"
+        echo ""
+        echo "💡 Use: bd comments add <issue-id> '## Implementation Details...'"
+    fi
+    
     # Sync beads database
     echo "🔄 Syncing beads database..."
     bd sync || check_success "beads sync"
@@ -309,8 +419,134 @@ fi
 echo "🗑️  Cleaning up temporary files..."
 find . -name "*.tmp" -delete 2>/dev/null || true
 find . -name "*.log" -mtime +7 -delete 2>/dev/null || true
+echo
+
+
+# 8.5. Reflection Capture (Mandatory with Devil's Advocate)
+echo "🤔 8.5. Reflection Capture - Balanced Critical Analysis"
+echo "--------------------------------------------"
+
+# Check for devil's advocate mode flag
+DEVILS_MODE=""
+if [[ "$1" == "--devils-advocate" ]] || [[ "$DEVILS_MODE" == "--balanced" ]]; then
+    DEVILS_MODE="$1"
+    echo "👹 Devil's Advocate Mode: ENABLED ($DEVILS_MODE)"
+else
+    echo "🤔 Standard Reflection Mode"
+fi
+
+echo "🔍 Capturing session learnings with balanced analysis..."
+if [ -f ".agent/skills/reflect.sh" ]; then
+    echo "🧪 Running enhanced reflection skill..."
+    # Check for devil's advocate mode
+    if [ "$DEVILS_MODE" == "--devils-advocate" ]; then
+        if .agent/skills/reflect.sh --devils-advocate; then
+            echo "✅ Devil's advocate reflection captured successfully"
+        else
+            echo "⚠️  Devil's advocate reflection had issues, using standard mode"
+            if .agent/skills/reflect.sh; then
+                echo "✅ Standard reflection captured successfully"
+            else
+                echo "⚠️  Reflection capture had issues, but continuing with RTB workflow"
+            fi
+        fi
+    else
+        if .agent/skills/reflect.sh; then
+            echo "✅ Session reflection captured successfully"
+        else
+            echo "⚠️  Reflection capture had issues, but continuing with RTB workflow"
+            echo "💡 You may want to manually capture learnings after RTB completion"
+        fi
+    fi
+elif [ -f ".agent/scripts/reflect" ]; then
+    echo "🧪 Running reflection script..."
+    if [ "$DEVILS_MODE" == "--devils-advocate" ]; then
+        if .agent/scripts/reflect --devils-advocate 2>/dev/null; then
+            echo "✅ Devil's advocate reflection captured successfully"
+        else
+            echo "⚠️  Devil's advocate reflection had issues, using standard mode"
+            if .agent/scripts/reflect; then
+                echo "✅ Standard reflection captured successfully"
+            else
+                echo "⚠️  Reflection capture had issues, but continuing with RTB workflow"
+            fi
+        fi
+    else
+        if .agent/scripts/reflect; then
+            echo "✅ Session reflection captured successfully"
+        else
+            echo "⚠️  Reflection capture had issues, but continuing with RTB workflow"
+            echo "💡 You may want to manually capture learnings after RTB completion"
+        fi
+    fi
+elif command -v python3 &> /dev/null; then
+    echo "🧪 Attempting automated reflection capture with devil's advocate mode..."
+    # Fallback: Create basic reflection template with devil's advocate
+    DEVILS_ARG=""
+    if [ "$DEVILS_MODE" == "--devils-advocate" ]; then
+        DEVILS_ARG="--devils-advocate"
+    fi
+    
+    python3 -c "
+import json
+import os
+from datetime import datetime
+
+# Enhanced reflection template with devil's advocate
+reflection = {
+    'timestamp': datetime.now().timestamp(),
+    'mission_name': f'Session Work - {\"Devils Advocate\" if \"$DEVILS_MODE\" == \"--devils-advocate\" else \"Standard\"} Reflection',
+    'success_metrics': {
+        'Work Completed': True,
+        'Devils Advocate Mode': '$DEVILS_MODE' if \"$DEVILS_MODE\" else \"Standard\"',
+        'Reflection Captured': False
+    },
+    'technical_learnings': [
+        'Remember to use the reflect skill before RTB completion',
+        'Systematic reflection ensures knowledge transfer',
+        'Devils advocate mode provides balanced critical analysis' if \"$DEVILS_MODE\" == \"--devils-advocate\" else 'Standard reflection approach'
+    ],
+    'challenges_overcome': [
+        'Reflection skill not found - used fallback method',
+        'Devils advocate integration requires enhancement' if \"$DEVILS_MODE\" == \"--devils-advocate\" else 'Standard reflection workflow'
+    ],
+    'devils_advocate_feedback': [],
+    'quantitative_results': {
+        'Files Changed': 'Unknown',
+        'Session Duration': 'Unknown'
+    },
+    'next_mission_readiness': True,
+    'mission_duration': 0.0,
+    'status': 'PARTIAL'
+}
+
+# Save reflection data
+try:
+    if os.path.exists('.agent/reflections.json'):
+        with open('.agent/reflections.json', 'r') as f:
+            reflections = json.load(f)
+        if not isinstance(reflections, list):
+            reflections = []
+    else:
+        reflections = []
+    
+    reflections.append(reflection)
+    
+    with open('.agent/reflections.json', 'w') as f:
+        json.dump(reflections, f, indent=2)
+    
+    print('✅ Enhanced reflection data saved')
+except Exception as e:
+    print(f'❌ Could not save reflection data: {e}')
+"
+else
+    echo "⚠️  No reflection method available"
+    echo "💡 Consider installing reflection skill or script"
+    echo "📝 Remember to manually capture session learnings"
+fi
 
 echo
+
 
 # 9. Global Memory Sync
 echo "🧠 9. Global Memory Sync"
@@ -338,4 +574,39 @@ echo "✅ Changes committed and pushed"
 echo "✅ Session cleaned up"
 echo "✅ Ready for next session"
 echo
+echo "🔔 IMPORTANT REMINDER FOR FUTURE AGENTS:"
+echo "====================================="
+echo "When closing issues, ALWAYS add comprehensive closure notes:"
+echo ""
+echo "📝 Required Closure Notes Template:"
+echo "-----------------------------------"
+echo "## Implementation Details & Documentation"
+echo ""
+echo "### 📁 Files Created/Modified"
+echo "- \`path/to/file.py\` - Brief description"
+echo "- \`path/to/file2.py\` - Brief description"
+echo ""
+echo "### 🚀 Quick Start"
+echo "\`\`\`bash"
+echo "# Example commands"
+echo "python script.py --option value"
+echo "\`\`\`"
+echo ""
+echo "### 📖 Key Documentation"
+echo "- **Main Docs**: \`path/to/README.md#section\`"
+echo "- **API Reference**: \`path/to/api.md\`"
+echo "- **Examples**: \`path/to/examples/\`"
+echo ""
+echo "### 🔧 Integration Points"
+echo "- How it connects to existing system"
+echo "- Configuration requirements"
+echo "- Dependencies and setup"
+echo ""
+echo "### 📊 Production Features"
+echo "- Key capabilities for production use"
+echo "- Monitoring and alerting"
+echo "- Performance characteristics"
+echo ""
+echo "💡 Add closure notes with: bd comments add <issue-id> '<notes>'"
+echo ""
 echo "🚀 You can now safely end your work session."

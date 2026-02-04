@@ -1,6 +1,6 @@
 ---
 name: reflect
-description: Analyzes the current conversation history to extract lessons, user preferences, and corrections, then updates relevant SKILL.md files to prevent repeating mistakes.
+description: Analyzes current conversation history to extract lessons, user preferences, and corrections, then updates relevant SKILL.md files to prevent repeating mistakes. Enhanced version includes protocol integration for comprehensive learning capture.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
@@ -9,143 +9,183 @@ allowed-tools: Bash, Read, Edit, Glob, Grep
 
 ## Goal
 
-Implement the "correct once, never again" philosophy by analyzing the current session for "memories"—specific corrections, coding preferences, or logic improvements—and permanently documenting them into the relevant `SKILL.md` files. This ensures that every mission contributes to the system's collective intelligence.
+Implement "correct once, never again" philosophy by analyzing current session for "memories"—specific corrections, coding preferences, or logic improvements—and permanently documenting them into relevant `SKILL.md` files. This ensures that every mission contributes to the system's collective intelligence.
+
+## Enhanced Features
+
+The reflect skill now includes **protocol integration** to ensure agents understand quality requirements and can capture protocol-related learnings effectively.
+
+## Usage
+
+```bash
+/reflect              # Original reflection
+/reflect enhanced      # Enhanced reflection with protocol context
+python .agent/skills/reflect/enhanced_reflection.py
+```
+
+## 🆕 Enhanced Reflection Features
+
+### Protocol Context Integration
+- **Quality Gates Overview**: Tests, linting, type checking requirements
+- **Closure Standards**: File locations, quick start, documentation requirements
+- **Learning Emphasis**: Real-time capture, exact error messages, user corrections
+- **Common RTB Blockers**: Missing closure notes, duplicate files, uncommitted changes
+
+### Interactive Reflection Capture
+- **Session Analysis**: Recent git activity, friction log detection
+- **Structured Input**: Guided questions for comprehensive learning capture
+- **Protocol Issues**: Dedicated section for process and quality gate problems
+- **Quantitative Results**: Metrics, performance data, success measurements
+
+### Enhanced Data Collection
+- **Technical Learnings**: Code patterns, architectural insights
+- **Challenges Overcome**: Problems solved and solutions implemented
+- **Process Improvements**: Workflow optimizations and friction reduction
+- **Protocol Issues**: Quality gate problems and RTB blockers
 
 ## 🛠️ Tools & Scripts
 
-### 1. `enhanced_reflect_system.py` (Primary System)
+### 1. `enhanced_reflection.py` (Primary Enhancement)
 
-Comprehensive reflection system integrating PFC/RTB diagnostics with conversation analysis.
+Comprehensive reflection system integrating protocol context with interactive learning capture.
 
-**Usage**:
-
-```bash
-# Full comprehensive analysis (recommended)
-python scripts/enhanced_reflect_system.py --comprehensive conversation.log
-
-# Flight diagnostics only
-python scripts/enhanced_reflect_system.py --flight-diagnostics
-
-# Generate Post-Mission Debrief
-python scripts/enhanced_reflect_system.py --debrief debrief.md
-
-# Show pending learnings
-python scripts/enhanced_reflect_system.py --pending-learnings
-```
-
-### 2. `reflect_assistant.py` (Utility)
-
-Helper script for basic memory discovery and rule auditing.
+**Features:**
+- Protocol context display before reflection
+- Session analysis (git activity, friction logs)
+- Interactive guided reflection capture
+- Structured learning categorization
+- Protocol-specific issue capture
+- Quantitative results tracking
 
 **Usage**:
 
 ```bash
-# Discover potential memories from a conversation log
-python scripts/reflect_assistant.py discover conversation.log
+# Enhanced reflection with protocol integration
+python .agent/skills/reflect/enhanced_reflection.py
 
-# Audit a proposed rule for conflicts
-python scripts/reflect_assistant.py audit "Always use YAML" .
+# Captures:
+# - Technical learnings
+# - Challenges overcome  
+# - Process improvements
+# - Protocol issues
+# - Quantitative results
 ```
 
-### 3. `skill_version_manager.py` (Version Management)
+### 2. Legacy Scripts (Maintained for Compatibility)
 
-Tag-based versioning and rollback system for skill files.
+- `enhanced_reflect_system.py` - Comprehensive analysis with PFC/RTB diagnostics
+- `reflect_assistant.py` - Memory discovery and rule auditing
+- `skill_version_manager.py` - Version management for skill files
+- `proactive_improvements.py` - Pattern analysis and suggestions
 
-**Usage**:
+## Enhanced Workflow
 
-```bash
-# Create a learning tag
-python scripts/skill_version_manager.py tag --skill SkillName --description "Learning description"
+### 1. Protocol Context (NEW)
+Before reflection, enhanced version shows:
+- Quality gate requirements
+- Closure documentation standards
+- Common RTB blockers
+- Learning capture emphasis
 
-# List all versions
-python scripts/skill_version_manager.py list
+### 2. Session Analysis (ENHANCED)
+- Recent git activity analysis
+- Friction log detection
+- Current session context
 
-# Rollback to previous version of skill
-python scripts/skill_version_manager.py rollback-previous --skill Reflect
-```
+### 3. Structured Reflection (ENHANCED)
+**Interactive capture with prompts for:**
+- Mission details and outcome
+- Success metrics (key:value pairs)
+- Technical learnings
+- Challenges overcome
+- Protocol-related issues
+- Process improvements
+- Quantitative results
 
-### 4. `proactive_improvements.py` (Proactive Suggestions)
+### 4. Learning Integration (MAINTAINED)
+- Automatic skill file updates
+- Version tagging with learning context
+- Conflict detection and resolution
 
-Analyzes patterns across learnings, flight diagnostics, and code to suggest proactive improvements.
+### 5. Protocol Improvement (NEW)
+- Identification of recurring protocol issues
+- Process improvement suggestions
+- Quality gate optimization insights
 
-**Usage**:
+## 📋 Enhanced Reflection Template
 
-```bash
-# Full pattern analysis and suggestion generation
-python scripts/proactive_improvements.py analyze
+Use this structure when performing enhanced reflection:
 
-# Show top suggestions
-python scripts/proactive_improvements.py suggest
-```
-
-## Workflow
-
-### 1. Pre-Reflection Diagnostic
-
-Before performing reflection, run the **PFC/RTB Analysis**:
-
-- Run `python scripts/enhanced_reflect_system.py --flight-diagnostics`.
-- Identify recurring failures (e.g., `beads sync` issues, `lint` errors).
-- Document these as "Process Improvement" learnings.
-
-### 2. Session Analysis
-
-**Automated**: Use `enhanced_reflect_system.py --comprehensive conversation.log`.
-
-**Manual**: Scan the conversation history to identify:
-
-- **Corrections**: Direct feedback like "No," "Wrong," or "Actually, use Y."
-- **Preferences**: Coding style or architectural choices.
-- **Success Patterns**: Approaches that worked particularly well.
-- **Tool Friction**: Moments where tools were slow, buggy, or inefficient.
-
-### 3. Categorization & Priority
-
-Classify findings:
-
-- **CRITICAL**: Process failures (PFC/RTB) or safety violations.
-- **HIGH**: Explicit user preferences or recurring coding errors.
-- **MEDIUM**: General improvements or performance optimizations.
-
-### 4. Skill Application
-
-1. **Locate Target**: Find the relevant `SKILL.md` (e.g., `graph/SKILL.md` for RAG changes).
-2. **Propose Update**: Formulate a clear, imperative rule (e.g., "Always validate X before Y").
-3. **Draft Updates**: Use the `learnings` layer to track proposed changes.
-4. **Execute**: Update the file and create a version tag using `skill_version_manager.py`.
-
-### 5. Post-Mission Debrief (RTB)
-
-Include a mandatory debrief summary in the final response:
-
-- Use `enhanced_reflect_system.py --debrief debrief.md` to format the report.
-- Summarize successes, friction points, and strategy evolution.
-
-### 6. OpenViking Integration (Memory Push)
-
-After updating the local memory layer (`~/.agent/memory/learnings/`), synchronize with OpenViking:
-
-1. **Flush Session**: Run `curl -X POST http://localhost:8000/session/flush` to clear ephemeral context.
-2. **Sync Memories**: Use `python openviking/migration/migrate_memories.py` to persist local JSON learnings to OpenViking's global memory.
-3. **Verify**: Use `curl http://localhost:8000/resources?resource_type=applied_learning` to confirm synchronization.
-
-## 📋 Mission Reflection Template
-
-Use this structure when performing a "/reflect" during or after a mission:
-
+### Basic Information
 - **Objective**: [Issue ID / Task Name]
 - **Outcome**: [Success / Partial / Failure]
-- **Diagnostics (PFC/RTB)**:
-  - [e.g., "RTB Warning: Uncommitted changes"]
-  - [e.g., "Success: All tests passed"]
-- **Tool/Process Friction**: [e.g., "bd doctor required after every sync"]
-- **Strategy Evolution**: [e.g., "Hard-code YAML for Ollama models"]
-- **Applied Memories**: [List of SKILL.md files updated]
+- **Duration**: [Hours spent]
 
-## 🧬 Self-Evolution Strategy (ACE Integration)
+### Success Metrics
+- **Metric 1**: [Value]
+- **Metric 2**: [Value]
+- **Files Changed**: [Number]
+- **Tests Passed**: [Yes/No/Partial]
 
-The LightRAG ACE reflector helps drive this work:
+### Technical Learnings
+- [Learning 1]
+- [Learning 2]
+- [Architecture insight]
+- [Performance optimization]
 
-- **Graph Quality**: Insights from `ACEReflector` identify data extraction patterns that need codified rules.
-- **Continuous Learning**: Every `ACE` repair is a candidate for a new general rule in `coding-standards`.
-- **Systematic Growth**: Use `proactive_improvements.py` to analyze patterns across missions.
+### Challenges Overcome
+- [Challenge 1 and solution]
+- [Error resolved]
+- [Configuration fixed]
+- [Workaround implemented]
+
+### Protocol Issues (NEW)
+- [Quality gate problem]
+- [RTB blocker encountered]
+- [Process friction point]
+- [Documentation gap]
+
+### Process Improvements (NEW)
+- [Workflow optimization]
+- [Tool improvement suggestion]
+- [Time-saving approach]
+- [Error prevention method]
+
+### Quantitative Results (NEW)
+- [Performance]: [Measurement]
+- [Quality]: [Score]
+- [Efficiency]: [Gain]
+- [User Satisfaction]: [Rating]
+
+## 🎯 Benefits of Enhanced Reflection
+
+1. **Protocol Awareness**: Agents understand quality requirements
+2. **Structured Learning**: Better categorization and retrieval
+3. **Process Integration**: Reflections include workflow insights
+4. **Quantitative Tracking**: Measurable improvements over time
+5. **Issue Prevention**: Protocol-specific learning reduces repeat problems
+6. **Continuous Improvement**: Systematic process enhancement
+
+## Integration
+
+Enhanced reflect skill integrates with:
+- **Mission Briefing**: Provides protocol context before work
+- **PFC/RTB Process**: Captures protocol-related friction
+- **Quality Gates**: Identifies and documents recurring issues
+- **Skill Management**: Version tracking and conflict resolution
+- **Process Improvement**: Systematic workflow optimization
+
+## Advantages Over Basic Reflection
+
+| Feature | Basic Reflection | Enhanced Reflection |
+|---------|----------------|-------------------|
+| Protocol Context | ❌ | ✅ |
+| Interactive Capture | ❌ | ✅ |
+| Session Analysis | ❌ | ✅ |
+| Protocol Issues | ❌ | ✅ |
+| Quantitative Results | Limited | ✅ |
+| Process Improvements | Limited | ✅ |
+| Structured Input | ❌ | ✅ |
+| Learning Categories | Basic | Enhanced |
+
+The enhanced reflection provides comprehensive learning capture that integrates protocol awareness with systematic improvement tracking.
