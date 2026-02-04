@@ -415,6 +415,20 @@ else
     echo "💡 No session cleanup script found"
 fi
 
+# Browser Cleanup (RTB Integration)
+echo "🌐 Browser Cleanup - RTB Integration"
+echo "-----------------------------------"
+
+# Check if browser-manager skill is available
+BROWSER_MANAGER_PATH="$HOME/.gemini/antigravity/skills/browser-manager/scripts/browser_manager.py"
+if [ -f "$BROWSER_MANAGER_PATH" ] && [ -x "$BROWSER_MANAGER_PATH" ]; then
+    echo "🔧 Running browser cleanup via browser-manager skill..."
+    "$BROWSER_MANAGER_PATH" rtb-cleanup || echo "⚠️ Browser cleanup encountered issues"
+else
+    echo "💡 Browser-manager skill not available - skipping browser cleanup"
+fi
+echo
+
 # Clean up temp files
 echo "🗑️  Cleaning up temporary files..."
 find . -name "*.tmp" -delete 2>/dev/null || true
