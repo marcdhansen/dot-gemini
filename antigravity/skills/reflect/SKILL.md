@@ -242,3 +242,40 @@ Enhanced reflect skill integrates with:
 | Learning Categories | Basic | Enhanced |
 
 The enhanced reflection provides comprehensive learning capture that integrates protocol awareness with systematic improvement tracking.
+
+## Error Handling
+
+If reflection fails:
+1. Check git repository status
+2. Verify beads availability
+3. Check workspace directory structure
+4. Review system permissions
+
+### 🚨 Fixed Issues
+
+**EOF Error in Non-Interactive Environments (Fixed 2025-02-04)**
+- **Problem**: Enhanced reflection script failed with "EOF when reading a line" in non-interactive environments
+- **Root Cause**: Script used `input()` without proper non-interactive fallback detection
+- **Solution**: Added robust non-interactive mode with JSON stdin support
+- **Usage**: `python enhanced_reflection.py --fallback` or pipe JSON data via stdin
+
+**Implementation Details:**
+- Enhanced `_capture_reflection()` to support both interactive and fallback modes
+- Added `--fallback` and `--non-interactive` flags
+- Improved stdin JSON parsing with error handling
+- Added CLI wrapper for easier usage: `enhanced_reflection_cli.py`
+
+**Fallback Data Format:**
+```json
+{
+  "mission_name": "Task Name",
+  "outcome": "SUCCESS",
+  "duration_hours": 1.0,
+  "success_metrics": {"Files Changed": 5},
+  "technical_learnings": ["Learning 1"],
+  "challenges_overcome": ["Challenge 1"],
+  "protocol_issues": ["Issue 1"],
+  "process_improvements": ["Improvement 1"],
+  "quantitative_results": {"Metric": "Value"}
+}
+```
