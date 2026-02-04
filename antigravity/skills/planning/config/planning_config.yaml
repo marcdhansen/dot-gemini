@@ -1,0 +1,228 @@
+# Planning Skill Configuration
+
+# Core Settings
+planning:
+  default_analysis_level: "detailed"  # summary, detailed, deep_dive
+  auto_create_tasks: false           # User approval required
+  milestone_blocking: true           # Failed milestones block progress
+  flight_director_integration: true  # Enable Flight Director prompts
+  
+# Blast Radius Analysis
+blast_radius:
+  max_depth: 5                      # Maximum dependency depth to analyze
+  include_tests: true                # Include test files in analysis
+  include_docs: true                 # Include documentation files
+  include_configs: true              # Include configuration files
+  
+  # Scoring weights
+  complexity_weight: 0.3             # Weight for code complexity
+  dependency_weight: 0.4            # Weight for dependency analysis
+  criticality_weight: 0.3           # Weight for critical path impact
+  
+  # Risk thresholds
+  high_risk_threshold: 7.5          # Score threshold for HIGH risk
+  critical_risk_threshold: 9.0      # Score threshold for CRITICAL risk
+  
+  # File type analysis
+  file_type_weights:
+    python: 1.0
+    yaml: 0.8
+    json: 0.6
+    markdown: 0.3
+    sql: 1.5
+
+# Incremental Validation
+validation:
+  # A/B Testing Settings
+  ab_testing:
+    significance_level: 0.95         # Statistical significance threshold
+    min_sample_size: 1000           # Minimum sample size for tests
+    effect_size_threshold: 0.2       # Minimum effect size for practical significance
+  
+  # Rollback Settings
+  rollback:
+    require_validation: true         # Require rollback procedure validation
+    validation_frequency_days: 7     # How often to re-validate rollback plans
+    emergency_bypass: require_justification  # Emergency bypass requirements
+  
+  # Milestone Settings
+  milestones:
+    auto_create: true               # Auto-create milestones for new tasks
+    default_blocking: true           # Default milestones to blocking
+    timeout_days: 30                # Maximum days before milestone auto-fails
+
+# Flight Director Integration
+flight_director:
+  # Prompt Settings
+  auto_prompt_planning: true        # Automatically prompt for planning after task selection
+  complexity_threshold: "medium"    # Minimum complexity to require planning
+  
+  # Task Selection Detection
+  detect_from_git_branch: true       # Detect task from git branch name
+  detect_from_session: true          # Detect task from session state
+  
+  # Fallback Mechanisms
+  fallback_enabled: true             # Enable fallback to existing processes
+  legacy_compatibility: true         # Maintain compatibility with existing workflows
+  
+  # Planning Prompts
+  prompts:
+    on_task_selection: true          # Prompt when task is selected
+    on_complex_task: true           # Prompt for complex tasks
+    on_branch_creation: true        # Prompt when creating feature branch
+
+# Beads Integration
+beads:
+  # Task Creation
+  recommend_tasks: true             # Recommend additional tasks based on analysis
+  require_approval: true            # Require user approval before creating tasks
+  
+  # Task Recommendations
+  recommendation_types:
+    - "testing"                      # Always recommend testing for code changes
+    - "documentation"                # Recommend docs for API/config changes
+    - "migration"                    # Recommend migrations for database changes
+    - "risk_mitigation"              # Recommend risk mitigation for high-risk changes
+    - "performance_testing"          # Recommend performance testing for relevant changes
+    - "security_review"             # Recommend security review for relevant changes
+  
+  # Task Priorities
+  priority_mapping:
+    critical_risk: "P0"
+    high_risk: "P1"
+    api_changes: "P2"
+    config_changes: "P2"
+    documentation: "P3"
+    testing: "P2"
+    performance: "P2"
+    security: "P1"
+    migration: "P1"
+
+# Quality Gate Integration
+quality_gates:
+  # TDD Gate Enhancement
+  tdd_gates:
+    planning_required: true         # Require planning before TDD gates
+    adaptive_thresholds: true       # Adjust thresholds based on task complexity
+    
+  # Coverage Requirements
+  coverage:
+    default_threshold: 80            # Default test coverage percentage
+    high_risk_threshold: 90         # Higher threshold for high-risk changes
+    critical_risk_threshold: 95      # Highest threshold for critical changes
+  
+  # Integration Testing
+  integration:
+    required_for_api_changes: true  # Require integration tests for API changes
+    required_for_db_changes: true   # Require integration tests for database changes
+
+# API Integration
+api:
+  # Local API Integration
+  lightrag_api:
+    enabled: true                   # Enable integration with LightRAG API
+    base_url: "http://localhost:9622"
+    timeout: 30                     # API request timeout in seconds
+  
+  # External API Integration
+  external_apis:
+    enabled: false                  # Enable external API integrations
+    services: []
+
+# Storage and Caching
+storage:
+  # Planning Data Storage
+  plans_directory: ".agent/plans"   # Directory to store planning data
+  validation_directory: ".agent/validation"  # Directory for validation data
+  
+  # Caching
+  cache_duration_hours: 24          # How long to cache analysis results
+  enable_dependency_cache: true     # Cache dependency analysis
+  
+  # Data Retention
+  retention_days: 90                # How long to keep old planning data
+  archive_completed_plans: true     # Archive completed plans
+
+# Monitoring and Metrics
+monitoring:
+  # Metrics Collection
+  collect_metrics: true             # Collect planning metrics
+  metrics_retention_days: 30        # How long to keep metrics
+  
+  # Success Metrics
+  success_metrics:
+    planning_time_threshold: 5      # Max minutes to complete planning
+    blast_radius_accuracy: 0.8      # Target accuracy for blast radius prediction
+    feature_success_rate: 0.9      # Target success rate for planned features
+  
+  # Alerts
+  alerts:
+    enable_slack: false            # Enable Slack alerts
+    enable_email: false            # Enable email alerts
+    alert_on_failure: true          # Alert on planning failures
+    alert_on_long_planning: true    # Alert when planning takes too long
+
+# Security and Safety
+security:
+  # Emergency Procedures
+  emergency_bypass:
+    require_justification: true     # Require justification for emergency bypass
+    log_all_bypasses: true          # Log all emergency bypass actions
+    require_approval: false         # Require approval for emergency bypass
+  
+  # Access Control
+  access_control:
+    enable_role_based_access: false # Enable role-based access control
+    admin_users: []                 # List of admin users
+  
+  # Audit Trail
+  audit:
+    log_all_planning_actions: true # Log all planning actions
+    log_rollback_actions: true      # Log all rollback actions
+    log_user_approvals: true        # Log all user approvals
+
+# Development and Debugging
+development:
+  # Debug Mode
+  debug_mode: false                 # Enable debug mode for development
+  verbose_logging: false            # Enable verbose logging
+  
+  # Test Data
+  generate_test_data: false         # Generate test data for development
+  use_mock_beads: false            # Use mock beads for testing
+  
+  # Performance
+  parallel_analysis: true           # Enable parallel file analysis
+  max_workers: 4                   # Maximum number of parallel workers
+  
+# Compatibility and Legacy
+compatibility:
+  # Legacy Systems
+  support_legacy_planning: true     # Support existing manual planning processes
+  gradual_migration: true           # Enable gradual migration to new system
+  
+  # Fallback Options
+  fallback_options:
+    - "manual_planning"
+    - "beads_only"
+    - "direct_development"
+  
+  # Migration Settings
+  migration:
+    auto_migrate_tasks: false        # Auto-migrate existing tasks to new system
+    preserve_existing_data: true    # Preserve existing planning data
+
+# Environment-Specific Settings
+environments:
+  development:
+    validation_strictness: "relaxed"     # Relaxed validation in development
+    milestone_timeout_days: 60          # Longer timeouts in development
+    
+  staging:
+    validation_strictness: "standard"    # Standard validation in staging
+    milestone_timeout_days: 30          # Standard timeouts in staging
+    
+  production:
+    validation_strictness: "strict"      # Strict validation in production
+    milestone_timeout_days: 14          # Shorter timeouts in production
+    require_rollback_validation: true   # Require rollback validation in production

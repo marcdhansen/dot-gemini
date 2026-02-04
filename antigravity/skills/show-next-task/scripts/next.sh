@@ -144,3 +144,73 @@ echo ""
 echo "## 🚀 Next Steps:"
 echo "• Start recommended task: \`bd start <task-id>\`"
 echo "• Or choose any task above: \`bd start <task-id>\`"
+echo ""
+
+# Add roadmap analysis and feature development suggestions
+echo "## 🗺️ Roadmap Analysis & Feature Development:"
+echo ""
+
+# Check if roadmap file exists
+ROADMAP_FILE=".agent/rules/ROADMAP.md"
+if [ -f "$ROADMAP_FILE" ]; then
+    # Extract current objective and phase from roadmap
+    CURRENT_OBJ=$(grep -A 5 "## 🎯 Current Objective" "$ROADMAP_FILE" | grep -v "## 🎯" | grep -v "Status:" | grep -v "Result:" | grep -v "Next Step:" | head -1 | sed 's/^- \*\*Task\*\*: //')
+    CURRENT_STATUS=$(grep "Status:" "$ROADMAP_FILE" | head -1 | sed 's/.*Status: //')
+    NEXT_STEP=$(grep "Next Step:" "$ROADMAP_FILE" | head -1 | sed 's/.*Next Step: //')
+    
+    echo "📍 **Current Focus:** $CURRENT_OBJ"
+    echo "📊 **Status:** $CURRENT_STATUS"
+    if [ -n "$NEXT_STEP" ]; then
+        echo "➡️ **Next Phase:** $NEXT_STEP"
+    fi
+    echo ""
+    
+    # Check for phase alignment opportunities
+    if echo "$NEXT_STEP" | grep -iq "phase"; then
+        echo "💡 **Phase Alignment Opportunities:**"
+        echo "• Consider creating supporting tasks for the next phase"
+        echo "• Look for dependencies or prerequisites in the implementation plan"
+        echo "• Review if current tasks align with phase objectives"
+        echo ""
+    fi
+else
+    echo "⚠️ Roadmap file not found at $ROADMAP_FILE"
+    echo ""
+fi
+
+# Suggest creating new issues based on roadmap
+echo "🔗 **Linking New Features to Ongoing Work:**"
+echo "• Review \`.agent/rules/ImplementationPlan.md\` for detailed phase breakdown"
+echo "• Create supporting tasks with \`bd create\` for roadmap objectives"
+echo "• Consider cross-dependencies between current tasks and roadmap phases"
+echo "• Look for opportunities to create epics that span multiple phases"
+echo ""
+
+# Feature development suggestions based on task patterns
+if [ "$TOTAL_COUNT" -gt 0 ]; then
+    echo "🚀 **New Feature Development Suggestions:**"
+    
+    # Analyze task patterns
+    if echo "$READY_OUTPUT" | grep -iq "test\|testing"; then
+        echo "• Consider creating companion documentation tasks for test coverage"
+    fi
+    
+    if echo "$READY_OUTPUT" | grep -iq "refactor\|cleanup"; then
+        echo "• Plan follow-up performance benchmarking tasks"
+    fi
+    
+    if echo "$READY_OUTPUT" | grep -iq "feature\|implement"; then
+        echo "• Create integration testing and documentation tasks"
+    fi
+    
+    if [ "$P2_COUNT" -gt 3 ]; then
+        echo "• Consider grouping related P2 tasks into an epic for better tracking"
+    fi
+    
+    echo ""
+fi
+
+echo "📋 **Keep the Plan Moving Forward:**"
+echo "• Create new issues: \`bd create\` (interactive mode)"
+echo "• Review implementation plan: \`cat .agent/rules/ImplementationPlan.md\`"
+echo "• Check project status: \`git status && bd sync\`"
