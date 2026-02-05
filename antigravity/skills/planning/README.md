@@ -5,11 +5,13 @@ This document provides practical examples of using the planning skill for common
 ## Example 1: New Feature Development
 
 ### Scenario
+
 You've selected task `lightrag-abc` from the `/next` command output and need to implement a new feature for improved query performance.
 
 ### Workflow
 
 #### Step 1: Flight Director Prompts Planning
+
 ```
 🎯 TASK SELECTED - PLANNING REQUIRED
 ============================================================
@@ -20,11 +22,13 @@ You've selected task `lightrag-abc` from the `/next` command output and need to 
 ```
 
 #### Step 2: Scope the Task
+
 ```bash
 /plan scope lightrag-abc lightrag/query.py,lightrag/core.py,docs/query_improvements.md
 ```
 
 **Output:**
+
 ```
 🎯 SCOPING TASK: lightrag-abc
 ==================================================
@@ -44,11 +48,13 @@ You've selected task `lightrag-abc` from the `/next` command output and need to 
 ```
 
 #### Step 3: Detailed Analysis
+
 ```bash
 /plan analyze lightrag-abc
 ```
 
 **Output:**
+
 ```
 🔍 DETAILED ANALYSIS: lightrag-abc
 ==================================================
@@ -75,11 +81,13 @@ You've selected task `lightrag-abc` from the `/next` command output and need to 
 ```
 
 #### Step 4: Create Implementation Plan
+
 ```bash
 /plan proceed lightrag-abc
 ```
 
 **Interactive Selection:**
+
 ```
 📋 RECOMMENDED TASKS (3):
 
@@ -104,6 +112,7 @@ Your selection: 1,3
 ```
 
 **Final Output:**
+
 ```
 🚀 PROCEEDING WITH IMPLEMENTATION: lightrag-abc
 ============================================================
@@ -131,14 +140,17 @@ Your selection: 1,3
 ## Example 2: Emergency Bug Fix
 
 ### Scenario
+
 Production is down and you need to fix a critical issue immediately.
 
 #### Emergency Planning
+
 ```bash
 /plan scope lightrag-critical-fix lightrag/api/routes.py --level summary
 ```
 
 **Output:**
+
 ```
 🎯 SCOPING TASK: lightrag-critical-fix
 ==================================================
@@ -159,11 +171,13 @@ Production is down and you need to fix a critical issue immediately.
 ```
 
 #### Proceed with Emergency Fix
+
 ```bash
 /plan proceed lightrag-critical-fix
 ```
 
 **Emergency Mode Output:**
+
 ```
 🚀 PROCEEDING WITH IMPLEMENTATION: lightrag-critical-fix
 ============================================================
@@ -190,14 +204,17 @@ Production is down and you need to fix a critical issue immediately.
 ## Example 3: Complex Database Migration
 
 ### Scenario
+
 You need to implement a database schema migration for the knowledge graph storage.
 
 #### Comprehensive Planning
+
 ```bash
 /plan scope lightrag-db-migration lightrag/storage/database.py,migrations/001_graph_schema.sql
 ```
 
 **Output:**
+
 ```
 🎯 SCOPING TASK: lightrag-db-migration
 ==================================================
@@ -221,11 +238,13 @@ You need to implement a database schema migration for the knowledge graph storag
 ```
 
 #### Detailed Analysis
+
 ```bash
 /plan analyze lightrag-db-migration
 ```
 
 **Output:**
+
 ```
 📋 RECOMMENDED TASKS (4):
    1. Database migration for lightrag-db-migration [P1]
@@ -235,17 +254,20 @@ You need to implement a database schema migration for the knowledge graph storag
 ```
 
 #### Create Implementation Plan
+
 ```bash
 /plan proceed lightrag-db-migration
 ```
 
 **Select All Tasks:**
+
 ```
 💡 Enter the numbers of tasks you want to create (comma-separated)
 Your selection: 1,2,3,4
 ```
 
 **Output:**
+
 ```
 🎯 IMPLEMENTATION PLAN CREATED
    Task: lightrag-db-migration
@@ -267,14 +289,17 @@ Your selection: 1,2,3,4
 ## Example 4: Task Tabled for Later
 
 ### Scenario
+
 You scoped a task but don't have resources to complete it now.
 
 #### Table the Task
+
 ```bash
 /plan table lightrag-abc "Waiting for Q2 resources"
 ```
 
 **Output:**
+
 ```
 📋 TABLED TASK: lightrag-abc
 ========================================
@@ -290,14 +315,17 @@ You scoped a task but don't have resources to complete it now.
 ## Example 5: Progress Tracking
 
 ### Scenario
+
 You want to check the progress of an ongoing task.
 
 #### Track Progress
+
 ```bash
 /plan track lightrag-abc
 ```
 
 **Output:**
+
 ```
 📊 TRACKING PROGRESS: lightrag-abc
 ========================================
@@ -319,14 +347,17 @@ You want to check the progress of an ongoing task.
 ## Example 6: Rollback Execution
 
 ### Scenario
+
 A deployment is causing issues and needs to be rolled back.
 
 #### Execute Rollback
+
 ```bash
 /plan rollback query-performance-improvement "Severe performance regression in production"
 ```
 
 **Output:**
+
 ```
 🔄 ROLLBACK: query-performance-improvement
 ========================================
@@ -361,14 +392,17 @@ A deployment is causing issues and needs to be rolled back.
 ## Example 7: Quick Blast Radius Analysis
 
 ### Scenario
+
 You want to quickly understand the impact of some changes.
 
 #### Quick Analysis
+
 ```bash
 /plan blast-radius lightrag/api/routes.py lightrag/core.py --level summary
 ```
 
 **Output:**
+
 ```
 💥 BLAST RADIUS ANALYSIS
 ========================================
@@ -392,9 +426,11 @@ Level: summary
 ## Example 8: Conflict Resolution
 
 ### Scenario
+
 There's an existing manual plan that conflicts with the planning skill.
 
 #### Fallback to Manual Planning
+
 The system detects the conflict and automatically provides fallback options:
 
 ```
@@ -413,14 +449,17 @@ The system detects the conflict and automatically provides fallback options:
 ## Example 9: Validation Status Check
 
 ### Scenario
+
 You need to check if validation gates are passed for a task.
 
 #### Check Validation
+
 ```bash
 /plan validate lightrag-abc
 ```
 
 **Output:**
+
 ```
 ✅ VALIDATING PLAN: lightrag-abc
 ========================================
@@ -441,9 +480,11 @@ You need to check if validation gates are passed for a task.
 ## Example 10: Resource Constraint Handling
 
 ### Scenario
+
 System resources are constrained, preventing full planning.
 
 #### Automatic Fallback
+
 ```
 ⚠️  RESOURCE CONSTRAINTS DETECTED
 
@@ -462,39 +503,51 @@ System resources are constrained, preventing full planning.
 ## Best Practices
 
 ### 1. Always Start with Scoping
+
 ```bash
 /plan scope <task-id> [files...]
 ```
+
 Scoping provides the foundation for all subsequent planning decisions.
 
 ### 2. Review Recommendations Before Proceeding
+
 ```bash
 /plan analyze <task-id>
 ```
+
 Use the detailed analysis to understand the full impact before committing.
 
 ### 3. Track Progress Regularly
+
 ```bash
 /plan track <task-id>
 ```
+
 Regular tracking helps identify issues early and keeps stakeholders informed.
 
 ### 4. Use Rollback Safety Nets
+
 Always ensure rollback procedures are validated before deployment:
+
 ```bash
 /plan validate-rollback <feature-name>
 ```
 
 ### 5. Handle Conflicts Gracefully
+
 The planning skill automatically detects and handles conflicts, but understanding the fallback mechanisms helps you make better decisions.
 
 ### 6. Emergency Planning
+
 For critical issues, use summary-level analysis to get quick insights:
+
 ```bash
 /plan scope <task-id> --level summary
 ```
 
 ### 7. Documentation Integration
+
 The planning skill automatically creates and updates relevant documentation. Always review the generated documents for accuracy.
 
 ---
@@ -519,6 +572,7 @@ The planning skill automatically creates and updates relevant documentation. Alw
 **Solution:** Use fallback mechanisms or manual planning guidance
 
 For additional help, use:
+
 ```bash
 /plan help
 ```

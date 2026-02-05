@@ -5,6 +5,7 @@
 The Browser Manager skill helps manage Playwright browser processes to prevent resource leaks during automated testing.
 
 ### Installation
+
 The skill is automatically available through the LightRAG skills ecosystem. No additional installation required.
 
 ### Basic Usage
@@ -26,6 +27,7 @@ browser-manager config set max_tabs_per_agent 5
 ## 📋 Common Workflows
 
 ### 1. Before UI Testing
+
 ```bash
 # Check current browser state
 browser-manager status
@@ -41,6 +43,7 @@ browser-manager cleanup
 ```
 
 ### 2. Resource Management
+
 ```bash
 # Check if you're approaching limits
 browser-manager check-limits
@@ -53,6 +56,7 @@ browser-manager cleanup
 ```
 
 ### 3. Multi-Agent Coordination
+
 ```bash
 # Clean up another agent's browsers (asks permission)
 browser-manager cleanup --agent agent-42
@@ -64,6 +68,7 @@ browser-manager cleanup --all
 ## 🛠️ Configuration
 
 ### Setting Limits
+
 ```bash
 # Limit tabs per agent
 browser-manager config set max_tabs_per_agent 5
@@ -79,6 +84,7 @@ browser-manager config
 ```
 
 ### Removing Limits
+
 ```bash
 # Remove all limits (back to unlimited)
 browser-manager config clear
@@ -90,6 +96,7 @@ browser-manager config reset
 ## 📊 Understanding the Output
 
 ### Status Output
+
 ```
 🌐 Browser Manager Status - Agent: marchansen
 ==================================================
@@ -107,6 +114,7 @@ browser-manager config reset
 ```
 
 ### Tab Details
+
 ```
 📄 All Browser Tabs:
 
@@ -137,12 +145,14 @@ When limits are exceeded, you'll see warnings:
 ## 🔧 Advanced Usage
 
 ### Detailed Status
+
 ```bash
 # Show detailed browser and tab information
 browser-manager status --detailed
 ```
 
 ### Session Tracking
+
 ```bash
 # View browser session tracking data
 browser-manager sessions
@@ -152,6 +162,7 @@ browser-manager sessions cleanup
 ```
 
 ### Verbose Output
+
 ```bash
 # Enable verbose debugging
 browser-manager status --verbose
@@ -161,6 +172,7 @@ browser-manager tabs --verbose
 ## 🛡️ Safety Features
 
 ### Permission System
+
 When cleaning other agents' browsers, you'll see detailed information and be asked for permission:
 
 ```
@@ -176,14 +188,17 @@ Clean up agent-42's 2 browser(s) with 3 tabs? [y/N]
 ```
 
 ### Audit Logging
+
 All cross-agent cleanup operations are logged to `~/.gemini/browser_audit.log` for security.
 
 ### Graceful Shutdown
+
 Browsers are shut down gracefully first, then force-killed if needed after a timeout.
 
 ## 🔍 Troubleshooting
 
 ### Tab Detection Not Working
+
 ```bash
 # Check if Chrome has remote debugging enabled
 browser-manager status --debug
@@ -193,12 +208,14 @@ browser-manager status --refresh
 ```
 
 ### Permission Errors
+
 ```bash
 # Use force mode (not recommended for other agents)
 browser-manager cleanup --force
 ```
 
 ### Configuration Issues
+
 ```bash
 # Reset configuration
 browser-manager config reset
@@ -217,6 +234,7 @@ browser-manager rtb-cleanup
 ```
 
 This:
+
 1. Cleans up your browsers
 2. Deletes session tracking data  
 3. Reports cleanup summary
@@ -224,14 +242,18 @@ This:
 ## 📝 Best Practices
 
 ### 1. Set Appropriate Limits
+
 Configure limits based on your system resources:
+
 ```bash
 browser-manager config set max_memory_mb 1000    # 1GB per agent
 browser-manager config set max_tabs_per_agent 5     # 5 tabs per agent
 ```
 
 ### 2. Clean Up Regularly
+
 Clean up browsers after testing sessions:
+
 ```bash
 # After UI tests
 browser-manager cleanup
@@ -242,21 +264,26 @@ browser-manager status
 ```
 
 ### 3. Monitor Resource Usage
+
 Check limits regularly:
+
 ```bash
 # In your workflow
 browser-manager check-limits || echo "Consider cleanup"
 ```
 
 ### 4. Use RTB Integration
+
 Let RTB handle automatic cleanup at mission end.
 
 ### 5. Respect Agent Ownership
+
 Always ask permission before cleaning other agents' browsers.
 
 ## 🔗 Integration Examples
 
 ### UI Skill Integration
+
 ```bash
 # Before tests
 browser-manager track-browsers --before-test
@@ -266,6 +293,7 @@ browser-manager cleanup --agent-only
 ```
 
 ### Testing Skill Integration  
+
 ```bash
 # Add to test scripts
 browser-manager check-limits
@@ -275,6 +303,7 @@ fi
 ```
 
 ### Session Lock Integration
+
 ```bash
 # Agent start
 browser-manager track-session $AGENT_ID

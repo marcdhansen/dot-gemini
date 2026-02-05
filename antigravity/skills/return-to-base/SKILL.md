@@ -18,6 +18,7 @@ The `return-to-base` skill performs the actual RTB workflow execution when calle
 ## Purpose
 
 Performs comprehensive Return To Base checks to ensure:
+
 - All work is committed and pushed to remote
 - Quality gates have been passed
 - Issue status is properly updated
@@ -82,6 +83,7 @@ The skill executes:
 ## Exit Conditions
 
 RTB is complete when:
+
 - `git status` shows "up to date with origin"
 - All beads issues are properly resolved or updated
 - No uncommitted changes remain
@@ -91,6 +93,7 @@ RTB is complete when:
 ## Error Handling
 
 If RTB fails:
+
 1. Check for merge conflicts - resolve and retry
 2. Verify network connectivity for git operations
 3. Check beads daemon status (`bd daemon status`)
@@ -121,11 +124,13 @@ fi
 **Solution Implemented**: Added closure notes reminder gate in RTB workflow
 
 ### 🔍 **Closure Notes Gate Added**
+
 - **Location**: Step 5 - Issue Management section
 - **Purpose**: Remind agents to add comprehensive closure notes
 - **Template Provided**: Standard format for implementation details
 
 ### 📝 **Required Closure Notes Template**
+
 ```markdown
 ## Implementation Details & Documentation
 
@@ -139,16 +144,20 @@ python script.py --option value
 ```
 
 ### 📖 Key Documentation
+
 - **Main Docs**: `path/to/README.md#section`
 - **API Reference**: `path/to/api.md`
 
 ### 🔧 Integration Points
+
 - How it connects to existing system
 - Configuration requirements
 
 ### 📊 Production Features
+
 - Key capabilities for production use
 - Monitoring and performance characteristics
+
 ```
 
 ### ✅ **RTB Enhancement Benefits**
@@ -205,6 +214,7 @@ reflection = {
 ```
 
 ### ✅ **RTB Enhancement Benefits**
+
 1. **Systematic Learning**: Every session captures knowledge automatically
 2. **Continuous Improvement**: Built-in process for agent learning
 3. **Knowledge Transfer**: Structured capture for future agents
@@ -220,6 +230,7 @@ reflection = {
 **Solution Implemented**: Added reflection preview at PFC for new work sessions
 
 ### 🎯 **Reflection Preview Gate Added**
+
 - **Location**: Step 1.1 - Pre-Flight Validation section
 - **Trigger**: New work session (no git activity in past hour)
 - **Purpose**: Prepare agents to capture friction points in real-time
@@ -228,6 +239,7 @@ reflection = {
 ### 📋 **What the Preview Shows**
 
 **Key Areas to Watch During Work:**
+
 1. **🔧 Tool/Process Friction**: Slow, buggy, or inefficient tools
 2. **📝 Corrections**: Direct feedback and user corrections
 3. **🎨 Preferences**: Coding style and architectural choices
@@ -239,6 +251,7 @@ reflection = {
 9. **🛑 Roadblocks**: Issues that completely stop progress
 
 **Capture Strategy:**
+
 - **✍️ Note friction AS THEY HAPPEN** (not retrospectively)
 - **🏷️ Tag issues with severity levels**
 - **📐 Record exact error messages and solutions**
@@ -249,6 +262,7 @@ reflection = {
 ### 📝 **Friction Log Creation**
 
 For new sessions, the system creates:
+
 ```markdown
 # Session Friction Log - [timestamp]
 
@@ -257,6 +271,7 @@ For new sessions, the system creates:
 ```
 
 **Benefits:**
+
 - **Real-time capture** vs memory-based recall
 - **Structured format** for consistent documentation
 - **Session context** preserved for later reflection
@@ -265,11 +280,13 @@ For new sessions, the system creates:
 ### 🎓 **Transformation in Agent Behavior**
 
 **Before:**
+
 ```
 Agent works → RTB → "What should I remember?" → Retroactive capture
 ```
 
 **After:**
+
 ```
 Reflection preview → Agent watches for friction → Real-time notes → RTB → Rich reflection data
 ```
@@ -288,6 +305,7 @@ Reflection preview → Agent watches for friction → Real-time notes → RTB �
 ## Integration
 
 This skill integrates with:
+
 - FlightDirector PFC/RTB system
 - Beads task management
 - Multi-agent session locks
@@ -296,6 +314,7 @@ This skill integrates with:
 ## Error Handling
 
 If RTB fails:
+
 1. Check for merge conflicts - resolve and retry
 2. Verify network connectivity for git operations
 3. Check beads daemon status (`bd daemon status`)

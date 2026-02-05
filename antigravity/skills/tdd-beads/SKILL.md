@@ -31,18 +31,21 @@ The `tdd-beads` skill provides automatic beads issue creation with mandatory TDD
 This skill implements **Mandatory TDD Integration** with three core capabilities:
 
 ### 1. **Automatic Beads Issue Creation** (TDD-First)
+
 - **TDD-Ready Issues**: Automatically creates issues with TDD requirements
 - **Branch Management**: Creates feature branches with TDD validation
 - **Worktree Setup**: Isolated worktree for TDD development
 - **Template Generation**: Creates TDD test files and documentation
 
 ### 2. **TDD Compliance Enforcement** (Quality Gates)
+
 - **Pre-Development Validation**: Ensures all TDD artifacts exist before coding
 - **Timeline Validation**: Validates test-first commit ordering
 - **Quality Gate Integration**: Blocks non-compliant development
 - **Automatic Reporting**: Generates TDD compliance reports
 
 ### 3. **Emergency & Fallback Procedures** (Safety Net)
+
 - **Emergency Bypass**: Critical fixes with retrospective TDD
 - **Gradual Compliance**: Phased TDD adoption for legacy code
 - **Training Mode**: TDD learning mode with guidance
@@ -121,14 +124,16 @@ Agent: /tdd-beads validate user-authentication
 
 ### Integration with Existing Systems
 
-#### Flight Director Integration
+#### Orchestrator Integration
+
 - **Post-Task-Selection**: Automatic TDD setup after task selection
 - **Planning Integration**: TDD requirements included in planning phase
 - **Progress Blocking**: TDD violations block further development
 
-#### Pre-Flight Check Enhancement
+#### Initialization Enhancement
+
 ```bash
-# Enhanced PFC with TDD validation
+# Enhanced Initialization with TDD validation
 ✅ Environment ready (existing)
 ✅ TDD artifacts exist (new)
 ✅ Beads issue created (new)
@@ -137,7 +142,8 @@ Agent: /tdd-beads validate user-authentication
 ✅ Test timeline ready (new)
 ```
 
-#### Return-to-Base Integration
+#### Finalization Integration
+
 - **TDD Compliance Check**: Validates TDD requirements before session end
 - **Automatic Fixes**: Fixes TDD violations when possible
 - **Compliance Reports**: Generates TDD compliance documentation
@@ -323,7 +329,7 @@ skills:
     tdd_compliance_check: mandatory
     auto_fix_violations: true
     
-  flight_director:
+  orchestrator:
     prompt_tdd_setup: true
     block_non_compliant: true
     
@@ -401,6 +407,7 @@ System: "5. Monitor compliance"
 ### Common Issues
 
 **Beads Issue Creation Fails**:
+
 ```bash
 # Check beads daemon
 bd status
@@ -411,6 +418,7 @@ bd init
 ```
 
 **Branch Protection Errors**:
+
 ```bash
 # Check current branch
 git branch --show-current
@@ -420,12 +428,14 @@ git checkout -b feature/your-feature
 ```
 
 **TDD Template Issues**:
+
 ```bash
 # Regenerate templates
 /tdd-beads setup your-feature --force
 ```
 
 **Timeline Validation Fails**:
+
 ```bash
 # Check commit history
 git log --oneline
@@ -448,7 +458,7 @@ git rebase -i HEAD~5
 
 **Status**: P0 Critical Infrastructure  
 **Version**: 1.0.0  
-**Last Updated**: 2026-02-04  
-**Integration**: Beads, Planning, Flight Director, Return-to-Base, Reflect  
+**Last Updated**: 2026-02-05  
+**Integration**: Beads, Planning, Orchestrator, Finalization, Reflect  
 
 For issues or improvements, create a beads task with `tdd-beads` tag.

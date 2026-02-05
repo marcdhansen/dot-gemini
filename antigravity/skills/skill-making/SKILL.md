@@ -16,6 +16,7 @@ python ~/.gemini/antigravity/skills/skill-making/create_skill.py
 ## 🎯 Core Principles
 
 ### 1. Dual-Mode Design (CRITICAL)
+
 **Every skill must work in both interactive and non-interactive environments from day 1.**
 
 ```python
@@ -33,6 +34,7 @@ def is_non_interactive():
 ```
 
 ### 2. Graceful Degradation
+
 Never fail in non-interactive mode - always provide sensible fallbacks:
 
 - ✅ **Input**: Auto-select defaults or read from stdin JSON
@@ -41,6 +43,7 @@ Never fail in non-interactive mode - always provide sensible fallbacks:
 - ✅ **Errors**: Log and continue rather than crash
 
 ### 3. Environment-First Design
+
 Design for CI/CD environments first, then enhance for interactive use:
 
 - **Primary**: Non-interactive with sensible defaults
@@ -50,6 +53,7 @@ Design for CI/CD environments first, then enhance for interactive use:
 ## 🏗️ Skill Structure Template
 
 ### **Required Files**
+
 ```
 skill-name/
 ├── SKILL.md                    # Documentation and usage
@@ -64,6 +68,7 @@ skill-name/
 ```
 
 ### **SKILL.md Template**
+
 ```markdown
 # Skill: skill-name
 
@@ -77,22 +82,27 @@ python skill_name.py [options]
 ```
 
 ## Implementation
+
 - **Core Logic**: [Brief technical description]
 - **Dependencies**: [List of required modules]
 - **Environment Support**: Interactive + Non-interactive
 
 ## Error Handling
+
 [Document error scenarios and recovery strategies]
 
 ## 🚨 Fixed Issues
+
 [Document issues found and resolved during development]
 
 ## Integration
-- **RTB**: How it integrates with Return To Base workflow
-- **PFC**: How it's used during Pre-Flight Check
+
+- **Finalization**: How it integrates with Finalization workflow
+- **Initialization**: How it's used during Initialization phase
 - **Skills**: Dependencies on other skills
 
 ## Testing
+
 ```bash
 # Unit tests
 python -m pytest tests/test_skill_name.py
@@ -103,6 +113,7 @@ python -m pytest tests/integration_test.py
 # Non-interactive testing
 echo "" | python skill_name.py
 ```
+
 ```
 
 ## 🛠️ Development Patterns
@@ -132,6 +143,7 @@ def safe_input(prompt, default=None, choices=None, fallback_func=None):
 ```
 
 ### 2. Configuration Pattern
+
 ```python
 import yaml
 from pathlib import Path
@@ -165,6 +177,7 @@ class SkillConfig:
 ```
 
 ### 3. Error Recovery Pattern
+
 ```python
 class SkillError(Exception):
     """Base skill exception with recovery information"""
@@ -187,6 +200,7 @@ def handle_skill_error(error, context=""):
 ```
 
 ### 4. Testing Pattern
+
 ```python
 import unittest
 import tempfile
@@ -225,6 +239,7 @@ if __name__ == "__main__":
 ## 🚫 Anti-Patterns to Avoid
 
 ### 1. Direct input() Calls
+
 ```python
 # ❌ WRONG - Will fail in CI
 response = input("Enter value: ")
@@ -234,6 +249,7 @@ response = safe_input("Enter value: ", default="auto_value")
 ```
 
 ### 2. Missing EOF Handling
+
 ```python
 # ❌ WRONG - Crashes in non-interactive environments
 while True:
@@ -253,6 +269,7 @@ while True:
 ```
 
 ### 3. Hardcoded Paths
+
 ```python
 # ❌ WRONG - Assumes current directory
 config_path = "./config.yaml"
@@ -262,6 +279,7 @@ config_path = Path(__file__).parent / "config" / "defaults.yaml"
 ```
 
 ### 4. Missing Environment Detection
+
 ```python
 # ❌ WRONG - Assumes interactive mode
 print("Please enter your selection:")
@@ -275,15 +293,17 @@ else:
 
 ## 🔧 Skill Categories & Patterns
 
-### 1. RTB Skills (Critical)
-**Purpose**: Called during Return To Base workflow
+### 1. Finalization Skills (Critical)
+
+**Purpose**: Called during Finalization workflow
 **Requirements**: MUST be non-interactive compatible
 **Examples**: browser-manager, enhanced-reflection
 
 **Critical Pattern**:
+
 ```python
-def rtb_compatible_function():
-    """RTB skills must never block automated workflows"""
+def finalization_compatible_function():
+    """Finalization skills must never block automated workflows"""
     if is_non_interactive():
         print("🤖 Non-interactive mode - Auto-approving")
         return True  # or auto-selected result
@@ -292,14 +312,16 @@ def rtb_compatible_function():
     return manual_result
 ```
 
-### 2. PFC Skills (Important)
-**Purpose**: Called during Pre-Flight Check
+### 2. Initialization Skills (Important)
+
+**Purpose**: Called during Initialization phase
 **Requirements**: Should work in CI environments
-**Examples**: mission-briefing, devil's-advocate
+**Examples**: session-context, orchestrator
 
 **Pattern**:
+
 ```python
-def pre_flight_check():
+def initialization_check():
     """Provide value regardless of environment"""
     data = gather_information()
     
@@ -313,11 +335,13 @@ def pre_flight_check():
 ```
 
 ### 3. Utility Skills (Flexible)
+
 **Purpose**: General-purpose tools
 **Requirements**: Adapt behavior based on environment
 **Examples**: show-next-task, file-manager
 
 **Pattern**:
+
 ```python
 def utility_function():
     """Enhanced in interactive mode, functional in non-interactive"""
@@ -333,18 +357,21 @@ def utility_function():
 ## 🧪 Development Checklist
 
 ### ✅ Pre-Development
+
 - [ ] **Define Purpose**: Clear single-responsibility principle
 - [ ] **Identify Environment**: Will this be used in CI/CD?
 - [ ] **Design Fallbacks**: What should happen automatically?
 - [ ] **Plan Testing**: Unit + integration + non-interactive
 
 ### ✅ During Development
+
 - [ ] **Use Standard Patterns**: Apply safe_input(), config handling
 - [ ] **Test Non-Interactive**: `echo "" | skill.py` during development
 - [ ] **Handle Exceptions**: Use SkillError with recovery info
 - [ ] **Document Decisions**: Why this approach over alternatives?
 
 ### ✅ Post-Development
+
 - [ ] **Unit Tests**: Test all functions and error cases
 - [ ] **Integration Tests**: Test with real environment
 - [ ] **Non-Interactive Tests**: Verify fallback behavior
@@ -354,24 +381,28 @@ def utility_function():
 ## 📚 Learning from Experience
 
 ### 🚨 Critical Lessons
+
 1. **EOF Errors are Systemic**: If one skill has them, others probably do too
 2. **Non-Interactive Detection**: Must use multiple checks (stdin + env vars)
 3. **Fallback Behavior**: Must be sensible, not random defaults
 4. **Testing Strategy**: `echo "" | skill` reveals all EOF issues immediately
 
 ### 🛠️ Technical Insights
+
 1. **Input Validation**: Always validate user input and provide recovery guidance
 2. **Configuration**: Use YAML for human-readable config with code defaults
 3. **Error Messages**: Include recovery suggestions and next steps
 4. **Logging**: Add structured logging for debugging non-interactive issues
 
 ### 🎯 Design Patterns
+
 1. **Strategy Pattern**: Abstract interface, multiple implementations
 2. **Factory Pattern**: Create appropriate handler based on environment
 3. **Observer Pattern**: Log events for debugging without changing logic
 4. **Command Pattern**: Encapsulate operations as undoable actions
 
 ### 🔄 Process Insights
+
 1. **Develop Locally**: Use `./skill.py` for immediate testing
 2. **Test in CI**: Push to test branch to verify CI behavior
 3. **Iterate Quickly**: Fix issues as soon as they're discovered
@@ -379,15 +410,17 @@ def utility_function():
 
 ## 🔗 Integration Guidelines
 
-### **RTB Integration**
+### **Finalization Integration**
+
 ```bash
-# In return-to-base.sh
+# In finalize.sh
 if [ -f "$SKILL_PATH" ] && [ -x "$SKILL_PATH" ]; then
-    "$SKILL_PATH" rtb-mode || echo "⚠️ Skill encountered issues"
+    "$SKILL_PATH" finalize-mode || echo "⚠️ Skill encountered issues"
 fi
 ```
 
 ### **Skill Dependencies**
+
 ```python
 # Import patterns for skill interdependencies
 try:
@@ -399,6 +432,7 @@ except ImportError:
 ```
 
 ### **Configuration Integration**
+
 ```yaml
 # In ~/.gemini/antigravity/config/skills.yaml
 skill_name:
@@ -413,16 +447,19 @@ skill_name:
 ## 🎖️ Future-Proofing
 
 ### **Extensibility**
+
 - **Plugin Architecture**: Design for easy extension and modification
 - **Version Compatibility**: Maintain backward compatibility with skill interfaces
 - **API Stability**: Keep public interfaces stable between versions
 
 ### **Maintainability**
+
 - **Clear Separation**: Separate logic, configuration, and presentation
 - **Comprehensive Tests**: Unit + integration + edge case coverage
 - **Documentation**: Always update docs when changing behavior
 
 ### **Scalability**
+
 - **Performance**: Consider resource usage for large-scale deployments
 - **Concurrency**: Design for multi-agent environments if applicable
 - **Monitoring**: Add metrics and health check capabilities
@@ -431,5 +468,5 @@ skill_name:
 
 *Based on extensive experience fixing EOF issues and developing the skill ecosystem*
 
-*Last Updated: 2025-02-04*
-*Version: 1.0*
+*Last Updated: 2026-02-05*
+*Version: 1.1*

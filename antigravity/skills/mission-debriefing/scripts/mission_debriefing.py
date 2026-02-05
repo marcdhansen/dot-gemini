@@ -477,6 +477,30 @@ def generate_debrief(
         debrief_lines.append(f"- {item}")
     debrief_lines.append("")
 
+    # Harness Self-Evolution (P0: SOTA Harness Migration)
+    debrief_lines.extend(
+        [
+            "---",
+            "",
+            "## 6. Harness Self-Evolution (MANDATORY)",
+            "",
+            "### RBT Analysis",
+            "- **Roses** (Successes): IDENTIFY what part of the harness/SOP worked perfectly.",
+            "- **Buds** (Potential): IDENTIFY an emerging improvement for the next session.",
+            "- **Thorns** (Challenges): IDENTIFY one failure point in the protocol today.",
+            "",
+            "### Protocol Validity",
+            "- [ ] Flight Director was accurate in its checks",
+            "- [ ] `task.md` remained the living source of truth",
+            "- [ ] `SKILL.md` updates were proposed for new learnings",
+            "",
+            "### Memory Sync",
+            "- [ ] All session learnings synced to AutoMem Knowledge Graph",
+            "- [ ] OpenViking temporal state persisted",
+            "",
+        ]
+    )
+
     # Footer
     debrief_lines.extend(
         [

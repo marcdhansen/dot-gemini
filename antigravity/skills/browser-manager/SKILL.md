@@ -21,6 +21,7 @@ allowed-tools: Bash, Read, Edit, Glob, Grep
 ## 🛠️ Tools & Scripts
 
 ### Core Browser Management
+
 ```bash
 # Check current browser and tab status
 browser-manager status
@@ -39,6 +40,7 @@ browser-manager cleanup --all
 ```
 
 ### Configuration Management
+
 ```bash
 # Show current configuration
 browser-manager config
@@ -56,6 +58,7 @@ browser-manager config reset
 ```
 
 ### Session Management
+
 ```bash
 # Show browser session tracking data
 browser-manager sessions
@@ -70,6 +73,7 @@ browser-manager rtb-cleanup
 ## 📋 Usage Examples
 
 ### Basic Browser Management
+
 ```bash
 # Check what browsers are running
 /browser-manager status
@@ -82,6 +86,7 @@ browser-manager rtb-cleanup
 ```
 
 ### Cross-Agent Operations
+
 ```bash
 # Clean up another agent's browsers (asks permission)
 /browser-manager cleanup --agent agent-42
@@ -91,6 +96,7 @@ browser-manager rtb-cleanup
 ```
 
 ### Configuration
+
 ```bash
 # Set limits to get warnings
 /browser-manager config set max_tabs_per_agent 3
@@ -101,6 +107,7 @@ browser-manager rtb-cleanup
 ```
 
 ### Tab Management
+
 ```bash
 # Show all tabs across all browsers
 /browser-manager tabs --all-agents
@@ -112,21 +119,25 @@ browser-manager rtb-cleanup
 ## 🔗 Integration Points
 
 ### RTB Integration (Mandatory)
+
 - **Automatic Cleanup**: `browser-manager rtb-cleanup` called by RTB
 - **Session Data Deletion**: Removes browser tracking at mission end
 - **Resource Reporting**: Includes browser usage in RTB summary
 
 ### UI Skill Integration
+
 - **Pre-Test Tracking**: Track browsers before UI tests start
 - **Post-Test Cleanup**: Clean up browsers after UI tests complete
 - **Tab Counting**: Monitor tab usage during test execution
 
 ### Testing Skill Integration
+
 - **Resource Warnings**: Show browser usage in test reports
 - **Pre-Test Setup**: Ensure clean browser environment
 - **Post-Test Cleanup**: Remove test browsers automatically
 
 ### Session Lock Integration
+
 - **Agent Ownership**: Track which agent owns which browsers
 - **Crash Recovery**: Handle orphaned browsers from crashed agents
 - **Coordination**: Prevent browser conflicts between agents
@@ -142,24 +153,28 @@ browser-manager rtb-cleanup
 ## 🎯 Key Features
 
 ### Tab-Level Tracking
+
 - Uses Chrome DevTools Protocol to enumerate individual tabs
 - Shows tab titles, URLs, and types
 - Respects incognito mode (no tab inspection)
 - Falls back to process analysis if DevTools unavailable
 
 ### Permission System
+
 - Interactive terminal prompts for cross-agent cleanup
 - Shows detailed browser/tab information before permission
 - 30-second timeout with auto-cancel
 - Audit logging of all cross-agent operations
 
 ### Configuration Without Defaults
+
 - No resource limits by default (user must configure)
 - Per-agent configuration support
 - Persistent configuration across sessions
 - Validation and warnings for restrictive settings
 
 ### Mission-End Cleanup
+
 - Automatic session data deletion on RTB
 - Graceful browser shutdown with timeout
 - Orphaned process detection and cleanup
@@ -168,18 +183,21 @@ browser-manager rtb-cleanup
 ## 🚨 Safety Features
 
 ### Soft Warnings Only
+
 - Resource limits never block operations
 - Warnings are informational only
 - Can be suppressed by user configuration
 - Always allows manual override
 
 ### Permission Protection
+
 - Cross-agent cleanup requires explicit permission
 - Detailed browser/tab information shown before action
 - Audit logging for security and accountability
 - Emergency force option with elevated warnings
 
 ### Privacy Respect
+
 - Incognito mode tabs are not inspected
 - URL/titles are truncated in status output
 - Local URLs are filtered in summaries
@@ -188,6 +206,7 @@ browser-manager rtb-cleanup
 ## 🛠️ Installation & Setup
 
 ### Dependencies
+
 ```bash
 # Required Python packages
 pip install psutil requests
@@ -197,6 +216,7 @@ pip install websocket-client
 ```
 
 ### Configuration
+
 ```bash
 # Initial setup (creates config with no limits)
 browser-manager config
@@ -207,7 +227,9 @@ browser-manager config set max_memory_mb 1000
 ```
 
 ### Permissions
+
 The skill needs permissions to:
+
 - Access browser processes (psutil)
 - Connect to Chrome DevTools (localhost ports)
 - Read/write session tracking files
@@ -218,6 +240,7 @@ The skill needs permissions to:
 ### Common Issues
 
 **Tab detection not working:**
+
 ```bash
 # Check if Chrome has remote debugging enabled
 browser-manager status --debug
@@ -227,6 +250,7 @@ browser-manager status --refresh
 ```
 
 **Permission denied errors:**
+
 ```bash
 # Check browser process permissions
 ps aux | grep chrome
@@ -236,6 +260,7 @@ sudo browser-manager cleanup --force
 ```
 
 **Configuration issues:**
+
 ```bash
 # Reset to factory defaults
 browser-manager config reset
@@ -245,6 +270,7 @@ browser-manager config --verbose
 ```
 
 ### Debug Mode
+
 ```bash
 # Enable debug logging
 browser-manager status --debug
@@ -256,6 +282,7 @@ browser-manager status --verbose --debug
 ## 📚 Configuration Reference
 
 ### Resource Limits
+
 ```yaml
 limits:
   max_tabs_per_agent: null      # No limit by default
@@ -265,6 +292,7 @@ limits:
 ```
 
 ### Admin Settings
+
 ```yaml
 admin:
   require_permission_for_others: true
@@ -274,6 +302,7 @@ admin:
 ```
 
 ### Tracking Settings
+
 ```yaml
 tracking:
   delete_on_mission_end: true
@@ -285,18 +314,21 @@ tracking:
 ## 🎯 Best Practices
 
 ### Resource Management
+
 1. **Configure limits** based on your system capabilities
 2. **Monitor regularly** with `browser-manager status`
 3. **Clean up frequently** after testing sessions
 4. **Use RTB integration** for automatic cleanup
 
 ### Multi-Agent Coordination
+
 1. **Respect agent ownership** - don't cleanup others' browsers without permission
 2. **Coordinate sessions** to avoid browser conflicts
 3. **Use session locks** to prevent overlapping browser usage
 4. **Communicate cleanup intentions** in agent messages
 
 ### Privacy & Security
+
 1. **Review tab titles/URLs** before giving cleanup permission
 2. **Use incognito mode** for sensitive testing
 3. **Clear session data** after sensitive missions

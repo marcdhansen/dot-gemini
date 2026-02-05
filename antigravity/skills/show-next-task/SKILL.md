@@ -18,6 +18,7 @@ The `show-next-task` skill provides intelligent guidance on what to work on next
 ## Purpose
 
 This skill performs comprehensive task analysis:
+
 1. Runs `bd ready` to display all available tasks
 2. Analyzes the task priority landscape (P0, P1, P2)
 3. Indicates which tasks are currently in progress
@@ -64,20 +65,24 @@ The skill delivers:
 ## Decision Logic
 
 **P0 Available**: Immediate attention required
+
 - Recommendation: Start with P0 tasks first
 - Reasoning: These are blocking project progress
 
 **P1 Only**: High-priority work
+
 - Recommendation: Tackle P1 tasks for maximum impact
 - Reasoning: High importance with clear deliverables
 
 **P2 Only**: Strategic development
+
 - Recommendation: Work on P2 tasks systematically
 - Reasoning: Advance project goals methodically
 
 ## Integration
 
 This skill integrates with:
+
 - **Beads Task Management**: `bd ready` command for task discovery
 - **Project Roadmap**: `.agent/rules/ROADMAP.md` for phase alignment
 - **Implementation Planning**: `.agent/rules/ImplementationPlan.md` for detailed guidance
@@ -107,6 +112,7 @@ This skill integrates with:
 ## Error Handling
 
 The skill gracefully handles:
+
 - Beads daemon not running
 - No ready tasks available
 - Command execution failures

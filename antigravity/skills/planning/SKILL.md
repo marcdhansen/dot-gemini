@@ -14,7 +14,7 @@ The `planning` skill provides comprehensive planning capabilities for the LightR
 ## 🚀 Usage
 
 ```bash
-# Primary workflow (Flight Director integration)
+# Primary workflow (Orchestrator integration)
 /plan scope <task-id>       # Scope selected task with blast radius analysis
 /plan analyze <task-id>     # Detailed analysis and recommendations
 /plan proceed <task-id>     # Create implementation plan and milestones
@@ -37,16 +37,19 @@ The `planning` skill provides comprehensive planning capabilities for the LightR
 This skill implements an **Integrated Planning System** with three core capabilities:
 
 ### 1. **Blast Radius Analysis** (Progressive Disclosure)
+
 - **Level 1: Summary** - Quick overview with risk assessment
 - **Level 2: Detailed** - Module-level analysis with dependencies
 - **Level 3: Deep-Dive** - Complete architectural impact analysis
 
 ### 2. **Incremental Validation System** (Hybrid Approach)
+
 - **Milestone-Based Validation** - Success criteria at each development phase
 - **A/B Testing Framework** - Statistical significance testing
 - **Rollback-Safe Deployment** - User-controlled rollback triggers
 
-### 3. **Task Planning & Integration** (Flight Director Integration)
+### 3. **Task Planning & Integration** (Orchestrator Integration)
+
 - **Post-Task-Selection Planning** - Automatic scoping prompt after task selection
 - **Beads Integration** - Recommend and create tasks after user approval
 - **Progress Blocking** - Failed milestones automatically block further progress
@@ -55,7 +58,7 @@ This skill implements an **Integrated Planning System** with three core capabili
 
 ### Core Components
 
-```
+```text
 planning/
 ├── SKILL.md                    # This documentation
 ├── scripts/
@@ -64,7 +67,7 @@ planning/
 │   ├── incremental_validator.py # Value-driven change validation
 │   ├── milestone_tracker.py   # Milestone-based progress tracking
 │   ├── risk_assessor.py       # Multi-dimensional risk analysis
-│   └── flight_director_integration.py # Flight Director interface
+│   └── orchestrator_integration.py # Orchestrator interface
 ├── templates/
 │   ├── feature_plan.md        # Feature planning template
 │   ├── task_scope.md          # Task scoping template
@@ -74,7 +77,7 @@ planning/
 │   ├── planning_config.yaml   # Main configuration
 │   ├── blast_radius_rules.yaml # Analysis rules and thresholds
 │   ├── milestone_criteria.yaml # Success criteria definitions
-│   └── flight_director_config.yaml # Integration configuration
+│   └── orchestrator_config.yaml # Integration configuration
 ├── integration/
 │   ├── beads_integration.py   # Task management integration
 │   ├── tdd_gate_enhancement.py # Quality gate integration
@@ -91,22 +94,22 @@ planning/
 
 ## 🔄 Workflow Integration
 
-### Flight Director Integration
+### Orchestrator Integration
 
-The planning skill integrates seamlessly with the **Flight Director** system to provide **post-task-selection planning**:
+The planning skill integrates seamlessly with the **Orchestrator** system to provide **post-task-selection planning**:
 
 1. **Task Selection**: Agent selects task using `/next` command
-2. **Flight Director Prompt**: Automatically prompts for planning scoping
+2. **Orchestrator Prompt**: Automatically prompts for planning scoping
 3. **Planning Mode**: Agent runs `/plan scope <task-id>` to analyze task
 4. **Decision Point**: Agent chooses to proceed with development or table task
 5. **Plan Creation**: If proceeding, create implementation plan with milestones
 
-### Enhanced PFC (Pre-Flight Check)
+### Enhanced Initialization
 
-The skill enhances the existing PFC system with planning validation:
+The skill enhances the existing Initialization system with planning validation:
 
 ```bash
-# Enhanced PFC checks
+# Enhanced Initialization checks
 ✅ Basic readiness (existing)
 ✅ Planning scope completed (new)
 ✅ Milestones defined (new)
@@ -119,18 +122,21 @@ The skill enhances the existing PFC system with planning validation:
 ### Progressive Disclosure Levels
 
 #### **Level 1: Summary Analysis** (Quick Overview)
+
 - Affected files count and critical paths
 - Risk level (LOW/MEDIUM/HIGH/CRITICAL)
 - Estimated testing effort and deployment impact
 - Timeline impact and resource requirements
 
 #### **Level 2: Detailed Analysis** (Development Planning)
+
 - File impacts with specific changes required
 - Dependency chain analysis and test coverage gaps
 - Migration requirements and rollback complexity
 - Integration points affected and cross-module dependencies
 
 #### **Level 3: Deep-Dive Analysis** (Architecture Review)
+
 - Performance implications and security considerations
 - Long-term maintenance impact and technical debt analysis
 - Cross-system integration effects and compliance requirements
@@ -139,7 +145,7 @@ The skill enhances the existing PFC system with planning validation:
 ### Analysis Dimensions
 
 | Dimension | Metrics | Impact Level |
-|-----------|---------|-------------|
+| :--- | :--- | :--- |
 | **Code** | Files changed, functions modified, API changes | HIGH |
 | **Configuration** | Schema changes, environment impacts, security settings | MEDIUM |
 | **Database** | Schema migrations, data transformations, index changes | CRITICAL |
@@ -205,6 +211,7 @@ The skill enhances the existing PFC system with planning validation:
 ### Fallback Strategy
 
 The planning skill uses a **Fallback Mechanism** approach:
+
 - **Primary System**: New planning skill as default
 - **Fallback Options**: Manual planning, beads-only, direct development
 - **Emergency Procedures**: Critical fix bypass with retrospective planning
@@ -231,7 +238,7 @@ Legacy Process Conflict → Configurable preference system
 
 ### P0 Success Criteria
 
-- **100%** Flight Director planning prompt compliance
+- **100%** Orchestrator planning prompt compliance
 - **100%** Blast radius analysis for P0/P1 tasks  
 - **100%** Milestone blocking enforcement
 - **100%** Rollback capability verification
@@ -329,17 +336,20 @@ System: ⚠️ EMERGENCY MODE - Minimal planning activated
 ### Common Issues
 
 **Planning Analysis Fails**:
+
 - Check git repository status
 - Verify beads daemon running
 - Ensure proper workspace directory
 
 **Milestone Blocking Issues**:
+
 - Review success criteria configuration
 - Check validation tool availability
 - Verify test framework integration
 
-**Flight Director Integration**:
-- Confirm Flight Director script updates
+**Orchestrator Integration**:
+
+- Confirm Orchestrator script updates
 - Check prompt configuration
 - Verify session state management
 
@@ -357,7 +367,7 @@ System: ⚠️ EMERGENCY MODE - Minimal planning activated
 
 **Status**: P0 Critical Infrastructure  
 **Version**: 1.0.0  
-**Last Updated**: 2026-02-04  
-**Integration**: Flight Director, Beads, TDD Gates, Git Workflow  
+**Last Updated**: 2026-02-05  
+**Integration**: Orchestrator, Beads, TDD Gates, Git Workflow  
 
 For issues or improvements, create a beads task with `planning-skill` tag.

@@ -12,6 +12,7 @@ Critical thinking persona that prevents bias, challenges assumptions, and demand
 ## Purpose
 
 Provides devil's advocate perspective for:
+
 - **Skeptical Challenge**: Question assumptions vigorously and find flaws
 - **Counterargument Generation**: Present opposing viewpoints to stress-test ideas
 - **Evidence Scrutiny**: Demand specific data and reject anecdotal claims
@@ -30,6 +31,7 @@ Provides devil's advocate perspective for:
 ## Integration
 
 The devil's advocate integrates with:
+
 - **PFC Process**: Enhanced pre-flight checks with critical thinking
 - **Mission Briefing**: Adds skepticism to task preparation
 - **Reflection Capture**: Includes devil's advocate insights in learning
@@ -73,6 +75,7 @@ The devil's advocate integrates with:
 ### ⚖️ Counterargument Generation
 
 **For "Implement new caching system":**
+
 - "Caching adds complexity and potential data inconsistencies"
 - "What if cache invalidation fails and serves stale data?"
 - "Have we tested invalidation scenarios thoroughly?"
@@ -81,6 +84,7 @@ The devil's advocate integrates with:
 - "What's the migration cost and downtime risk?"
 
 **For "Use new database technology":**
+
 - "Team lacks expertise with this technology"
 - "What's the migration cost and downtime risk?"
 - "Have we evaluated integration with existing systems?"
@@ -97,20 +101,25 @@ The devil's advocate integrates with:
 ## Activation Methods
 
 ### Method 1: Standalone Critical Analysis
+
 ```bash
 /devils-advocate
 ```
+
 Run before making critical decisions, when major impacts are possible.
 
 ### Method 2: PFC Integration
+
 ```bash
 /devils-advocate pfc
 ```
+
 Integrate devil's advocate throughout PFC process for continuous critical thinking.
 
 ## Evidence-Based Decision Framework
 
 ### 🔍 Decision Validation
+
 1. **Assumption Documentation**: List all core assumptions
 2. **Counterargument Analysis**: Document opposing viewpoints
 3. **Evidence Collection**: Gather supporting data for each option
@@ -137,6 +146,7 @@ Integrate devil's advocate throughout PFC process for continuous critical thinki
 ## Integration
 
 The devil's advocate enhances:
+
 - **PFC Process**: Critical thinking as pre-flight requirement
 - **Mission Briefing**: Skeptical task preparation
 - **Reflection System**: Includes counterarguments and risk analysis

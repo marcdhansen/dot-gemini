@@ -1,15 +1,14 @@
-#!/usr/bin/env python3
 """
-Flight Director - Agent Orchestrator
+Orchestrator - Agent Workflow Coordinator
 
-Verifies SOP compliance at each phase (PFC, RTB) and validates that agents
+Verifies SOP compliance at each phase (Initialization, Finalization) and validates that agents
 complete each step adequately and invoke appropriate skills.
 
 Usage:
-    python check_flight_readiness.py --pfc     # Pre-Flight Check validation
-    python check_flight_readiness.py --rtb     # Return To Base validation
-    python check_flight_readiness.py --status  # Full orchestration status
-    python check_flight_readiness.py --help    # Show help
+    python check_flight_readiness.py --init     # Initialization validation
+    python check_flight_readiness.py --finalize # Finalization validation
+    python check_flight_readiness.py --status   # Full orchestration status
+    python check_flight_readiness.py --help     # Show help
 """
 
 import argparse
@@ -18,6 +17,30 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+
+# Add universal scripts to path
+sys.path.append(str(Path.home() / ".agent/scripts"))
+sys.path.append(str(Path.home() / ".agent/ledgers"))
+
+try:
+    from compliance_validators import validate_initialization
+except ImportError:
+    validate_initialization = None
+
+
+def update_progress_ledger(phase: str, status: str, result: str):
+    """Update the Progress Ledger with phase result."""
+    manager = Path.home() / ".agent/ledgers/ledger-manager.py"
+    if manager.exists():
+        try:
+            # We don't always have a task_id here, use 'system' or 'harness'
+            subprocess.run(
+                [sys.executable, str(manager), "add-step", "harness", f"Phase: {phase}", result, "--status", status],
+                capture_output=True,
+                text=True
+            )
+        except Exception:
+            pass
 
 
 class Colors:
@@ -257,9 +280,33 @@ def check_handoff_compliance() -> tuple[bool, str]:
         return False, f"Hand-off verification error: {str(e)}"
 
 
-def run_pfc(verbose: bool = False) -> bool:
-    """Run Pre-Flight Check validation."""
-    print(f"{Colors.BOLD}🛫 PRE-FLIGHT CHECK{Colors.END}")
+def check_todo_completion() -> tuple[bool, str]:
+    """Check if all tasks in task.md are completed (oh-my-opencode pattern)."""
+    # Use the todo-enforcer script if available
+    enforcer_script = Path.home() / ".agent/scripts/todo-enforcer.py"
+    if enforcer_script.exists():
+        try:
+            result = subprocess.run(
+                [sys.executable, str(enforcer_script)],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                return True, "All tasks completed (Sisyphus is happy)"
+            else:
+                # Extract the failure message
+                msg = result.stdout.strip().split("\n")[-1] if result.stdout else "Unfinished tasks detected"
+                return False, msg
+        except Exception as e:
+            return False, f"Todo enforcer error: {e}"
+            
+    return True, "Todo enforcer script not found (Skipping)"
+
+
+def run_initialization(verbose: bool = False) -> bool:
+    """Run Initialization validation (formerly PFC)."""
+    print(f"{Colors.BOLD}📋 INITIALIZATION CHECK{Colors.END}")
     print("=" * 40)
     print()
 
@@ -307,31 +354,34 @@ def run_pfc(verbose: bool = False) -> bool:
 
     # Summary
     if blockers:
-        print(f"{Colors.RED}{Colors.BOLD}❌ PFC BLOCKED{Colors.END}")
+        print(f"{Colors.RED}{Colors.BOLD}❌ INITIALIZATION BLOCKED{Colors.END}")
         print()
         print("BLOCKERS:")
         for i, blocker in enumerate(blockers, 1):
             print(f"  {i}. {blocker}")
+        update_progress_ledger("Initialization", "failure", f"Blocked: {blockers}")
         return False
     elif warnings:
-        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ PFC PASSED WITH WARNINGS{Colors.END}")
+        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ INITIALIZATION PASSED WITH WARNINGS{Colors.END}")
         print()
         print("WARNINGS:")
         for i, warning in enumerate(warnings, 1):
             print(f"  {i}. {warning}")
         print()
-        print("Ready for takeoff (address warnings when possible)")
+        print("Ready for execution (address warnings when possible)")
+        update_progress_ledger("Initialization", "success", f"Passed with warnings: {warnings}")
         return True
     else:
-        print(f"{Colors.GREEN}{Colors.BOLD}✅ PFC COMPLETE{Colors.END}")
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ INITIALIZATION COMPLETE{Colors.END}")
         print()
-        print("Ready for takeoff!")
+        print("Ready for execution!")
+        update_progress_ledger("Initialization", "success", "Clean initialization complete")
         return True
 
 
-def run_ifo(verbose: bool = False) -> bool:
-    """Run In-Flight Operations status check."""
-    print(f"{Colors.BOLD}✈️ IN-FLIGHT OPERATIONS{Colors.END}")
+def run_execution(verbose: bool = False) -> bool:
+    """Run Execution Phase status check (formerly IFO)."""
+    print(f"{Colors.BOLD}🚀 EXECUTION PHASE{Colors.END}")
     print("=" * 40)
     print()
     print("IFO: Active work phase - executing the task.")
@@ -388,22 +438,22 @@ def run_ifo(verbose: bool = False) -> bool:
     print()
 
     if issues:
-        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ IFO SETUP INCOMPLETE{Colors.END}")
+        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ EXECUTION SETUP INCOMPLETE{Colors.END}")
         print()
         print("SETUP NEEDED:")
         for i, issue in enumerate(issues, 1):
             print(f"  {i}. {issue}")
         return False
     else:
-        print(f"{Colors.GREEN}{Colors.BOLD}✅ IFO ACTIVE{Colors.END}")
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ EXECUTION ACTIVE{Colors.END}")
         print()
-        print("Execute the mission. Run --rtb when ready to land.")
+        print("Execute the task. Run --finalize when ready to land.")
         return True
 
 
-def run_rtb(verbose: bool = False) -> bool:
-    """Run Return To Base validation (safe landing checks only)."""
-    print(f"{Colors.BOLD}🛬 RETURN TO BASE CHECK{Colors.END}")
+def run_finalization(verbose: bool = False) -> bool:
+    """Run Finalization validation (formerly RTB)."""
+    print(f"{Colors.BOLD}🛬 FINALIZATION CHECK{Colors.END}")
     print("=" * 40)
     print()
     print("RTB focuses on safe landing: code quality, clean git, successful push.")
@@ -434,41 +484,50 @@ def run_rtb(verbose: bool = False) -> bool:
 
     # Reflection Check (Enforced at RTB to ensure it's not skipped)
     reflect_ok, reflect_msg = check_reflection_invoked()
-    print(f"└── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
+    print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
         blockers.append("Reflection not captured - invoke /reflect (Mandatory for RTB)")
+
+    # Todo Completion Check (Sisyphus pattern)
+    todo_ok, todo_msg = check_todo_completion()
+    print(f"└── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
+    if not todo_ok:
+        blockers.append(f"Todo Enforcer failed: {todo_msg}")
 
     print()
 
     # Summary
     if blockers:
-        print(f"{Colors.RED}{Colors.BOLD}❌ RTB BLOCKED{Colors.END}")
+        print(f"{Colors.RED}{Colors.BOLD}❌ FINALIZATION BLOCKED{Colors.END}")
         print()
         print("BLOCKERS:")
         for i, blocker in enumerate(blockers, 1):
             print(f"  {i}. {blocker}")
         print()
-        print("Resolve blockers before completing RTB.")
+        print("Resolve blockers before completing Finalization.")
+        update_progress_ledger("Finalization", "failure", f"Blocked: {blockers}")
         return False
     elif warnings:
-        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ RTB PASSED WITH WARNINGS{Colors.END}")
+        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ FINALIZATION PASSED WITH WARNINGS{Colors.END}")
         print()
         print("WARNINGS:")
         for i, warning in enumerate(warnings, 1):
             print(f"  {i}. {warning}")
         print()
-        print("Safe landing! Now proceed to Mission Debrief.")
+        print("Safe landing! Now proceed to Retrospective.")
+        update_progress_ledger("Finalization", "success", f"Passed with warnings: {warnings}")
         return True
     else:
-        print(f"{Colors.GREEN}{Colors.BOLD}✅ RTB COMPLETE{Colors.END}")
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ FINALIZATION COMPLETE{Colors.END}")
         print()
-        print("Safe landing! Now proceed to Mission Debrief.")
+        print("Safe landing! Now proceed to Retrospective.")
+        update_progress_ledger("Finalization", "success", "Clean Finalization complete")
         return True
 
 
-def run_debrief(verbose: bool = False) -> bool:
-    """Run Mission Debrief validation."""
-    print(f"{Colors.BOLD}🎖️ MISSION DEBRIEF CHECK{Colors.END}")
+def run_retrospective(verbose: bool = False) -> bool:
+    """Run Retrospective validation (formerly Debrief)."""
+    print(f"{Colors.BOLD}🎖️ RETROSPECTIVE CHECK{Colors.END}")
     print("=" * 40)
     print()
     print("Mission Debrief: strategic learning and session closure.")
@@ -493,42 +552,48 @@ def run_debrief(verbose: bool = False) -> bool:
     approval_ok, approval_msg = check_plan_approval()
     # For debrief, we WANT approval to be stale/missing (means it was cleared)
     approval_cleared = not approval_ok or "stale" in approval_msg.lower()
-    print(f"└── Plan Cleared: {check_mark(approval_cleared)} ", end="")
+    print(f"├── Plan Cleared: {check_mark(approval_cleared)} ", end="")
     if approval_cleared:
         print("Plan approval cleared or stale")
     else:
         print(f"Plan still active: {approval_msg}")
         warnings.append("Clear the ## Approval marker in task.md")
 
+    # Todo Completion Check (Sisyphus pattern)
+    todo_ok, todo_msg = check_todo_completion()
+    print(f"└── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
+    if not todo_ok:
+        blockers.append(f"Todo Enforcer failed: {todo_msg}")
+
     print()
 
     # Summary
     if blockers:
-        print(f"{Colors.RED}{Colors.BOLD}❌ DEBRIEF INCOMPLETE{Colors.END}")
+        print(f"{Colors.RED}{Colors.BOLD}❌ RETROSPECTIVE INCOMPLETE{Colors.END}")
         print()
         print("BLOCKERS:")
         for i, blocker in enumerate(blockers, 1):
             print(f"  {i}. {blocker}")
         return False
     elif warnings:
-        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ DEBRIEF INCOMPLETE{Colors.END}")
+        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ RETROSPECTIVE INCOMPLETE{Colors.END}")
         print()
         print("MISSING:")
         for i, warning in enumerate(warnings, 1):
             print(f"  {i}. {warning}")
         print()
-        print("Complete these steps, then run --cleanup for final check.")
+        print("Complete these steps, then run --clean for final check.")
         return False
     else:
-        print(f"{Colors.GREEN}{Colors.BOLD}✅ MISSION DEBRIEF COMPLETE{Colors.END}")
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ RETROSPECTIVE COMPLETE{Colors.END}")
         print()
-        print("Now run --cleanup for final repo verification.")
+        print("Now run --clean for final repo verification.")
         return True
 
 
-def run_cleanup(verbose: bool = False) -> bool:
-    """Run Cleanup Repo verification (final phase after debrief)."""
-    print(f"{Colors.BOLD}✨ CLEANUP REPO CHECK{Colors.END}")
+def run_clean_state(verbose: bool = False) -> bool:
+    """Run Clean State validation (formerly Cleanup)."""
+    print(f"{Colors.BOLD}✨ CLEAN STATE CHECK{Colors.END}")
     print("=" * 40)
     print()
     print("Final verification: repo should be clean after PR merge.")
@@ -598,7 +663,7 @@ def run_cleanup(verbose: bool = False) -> bool:
 
 def run_status(verbose: bool = False) -> bool:
     """Show full orchestration status."""
-    print(f"{Colors.BOLD}📊 FLIGHT DIRECTOR STATUS{Colors.END}")
+    print(f"{Colors.BOLD}📊 ORCHESTRATOR STATUS{Colors.END}")
     print("=" * 40)
     print()
 
@@ -611,34 +676,34 @@ def run_status(verbose: bool = False) -> bool:
     print()
 
     # Recent activity
-    print("Recent Skills Status:")
+    print("Recent Skill Status:")
 
     reflect_ok, reflect_msg = check_reflection_invoked()
     print(f"  - Reflect: {check_mark(reflect_ok)} {reflect_msg}")
 
     debrief_ok, debrief_msg = check_debriefing_invoked()
-    print(f"  - Debrief: {check_mark(debrief_ok)} {debrief_msg}")
+    print(f"  - Retrospective: {check_mark(debrief_ok)} {debrief_msg}")
 
     approval_ok, approval_msg = check_plan_approval()
     print(f"  - Plan Approval: {check_mark(approval_ok)} {approval_msg}")
 
     print()
-    print("Run --pfc, --rtb, or --debrief for detailed phase checks.")
+    print("Run --init, --execute, --finalize, or --retrospective for detailed phase checks.")
 
     return True
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Flight Director - Agent Orchestrator for SOP Compliance",
+        description="Orchestrator - Agent Workflow Coordinator for SOP Compliance",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    # Run Pre-Flight Check
-    python check_flight_readiness.py --pfc
+    # Run Initialization validation
+    python check_flight_readiness.py --init
     
-    # Run Return To Base check  
-    python check_flight_readiness.py --rtb
+    # Run Finalization check  
+    python check_flight_readiness.py --finalize
     
     # Show current status
     python check_flight_readiness.py --status
@@ -646,34 +711,39 @@ Examples:
     )
 
     parser.add_argument(
-        "--pfc",
+        "--init", "--pfc",
         action="store_true",
-        help="Run Pre-Flight Check validation",
+        help="Run Initialization validation (formerly PFC)",
     )
     parser.add_argument(
-        "--ifo",
+        "--execute", "--ifo",
         action="store_true",
-        help="Run In-Flight Operations status check",
+        help="Run Execution Phase status check (formerly IFO)",
     )
     parser.add_argument(
-        "--rtb",
+        "--finalize", "--rtb",
         action="store_true",
-        help="Run Return To Base validation (safe landing)",
+        help="Run Finalization validation (formerly RTB)",
     )
     parser.add_argument(
-        "--debrief",
+        "--retrospective", "--debrief",
         action="store_true",
-        help="Run Mission Debrief validation (strategic learning)",
+        help="Run Retrospective validation (formerly Debrief)",
     )
     parser.add_argument(
-        "--cleanup",
+        "--clean", "--cleanup", "--pristine",
         action="store_true",
-        help="Run Cleanup Repo verification (final phase after PR merge)",
+        help="Run Clean State validation (formerly Cleanup)",
     )
     parser.add_argument(
         "--status",
         action="store_true",
         help="Show full orchestration status",
+    )
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Run type-safe Pydantic validation and output JSON",
     )
     parser.add_argument(
         "--verbose",
@@ -685,22 +755,30 @@ Examples:
     args = parser.parse_args()
 
     # Default to status if no option specified
-    if not any([args.pfc, args.ifo, args.rtb, args.debrief, args.cleanup, args.status]):
+    if not any([args.init, args.execute, args.finalize, args.retrospective, args.clean, args.status, args.validate]):
         parser.print_help()
         sys.exit(0)
 
     success = True
 
-    if args.pfc:
-        success = run_pfc(args.verbose)
-    elif args.ifo:
-        success = run_ifo(args.verbose)
-    elif args.rtb:
-        success = run_rtb(args.verbose)
-    elif args.debrief:
-        success = run_debrief(args.verbose)
-    elif args.cleanup:
-        success = run_cleanup(args.verbose)
+    if args.validate:
+        if validate_initialization:
+            result = validate_initialization(Path.cwd())
+            print(result.model_dump_json(indent=2))
+            success = result.passed
+        else:
+            print("❌ Pydantic validators not available.")
+            success = False
+    elif args.init:
+        success = run_initialization(args.verbose)
+    elif args.execute:
+        success = run_execution(args.verbose)
+    elif args.finalize:
+        success = run_finalization(args.verbose)
+    elif args.retrospective:
+        success = run_retrospective(args.verbose)
+    elif args.clean:
+        success = run_clean_state(args.verbose)
     elif args.status:
         success = run_status(args.verbose)
 

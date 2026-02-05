@@ -18,6 +18,7 @@ Essential pre-mission information that prepares agents for successful task execu
 ## Purpose
 
 Provides balanced pre-mission briefing covering:
+
 - **Current Status**: Git, issues, session locks
 - **Protocol Highlights**: Quality gates, closure requirements, RTB blockers  
 - **Friction Areas**: Tool friction, corrections, success patterns, failures
@@ -35,18 +36,21 @@ python .agent/skills/mission-briefing.py
 ## Briefing Sections
 
 ### 1. Current Status Check
+
 - Git state (clean/dirty, branch info)
 - Active beads issues (in-progress)
 - Session locks (other active agents)
 - Workspace validation
 
 ### 2. Protocol Highlights  
+
 - Quality gates (tests, linting, type checking)
 - Closure requirements (file locations, quick start, docs)
 - Learning capture expectations
 - RTB blockers and requirements
 
 ### 3. Areas to Watch
+
 - **Tool/Process Friction**: Slow/buggy tools, inefficient workflows
 - **Corrections & Preferences**: User feedback, coding style, architecture
 - **Success Patterns**: Effective approaches and solutions
@@ -54,12 +58,14 @@ python .agent/skills/mission-briefing.py
 - **Workarounds & Performance**: Temporary fixes, bottlenecks, resource issues
 
 ### 4. Common Pitfalls
+
 - Documentation mistakes (missing closure notes, no quick start)
 - Quality gate issues (skipping tests, duplicate markdown files)
 - Git & workflow errors (unpushed changes, branch cleanup)
 - Learning & reflection mistakes (retrospective vs real-time capture)
 
 ### 5. Session Checklist
+
 - Pre-mission preparation
 - During mission monitoring
 - Pre-RTB completion
@@ -76,6 +82,7 @@ python .agent/skills/mission-briefing.py
 ## Integration
 
 This skill integrates with:
+
 - **Beads**: Issue status and assignment tracking
 - **Git**: Repository state and branch information  
 - **Session Management**: Lock coordination with other agents
@@ -91,6 +98,7 @@ This skill integrates with:
 3. **End of Session**: `/return-to-base` (full RTB execution)
 
 This provides the perfect balance between:
+
 - **Too Little Information** (just reflect skill)
 - **Too Much Information** (full RTB protocol review)
 - **Just Right** (mission briefing)
@@ -98,6 +106,7 @@ This provides the perfect balance between:
 ## Error Handling
 
 If briefing fails:
+
 1. Check git repository status
 2. Verify beads availability
 3. Check workspace directory structure
