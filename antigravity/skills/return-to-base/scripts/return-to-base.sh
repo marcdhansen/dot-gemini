@@ -303,6 +303,79 @@ fi
 
 echo
 
+# 5. Quality Gates Validation
+echo "🔍 5. Quality Gates Validation"
+echo "-----------------------------"
+
+# Check if there are Python files to validate
+PYTHON_FILES_CHANGED=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep "\.py$" || true)
+if [ -n "$PYTHON_FILES_CHANGED" ] || [ -n "$(git ls-files '*.py' | head -1)" ]; then
+    echo "🔍 Running code quality checks..."
+    
+    # Run ruff format check
+    echo "📝 Checking code formatting..."
+    if ruff format --check . 2>/dev/null; then
+        echo "✅ Code formatting is correct"
+    else
+        echo "❌ Code formatting issues found"
+        echo "🔧 Auto-fixing formatting issues..."
+        ruff format . || echo "⚠️  Could not auto-fix all formatting issues"
+        echo "📝 Staging formatting fixes..."
+        git add -A
+    fi
+    
+    # Run ruff linting check
+    echo "🔍 Running linting checks..."
+    RUFF_OUTPUT=$(ruff check --output-format=text . 2>/dev/null || true)
+    if [ -z "$RUFF_OUTPUT" ]; then
+        echo "✅ No linting errors found"
+    else
+        echo "❌ Linting errors found:"
+        echo "$RUFF_OUTPUT" | head -20
+        echo ""
+        echo "🔧 Auto-fixing auto-correctable errors..."
+        ruff check --fix . || echo "⚠️  Could not auto-fix all linting errors"
+        echo "📝 Staging linting fixes..."
+        git add -A
+        
+        # Check if there are remaining errors
+        REMAINING_ERRORS=$(ruff check --output-format=text . 2>/dev/null || true)
+        if [ -n "$REMAINING_ERRORS" ]; then
+            echo ""
+            echo "❌ Remaining linting errors that require manual fix:"
+            echo "$REMAINING_ERRORS" | head -10
+            echo ""
+            echo "🚫 RTB BLOCKED: Fix remaining linting errors before proceeding"
+            echo "💡 Run 'ruff check .' to see all errors and fix manually"
+            exit 1
+        fi
+        
+        echo "✅ All linting errors fixed"
+    fi
+else
+    echo "ℹ️  No Python files detected - skipping code quality checks"
+fi
+
+# Run tests if test directory exists
+if [ -d "tests" ]; then
+    echo "🧪 Running test validation..."
+    if command -v pytest >/dev/null 2>&1; then
+        if pytest --tb=short -x 2>/dev/null; then
+            echo "✅ Tests are passing"
+        else
+            echo "⚠️  Some tests are failing - review test output above"
+            echo "💡 You can proceed, but consider fixing failing tests"
+        fi
+    else
+        echo "⚠️  pytest not available - skipping test validation"
+    fi
+else
+    echo "ℹ️  No tests directory found - skipping test validation"
+fi
+
+echo "✅ Quality gates validation complete"
+echo
+
 # 6. Git Operations
 echo "🔀 6. Git Operations"
 echo "-------------------"
