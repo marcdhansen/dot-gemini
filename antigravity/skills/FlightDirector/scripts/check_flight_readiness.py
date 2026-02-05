@@ -22,6 +22,7 @@ from pathlib import Path
 
 class Colors:
     """ANSI color codes for terminal output."""
+
     GREEN = "\033[92m"
     RED = "\033[91m"
     YELLOW = "\033[93m"
@@ -96,11 +97,11 @@ def check_planning_docs() -> tuple[bool, list[str]]:
         Path(".agent/rules/ROADMAP.md"),
         Path(".agent/rules/ImplementationPlan.md"),
     ]
-    
+
     for path in paths_to_check:
         if not path.exists():
             missing.append(str(path))
-    
+
     return len(missing) == 0, missing
 
 
@@ -108,7 +109,7 @@ def check_beads_issue() -> tuple[bool, str]:
     """Check if there's an active beads issue."""
     if not check_tool_available("bd"):
         return False, "beads (bd) not available"
-    
+
     try:
         result = subprocess.run(
             ["bd", "ready"],
@@ -135,14 +136,14 @@ def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
         Path(".agent/task.md"),
         Path("task.md"),
     ]
-    
+
     # Also check brain directory
     brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
     if brain_dir.exists():
         for session_dir in sorted(brain_dir.iterdir(), reverse=True)[:3]:
             if session_dir.is_dir():
                 task_paths.append(session_dir / "task.md")
-    
+
     for task_path in task_paths:
         if task_path.exists():
             try:
@@ -151,16 +152,19 @@ def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
                     # Check file modification time
                     mtime = datetime.fromtimestamp(task_path.stat().st_mtime)
                     age = datetime.now() - mtime
-                    
+
                     if age < timedelta(hours=max_hours):
                         hours_ago = age.total_seconds() / 3600
                         return True, f"Plan approved {hours_ago:.1f} hours ago"
                     else:
                         hours_ago = age.total_seconds() / 3600
-                        return False, f"Plan approval is {hours_ago:.1f} hours old (stale)"
+                        return (
+                            False,
+                            f"Plan approval is {hours_ago:.1f} hours old (stale)",
+                        )
             except Exception:
                 pass
-    
+
     return False, "No plan approval found"
 
 
@@ -171,33 +175,34 @@ def check_reflection_invoked() -> tuple[bool, str]:
         Path(".agent/reflections.json"),
         Path("reflections.json"),
     ]
-    
+
     for path in reflection_paths:
         if path.exists():
             try:
                 mtime = datetime.fromtimestamp(path.stat().st_mtime)
                 age = datetime.now() - mtime
                 if age < timedelta(hours=2):
-                    return True, f"Reflection captured {age.total_seconds() / 60:.0f} minutes ago"
+                    return (
+                        True,
+                        f"Reflection captured {age.total_seconds() / 60:.0f} minutes ago",
+                    )
             except Exception:
                 pass
-    
+
     return False, "No recent reflection found"
 
 
 def check_debriefing_invoked() -> tuple[bool, str]:
-    """Check if mission debriefing was recently invoked."""
-    # Check for recent debrief files in brain directory
+    """Check if debriefing was recently invoked."""
+    # Look for debrief files in brain directory
     brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    
     if brain_dir.exists():
-        # Sort by modification time, most recent first
         session_dirs = sorted(
             [d for d in brain_dir.iterdir() if d.is_dir()],
             key=lambda x: x.stat().st_mtime,
-            reverse=True
-        )[:5]
-        
+            reverse=True,
+        )[:3]
+
         for session_dir in session_dirs:
             debrief_path = session_dir / "debrief.md"
             if debrief_path.exists():
@@ -205,11 +210,51 @@ def check_debriefing_invoked() -> tuple[bool, str]:
                     mtime = datetime.fromtimestamp(debrief_path.stat().st_mtime)
                     age = datetime.now() - mtime
                     if age < timedelta(hours=2):
-                        return True, f"Debrief generated {age.total_seconds() / 60:.0f} minutes ago"
+                        return (
+                            True,
+                            f"Debrief generated {age.total_seconds() / 60:.0f} minutes ago",
+                        )
                 except Exception:
                     pass
-    
+
     return False, "No recent debrief found"
+
+
+def check_handoff_compliance() -> tuple[bool, str]:
+    """Check if hand-off compliance verification passes for multi-phase implementations."""
+    # Look for hand-off directory and verification script
+    handoff_dir = Path(".agent/handoffs")
+    verification_script = Path(".agent/scripts/verify_handoff_compliance.sh")
+
+    if not handoff_dir.exists():
+        return True, "No hand-off directory (not a multi-phase implementation)"
+
+    if not verification_script.exists():
+        return False, "Hand-off verification script missing"
+
+    # Check if there are any hand-off documents to verify
+    handoff_files = list(handoff_dir.glob("**/phase-*-handoff.md"))
+    if not handoff_files:
+        return True, "No hand-off documents found (not a multi-phase implementation)"
+
+    # Run verification script on all hand-offs
+    try:
+        result = subprocess.run(
+            [str(verification_script), "--report"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+        if result.returncode == 0:
+            return True, "All hand-off documents pass verification"
+        else:
+            return False, f"Hand-off verification failed: {result.stderr.strip()}"
+
+    except subprocess.TimeoutExpired:
+        return False, "Hand-off verification timed out"
+    except Exception as e:
+        return False, f"Hand-off verification error: {str(e)}"
 
 
 def run_pfc(verbose: bool = False) -> bool:
@@ -217,26 +262,26 @@ def run_pfc(verbose: bool = False) -> bool:
     print(f"{Colors.BOLD}🛫 PRE-FLIGHT CHECK{Colors.END}")
     print("=" * 40)
     print()
-    
+
     blockers = []
     warnings = []
-    
+
     # Tool Check
     required_tools = ["git", "bd"]
     optional_tools = ["uv", "python3"]
-    
+
     tools_ok = True
     for tool in required_tools:
         if not check_tool_available(tool):
             tools_ok = False
             blockers.append(f"Required tool '{tool}' not available")
-    
+
     print(f"├── Tools: {check_mark(tools_ok)} ", end="")
     if tools_ok:
         print("All required tools available")
     else:
         print(f"Missing: {[t for t in required_tools if not check_tool_available(t)]}")
-    
+
     # Context Check
     docs_ok, missing_docs = check_planning_docs()
     print(f"├── Context: {check_mark(docs_ok)} ", end="")
@@ -245,21 +290,21 @@ def run_pfc(verbose: bool = False) -> bool:
     else:
         print(f"Missing: {missing_docs}")
         warnings.append(f"Planning documents missing: {missing_docs}")
-    
+
     # Issue Check
     issues_ok, issues_msg = check_beads_issue()
     print(f"├── Issues: {check_mark(issues_ok)} {issues_msg}")
     if not issues_ok:
         warnings.append(issues_msg)
-    
+
     # Plan Approval Check
     approval_ok, approval_msg = check_plan_approval()
     print(f"└── Approval: {check_mark(approval_ok)} {approval_msg}")
     if not approval_ok:
         warnings.append(approval_msg)
-    
+
     print()
-    
+
     # Summary
     if blockers:
         print(f"{Colors.RED}{Colors.BOLD}❌ PFC BLOCKED{Colors.END}")
@@ -291,9 +336,9 @@ def run_ifo(verbose: bool = False) -> bool:
     print()
     print("IFO: Active work phase - executing the task.")
     print()
-    
+
     issues = []
-    
+
     # Check we're on a feature branch (should be working, not on main)
     branch, is_feature = check_branch_info()
     print(f"├── Branch: {check_mark(is_feature)} ", end="")
@@ -302,7 +347,7 @@ def run_ifo(verbose: bool = False) -> bool:
     else:
         print(f"On {branch} (should be feature branch)")
         issues.append("Create a feature branch before starting work")
-    
+
     # Check task.md exists in brain directory
     brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
     task_found = False
@@ -310,20 +355,20 @@ def run_ifo(verbose: bool = False) -> bool:
         session_dirs = sorted(
             [d for d in brain_dir.iterdir() if d.is_dir()],
             key=lambda x: x.stat().st_mtime,
-            reverse=True
+            reverse=True,
         )[:3]
         for session_dir in session_dirs:
             if (session_dir / "task.md").exists():
                 task_found = True
                 break
-    
+
     print(f"├── Task Tracked: {check_mark(task_found)} ", end="")
     if task_found:
         print("task.md found")
     else:
         print("No task.md found")
         issues.append("Create task.md to track work")
-    
+
     # Git status - during IFO, uncommitted changes are expected
     git_ok, git_msg = check_git_status()
     print(f"└── Git Status: ", end="")
@@ -331,9 +376,9 @@ def run_ifo(verbose: bool = False) -> bool:
         print(f"{Colors.BLUE}ℹ️{Colors.END} Clean (no changes yet)")
     else:
         print(f"{Colors.BLUE}ℹ️{Colors.END} Work in progress")
-    
+
     print()
-    
+
     # IFO Guidelines
     print(f"{Colors.BOLD}IFO Guidelines:{Colors.END}")
     print("  • Follow Spec-Driven TDD: Red → Green → Refactor")
@@ -341,7 +386,7 @@ def run_ifo(verbose: bool = False) -> bool:
     print("  • Commit frequently with clear messages")
     print("  • Run quality gates before RTB")
     print()
-    
+
     if issues:
         print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ IFO SETUP INCOMPLETE{Colors.END}")
         print()
@@ -355,6 +400,7 @@ def run_ifo(verbose: bool = False) -> bool:
         print("Execute the mission. Run --rtb when ready to land.")
         return True
 
+
 def run_rtb(verbose: bool = False) -> bool:
     """Run Return To Base validation (safe landing checks only)."""
     print(f"{Colors.BOLD}🛬 RETURN TO BASE CHECK{Colors.END}")
@@ -362,22 +408,29 @@ def run_rtb(verbose: bool = False) -> bool:
     print()
     print("RTB focuses on safe landing: code quality, clean git, successful push.")
     print()
-    
+
     blockers = []
     warnings = []
-    
+
     # Git Status Check
     git_ok, git_msg = check_git_status()
     print(f"├── Git Status: {check_mark(git_ok)} {git_msg.split(chr(10))[0]}")
     if not git_ok:
         blockers.append(git_msg)
-    
+
     # Branch Info
     branch, is_feature = check_branch_info()
     branch_icon = check_mark(is_feature) if is_feature else warning_mark()
     print(f"├── Branch: {branch_icon} {branch}")
     if not is_feature and branch not in ["main", "master"]:
         warnings.append(f"Not on a feature branch: {branch}")
+
+    # Hand-off Compliance Check (for multi-phase implementations)
+    handoff_ok, handoff_msg = check_handoff_compliance()
+    handoff_icon = check_mark(handoff_ok) if handoff_ok else warning_mark()
+    print(f"├── Hand-offs: {handoff_icon} {handoff_msg}")
+    if not handoff_ok and "not a multi-phase implementation" not in handoff_msg:
+        blockers.append("Hand-off compliance failed - run verify_handoff_compliance.sh")
 
     # Reflection Check (Enforced at RTB to ensure it's not skipped)
     reflect_ok, reflect_msg = check_reflection_invoked()
@@ -386,7 +439,7 @@ def run_rtb(verbose: bool = False) -> bool:
         blockers.append("Reflection not captured - invoke /reflect (Mandatory for RTB)")
 
     print()
-    
+
     # Summary
     if blockers:
         print(f"{Colors.RED}{Colors.BOLD}❌ RTB BLOCKED{Colors.END}")
@@ -420,22 +473,22 @@ def run_debrief(verbose: bool = False) -> bool:
     print()
     print("Mission Debrief: strategic learning and session closure.")
     print()
-    
+
     blockers = []
     warnings = []
-    
+
     # Reflection Check
     reflect_ok, reflect_msg = check_reflection_invoked()
     print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
         warnings.append("Reflection not captured - invoke /reflect")
-    
+
     # Debriefing Check
     debrief_ok, debrief_msg = check_debriefing_invoked()
     print(f"├── Debrief File: {check_mark(debrief_ok)} {debrief_msg}")
     if not debrief_ok:
         warnings.append("Debrief file not generated - run mission_debriefing.py")
-    
+
     # Plan Approval Cleared Check
     approval_ok, approval_msg = check_plan_approval()
     # For debrief, we WANT approval to be stale/missing (means it was cleared)
@@ -446,9 +499,9 @@ def run_debrief(verbose: bool = False) -> bool:
     else:
         print(f"Plan still active: {approval_msg}")
         warnings.append("Clear the ## Approval marker in task.md")
-    
+
     print()
-    
+
     # Summary
     if blockers:
         print(f"{Colors.RED}{Colors.BOLD}❌ DEBRIEF INCOMPLETE{Colors.END}")
@@ -480,9 +533,9 @@ def run_cleanup(verbose: bool = False) -> bool:
     print()
     print("Final verification: repo should be clean after PR merge.")
     print()
-    
+
     issues = []
-    
+
     # Branch Check
     branch, is_feature = check_branch_info()
     on_main = branch in ["main", "master"]
@@ -492,7 +545,7 @@ def run_cleanup(verbose: bool = False) -> bool:
     else:
         print(f"On {branch} (should be main)")
         issues.append(f"Merge PR and switch to main (currently on {branch})")
-    
+
     # Git Status Check
     git_ok, git_msg = check_git_status()
     print(f"├── Git Clean: {check_mark(git_ok)} ", end="")
@@ -501,11 +554,12 @@ def run_cleanup(verbose: bool = False) -> bool:
     else:
         print("Uncommitted changes")
         issues.append("Commit and push remaining changes")
-    
+
     # Up-to-date with remote
     up_to_date = True
     try:
         import subprocess
+
         result = subprocess.run(
             ["git", "status", "-uno"],
             capture_output=True,
@@ -515,16 +569,16 @@ def run_cleanup(verbose: bool = False) -> bool:
             up_to_date = False
     except Exception:
         pass
-    
+
     print(f"└── Synced: {check_mark(up_to_date)} ", end="")
     if up_to_date:
         print("Up to date with remote")
     else:
         print("Behind remote")
         issues.append("Pull latest changes from remote")
-    
+
     print()
-    
+
     # Summary
     if issues:
         print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ REPO NOT CLEAN{Colors.END}")
@@ -547,30 +601,30 @@ def run_status(verbose: bool = False) -> bool:
     print(f"{Colors.BOLD}📊 FLIGHT DIRECTOR STATUS{Colors.END}")
     print("=" * 40)
     print()
-    
+
     # Current state
     branch, is_feature = check_branch_info()
     git_ok, _ = check_git_status()
-    
+
     print(f"🌿 Branch: {branch}")
     print(f"📁 Git Clean: {'Yes' if git_ok else 'No'}")
     print()
-    
+
     # Recent activity
     print("Recent Skills Status:")
-    
+
     reflect_ok, reflect_msg = check_reflection_invoked()
     print(f"  - Reflect: {check_mark(reflect_ok)} {reflect_msg}")
-    
+
     debrief_ok, debrief_msg = check_debriefing_invoked()
     print(f"  - Debrief: {check_mark(debrief_ok)} {debrief_msg}")
-    
+
     approval_ok, approval_msg = check_plan_approval()
     print(f"  - Plan Approval: {check_mark(approval_ok)} {approval_msg}")
-    
+
     print()
     print("Run --pfc, --rtb, or --debrief for detailed phase checks.")
-    
+
     return True
 
 
@@ -590,7 +644,7 @@ Examples:
     python check_flight_readiness.py --status
         """,
     )
-    
+
     parser.add_argument(
         "--pfc",
         action="store_true",
@@ -627,16 +681,16 @@ Examples:
         action="store_true",
         help="Show verbose output",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Default to status if no option specified
     if not any([args.pfc, args.ifo, args.rtb, args.debrief, args.cleanup, args.status]):
         parser.print_help()
         sys.exit(0)
-    
+
     success = True
-    
+
     if args.pfc:
         success = run_pfc(args.verbose)
     elif args.ifo:
@@ -649,7 +703,7 @@ Examples:
         success = run_cleanup(args.verbose)
     elif args.status:
         success = run_status(args.verbose)
-    
+
     sys.exit(0 if success else 1)
 
 

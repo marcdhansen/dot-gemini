@@ -141,6 +141,7 @@ class EnhancedReflection:
             "protocol_issues": self._capture_protocol_issues(),
             "process_improvements": self._capture_learnings("Process improvements"),
             "quantitative_results": self._capture_quantitative_results(),
+            "handoff_quality": self._evaluate_handoff_quality(),
             "next_mission_readiness": self._get_choice(
                 "Ready for next mission", [True, False]
             ),
@@ -209,6 +210,9 @@ class EnhancedReflection:
                 ["Reflection system now supports non-interactive mode"],
             ),
             "quantitative_results": self.fallback_data.get("quantitative_results", {}),
+            "handoff_quality": self.fallback_data.get(
+                "handoff_quality", self._evaluate_handoff_quality()
+            ),
             "next_mission_readiness": self.fallback_data.get(
                 "next_mission_readiness", True
             ),
@@ -303,6 +307,111 @@ class EnhancedReflection:
             except (EOFError, KeyboardInterrupt):
                 break
         return issues
+
+    def _evaluate_handoff_quality(self):
+        """Evaluate hand-off procedure quality for multi-phase implementations"""
+        handoff_dir = self.agent_dir / "handoffs"
+        verification_script = (
+            self.agent_dir / "scripts" / "verify_handoff_compliance.sh"
+        )
+
+        handoff_evaluation = {
+            "was_multi_phase": False,
+            "handoff_completed": False,
+            "compliance_score": 0,
+            "document_quality": "N/A",
+            "issues_found": [],
+            "successor_readiness": "N/A",
+        }
+
+        # Check if this was a multi-phase implementation
+        if not handoff_dir.exists():
+            handoff_evaluation["document_quality"] = (
+                "Not applicable (single-phase implementation)"
+            )
+            return handoff_evaluation
+
+        # Look for recent hand-off documents
+        import subprocess
+
+        try:
+            # Check for hand-off files created in the last 6 hours
+            handoff_files = []
+            if handoff_dir.exists():
+                for handoff_file in handoff_dir.glob("**/phase-*-handoff.md"):
+                    if handoff_file.stat().st_mtime > (
+                        datetime.now().timestamp() - 21600
+                    ):  # 6 hours
+                        handoff_files.append(handoff_file)
+
+            if handoff_files:
+                handoff_evaluation["was_multi_phase"] = True
+
+                # Run verification if script exists
+                if verification_script.exists():
+                    try:
+                        result = subprocess.run(
+                            [str(verification_script), "--report"],
+                            capture_output=True,
+                            text=True,
+                            timeout=30,
+                            cwd=self.workspace_dir,
+                        )
+
+                        if result.returncode == 0:
+                            handoff_evaluation["handoff_completed"] = True
+                            # Parse compliance score from output
+                            if "Compliance:" in result.stdout:
+                                for line in result.stdout.split("\n"):
+                                    if "Compliance:" in line:
+                                        try:
+                                            score_str = (
+                                                line.split("Compliance:")[1]
+                                                .strip()
+                                                .rstrip("%")
+                                            )
+                                            handoff_evaluation["compliance_score"] = (
+                                                int(score_str)
+                                            )
+                                        except:
+                                            pass
+
+                            handoff_evaluation["document_quality"] = (
+                                "Passed automated verification"
+                            )
+                        else:
+                            handoff_evaluation["document_quality"] = (
+                                "Failed automated verification"
+                            )
+                            handoff_evaluation["issues_found"] = [result.stderr.strip()]
+
+                    except subprocess.TimeoutExpired:
+                        handoff_evaluation["document_quality"] = (
+                            "Verification timed out"
+                        )
+                        handoff_evaluation["issues_found"] = [
+                            "Hand-off verification script timed out"
+                        ]
+                    except Exception as e:
+                        handoff_evaluation["document_quality"] = "Verification error"
+                        handoff_evaluation["issues_found"] = [f"Script error: {str(e)}"]
+                else:
+                    handoff_evaluation["document_quality"] = (
+                        "Verification script missing"
+                    )
+                    handoff_evaluation["issues_found"] = [
+                        "Hand-off verification script not found"
+                    ]
+            else:
+                handoff_evaluation["document_quality"] = (
+                    "No recent hand-off documents found"
+                )
+
+        except Exception as e:
+            handoff_evaluation["document_quality"] = "Evaluation error"
+            handoff_evaluation["issues_found"] = [f"Evaluation failed: {str(e)}"]
+
+        return handoff_evaluation
 
     def _capture_quantitative_results(self):
         """Capture quantitative results"""

@@ -207,6 +207,19 @@ Consider:
 - Session handoff optimization
 - Resource contention reduction
 
+### SOP Evaluation & Simplification
+>
+> **QUESTION**: Evaluate the standard operating procedure (SOP), with special attention to looking for ways to make the process simpler, less error prone, and with a lower cognitive load for agents.
+
+Consider:
+
+- Process simplification opportunities (remove unnecessary steps)
+- Error prevention mechanisms (automated validation, guardrails)
+- Cognitive load reduction (default behaviors, reduced decision points)
+- Automation opportunities (replace manual steps with scripts)
+- Documentation clarity (make instructions more concise and unambiguous)
+- Workflow bottlenecks (identify and eliminate process friction points)
+
 ---
 
 ## 🎯 Benefits of Enhanced Reflection
