@@ -1,5 +1,5 @@
 ---
-description: fix the $ARGUMENT ci/cd issue
+description: fix the following ci/cd issues
 ---
 
-please fix the following issue with the ci/cd pipeline: $ARGUMENT
+please fix the following issues with the ci/cd pipeline: 
