@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Return To Base Script for LightRAG
-# Performs comprehensive RTB workflow as defined in project protocols
+# Finalization Script
+# Performs comprehensive finalization workflow as defined in project protocols
 
-echo "🛬 Starting Return To Base (RTB) workflow..."
+echo "🛬 Starting Finalization workflow..."
 echo "=========================================="
 echo
 
@@ -11,7 +11,7 @@ echo
 check_success() {
     if [ $? -ne 0 ]; then
         echo "❌ Error: $1 failed"
-        echo "⚠️  RTB workflow incomplete. Please address the error above."
+        echo "⚠️  Finalization workflow incomplete. Please address the error above."
         exit 1
     fi
 }
@@ -136,7 +136,7 @@ if [ ! -z "$GIT_STATUS" ]; then
     TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
     git commit -m "rtb-auto-commit: uncommitted changes at $TIMESTAMP
 
-- Auto-committed during RTB process
+- Auto-committed during finalization process
 - These changes were missed by initial commit check
 - Ensures clean git state before push"
     
@@ -178,8 +178,8 @@ if [ ! -z "$GIT_STATUS" ]; then
                 if pytest --tb=no -q 2>/dev/null; then
                     echo "✅ Tests passed"
                 else
-                    echo "⚠️  Some tests failed, but continuing with RTB workflow"
-                    echo "💡 You may want to fix test failures after RTB completion"
+                    echo "⚠️  Some tests failed, but continuing with Finalization workflow"
+                    echo "💡 You may want to fix test failures after Finalization completion"
                 fi
             else
                 echo "💡 pytest not found, skipping tests"
@@ -193,8 +193,8 @@ if [ ! -z "$GIT_STATUS" ]; then
         if ruff check . --quiet 2>/dev/null; then
             echo "✅ Linting passed"
         else
-            echo "⚠️  Linting issues found, but continuing with RTB workflow"
-            echo "💡 You may want to fix linting issues after RTB completion"
+            echo "⚠️  Linting issues found, but continuing with Finalization workflow"
+            echo "💡 You may want to fix linting issues after Finalization completion"
         fi
     fi
     
@@ -204,8 +204,8 @@ if [ ! -z "$GIT_STATUS" ]; then
         if mypy . --quiet 2>/dev/null; then
             echo "✅ Type checking passed"
         else
-            echo "⚠️  Type checking issues found, but continuing with RTB workflow"
-            echo "💡 You may want to fix type checking issues after RTB completion"
+            echo "⚠️  Type checking issues found, but continuing with Finalization workflow"
+            echo "💡 You may want to fix type checking issues after Finalization completion"
         fi
     fi
     
@@ -222,15 +222,15 @@ echo "--------------------------------------"
 echo "🔍 Checking for duplicate markdown files..."
 if [ -f ".agent/scripts/verify_markdown_duplicates.sh" ]; then
     if .agent/scripts/verify_markdown_duplicates.sh; then
-        echo "✅ No duplicate markdown files found - proceeding with RTB workflow"
+        echo "✅ No duplicate markdown files found - proceeding with Finalization workflow"
     else
         echo "❌ DUPLICATE MARKDOWN FILES DETECTED"
-        echo "🚫 BLOCKER: Cannot proceed with RTB if duplicate markdown files exist."
+        echo "🚫 BLOCKER: Cannot proceed with Finalization if duplicate markdown files exist."
         echo ""
         echo "🔧 Action Required:"
         echo "   1. Run '.agent/scripts/verify_markdown_duplicates.sh --interactive' to review"
         echo "   2. Remove duplicate files manually or let script auto-remove"
-        echo "   3. Re-run RTB after duplicates are resolved"
+        echo "   3. Re-run Finalization after duplicates are resolved"
         echo ""
         echo "💡 Duplicate files create confusion and waste storage space"
         exit 1
@@ -250,15 +250,15 @@ echo "---------------------------------"
 if [ -f ".agent/scripts/evaluate_sop_effectiveness.sh" ]; then
     echo "🔍 Running mandatory SOP evaluation..."
     if .agent/scripts/evaluate_sop_effectiveness.sh; then
-        echo "✅ SOP evaluation passed - proceeding with RTB workflow"
+        echo "✅ SOP evaluation passed - proceeding with Finalization workflow"
     else
         echo "❌ SOP evaluation FAILED"
-        echo "🚫 BLOCKER: Cannot proceed with RTB if SOP evaluation fails."
+        echo "🚫 BLOCKER: Cannot proceed with Finalization if SOP evaluation fails."
         echo ""
         echo "🔧 Action Required:"
         echo "   1. Address all identified friction points"
-        echo "   2. Improve PFC compliance to 85%+"
-        echo "   3. Re-run SOP evaluation before RTB"
+        echo "   2. Improve Initialization compliance to 85%+"
+        echo "   3. Re-run SOP evaluation before Finalization"
         echo ""
         echo "💡 Run '.agent/scripts/evaluate_sop_effectiveness.sh' to see detailed issues"
         exit 1
@@ -345,7 +345,7 @@ if [ -n "$PYTHON_FILES_CHANGED" ] || [ -n "$(git ls-files '*.py' | head -1)" ]; 
             echo "❌ Remaining linting errors that require manual fix:"
             echo "$REMAINING_ERRORS" | head -10
             echo ""
-            echo "🚫 RTB BLOCKED: Fix remaining linting errors before proceeding"
+            echo "🚫 Finalization BLOCKED: Fix remaining linting errors before proceeding"
             echo "💡 Run 'ruff check .' to see all errors and fix manually"
             exit 1
         fi
@@ -431,11 +431,11 @@ if [[ "$CURRENT_BRANCH" == "agent/"* ]] || [[ "$CURRENT_BRANCH" == "feature/"* ]
     WORKING_DIR_CLEAN=$(git status --porcelain)
     if [ ! -z "$WORKING_DIR_CLEAN" ]; then
         echo "❌ WORKING DIRECTORY NOT CLEAN"
-        echo "🚫 BLOCKER: Cannot proceed with RTB on feature branch with uncommitted changes"
+        echo "🚫 BLOCKER: Cannot proceed with Finalization on feature branch with uncommitted changes"
         echo ""
         echo "🔧 Action Required:"
         echo "   1. Commit or stash all changes"
-        echo "   2. Re-run RTB after cleanup"
+        echo "   2. Re-run Finalization after cleanup"
         echo ""
         echo "📝 Uncommitted changes:"
         echo "$WORKING_DIR_CLEAN"
@@ -445,11 +445,11 @@ if [[ "$CURRENT_BRANCH" == "agent/"* ]] || [[ "$CURRENT_BRANCH" == "feature/"* ]
     # Check if branch is pushed to remote
     if ! git merge-base --is-ancestor "$CURRENT_BRANCH" "origin/$CURRENT_BRANCH" 2>/dev/null; then
         echo "❌ BRANCH NOT PUSHED TO REMOTE"
-        echo "🚫 BLOCKER: Cannot proceed with RTB on feature branch that isn't pushed"
+        echo "🚫 BLOCKER: Cannot proceed with Finalization on feature branch that isn't pushed"
         echo ""
         echo "🔧 Action Required:"
         echo "   1. Push branch to remote: git push -u origin $CURRENT_BRANCH"
-        echo "   2. Re-run RTB after push"
+        echo "   2. Re-run Finalization after push"
         exit 1
     fi
     
@@ -534,15 +534,15 @@ if [ -f ".agent/skills/reflect.sh" ]; then
             if .agent/skills/reflect.sh; then
                 echo "✅ Standard reflection captured successfully"
             else
-                echo "⚠️  Reflection capture had issues, but continuing with RTB workflow"
+                echo "⚠️  Reflection capture had issues, but continuing with Finalization workflow"
             fi
         fi
     else
         if .agent/skills/reflect.sh; then
             echo "✅ Session reflection captured successfully"
         else
-            echo "⚠️  Reflection capture had issues, but continuing with RTB workflow"
-            echo "💡 You may want to manually capture learnings after RTB completion"
+            echo "⚠️  Reflection capture had issues, but continuing with Finalization workflow"
+            echo "💡 You may want to manually capture learnings after Finalization completion"
         fi
     fi
 elif [ -f ".agent/scripts/reflect" ]; then
@@ -555,15 +555,15 @@ elif [ -f ".agent/scripts/reflect" ]; then
             if .agent/scripts/reflect; then
                 echo "✅ Standard reflection captured successfully"
             else
-                echo "⚠️  Reflection capture had issues, but continuing with RTB workflow"
+                echo "⚠️  Reflection capture had issues, but continuing with Finalization workflow"
             fi
         fi
     else
         if .agent/scripts/reflect; then
             echo "✅ Session reflection captured successfully"
         else
-            echo "⚠️  Reflection capture had issues, but continuing with RTB workflow"
-            echo "💡 You may want to manually capture learnings after RTB completion"
+            echo "⚠️  Reflection capture had issues, but continuing with Finalization workflow"
+            echo "💡 You may want to manually capture learnings after Finalization completion"
         fi
     fi
 elif command -v python3 &> /dev/null; then
@@ -589,7 +589,7 @@ reflection = {
         'Reflection Captured': False
     },
     'technical_learnings': [
-        'Remember to use the reflect skill before RTB completion',
+        'Remember to use the reflect skill before Finalization completion',
         'Systematic reflection ensures knowledge transfer',
         'Devils advocate mode provides balanced critical analysis' if \"$DEVILS_MODE\" == \"--devils-advocate\" else 'Standard reflection approach'
     ],
@@ -602,8 +602,8 @@ reflection = {
         'Files Changed': 'Unknown',
         'Session Duration': 'Unknown'
     },
-    'next_mission_readiness': True,
-    'mission_duration': 0.0,
+    'next_process_readiness': True,
+    'process_duration': 0.0,
     'status': 'PARTIAL'
 }
 
@@ -654,7 +654,7 @@ else
 fi
 
 echo
-echo "🎉 RTB Workflow Complete!"
+echo "🎉 Finalization Workflow Complete!"
 echo "========================="
 echo "✅ All checks passed"
 echo "✅ Changes committed and pushed"

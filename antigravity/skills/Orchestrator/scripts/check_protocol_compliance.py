@@ -5,10 +5,10 @@ Verifies SOP compliance at each phase (Initialization, Finalization) and validat
 complete each step adequately and invoke appropriate skills.
 
 Usage:
-    python check_flight_readiness.py --init     # Initialization validation
-    python check_flight_readiness.py --finalize # Finalization validation
-    python check_flight_readiness.py --status   # Full orchestration status
-    python check_flight_readiness.py --help     # Show help
+    python check_protocol_compliance.py --init     # Initialization validation
+    python check_protocol_compliance.py --finalize # Finalization validation
+    python check_protocol_compliance.py --status   # Full orchestration status
+    python check_protocol_compliance.py --help     # Show help
 """
 
 import argparse
@@ -305,7 +305,7 @@ def check_todo_completion() -> tuple[bool, str]:
 
 
 def run_initialization(verbose: bool = False) -> bool:
-    """Run Initialization validation (formerly PFC)."""
+    """Run Initialization validation."""
     print(f"{Colors.BOLD}📋 INITIALIZATION CHECK{Colors.END}")
     print("=" * 40)
     print()
@@ -380,11 +380,11 @@ def run_initialization(verbose: bool = False) -> bool:
 
 
 def run_execution(verbose: bool = False) -> bool:
-    """Run Execution Phase status check (formerly IFO)."""
+    """Run Execution Phase status check."""
     print(f"{Colors.BOLD}🚀 EXECUTION PHASE{Colors.END}")
     print("=" * 40)
     print()
-    print("IFO: Active work phase - executing the task.")
+    print("Execution: Active work phase - executing the task.")
     print()
 
     issues = []
@@ -452,11 +452,11 @@ def run_execution(verbose: bool = False) -> bool:
 
 
 def run_finalization(verbose: bool = False) -> bool:
-    """Run Finalization validation (formerly RTB)."""
+    """Run Finalization validation."""
     print(f"{Colors.BOLD}🛬 FINALIZATION CHECK{Colors.END}")
     print("=" * 40)
     print()
-    print("RTB focuses on safe landing: code quality, clean git, successful push.")
+    print("Finalization focuses on safe landing: code quality, clean git, successful push.")
     print()
 
     blockers = []
@@ -526,11 +526,11 @@ def run_finalization(verbose: bool = False) -> bool:
 
 
 def run_retrospective(verbose: bool = False) -> bool:
-    """Run Retrospective validation (formerly Debrief)."""
+    """Run Retrospective validation."""
     print(f"{Colors.BOLD}🎖️ RETROSPECTIVE CHECK{Colors.END}")
     print("=" * 40)
     print()
-    print("Mission Debrief: strategic learning and session closure.")
+    print("Retrospective: strategic learning and session closure.")
     print()
 
     blockers = []

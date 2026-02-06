@@ -1,28 +1,28 @@
 ---
-name: return-to-base
-description: Performs Return To Base (RTB) checks and completes session workflow. Validates git status, runs quality gates, updates issue status, and ensures proper session cleanup.
+name: finalization
+description: Performs Finalization checks and completes session closure. Validates git status, runs quality gates, updates issue status, and ensures proper session closure.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
-# Return To Base (RTB) Execution Skill
+# Finalization Execution Skill
 
-The `return-to-base` skill performs the actual RTB workflow execution when called by an agent.
+The `finalization` skill performs the actual finalization protocol when called by an agent.
 
 ## Usage
 
 ```bash
-/return-to-base
+/finalization
 ```
 
 ## Purpose
 
-Performs comprehensive Return To Base checks to ensure:
+Performs comprehensive Finalization checks to ensure:
 
 - All work is committed and pushed to remote
 - Quality gates have been passed
 - Issue status is properly updated
-- Session cleanup is complete
+- Session closure is complete
 - Next session has proper context
 
 ## Implementation
@@ -30,15 +30,14 @@ Performs comprehensive Return To Base checks to ensure:
 The skill executes:
 
 ```bash
-./.agent/skills/return-to-base/scripts/return-to-base.sh
+~/.gemini/antigravity/skills/finalization/scripts/finalization.sh
 ```
 
 ## Workflow Steps
 
-1. **Pre-Flight Validation**
+1. **Pre-Finalization Validation**
    - Check current git status
    - Identify uncommitted changes
-   - **NEW: Reflection preview for new work sessions**
    - Validate branch state
 
 2. **Quality Gates** (if code changed)
@@ -71,9 +70,9 @@ The skill executes:
    - Push all changes to remote
    - Verify clean git status
 
-8. **Session Cleanup**
+8. **Session Closure**
    - Clear temporary files
-   - Prune stale branches
+   - Pruning stale branches
    - Update session locks
 
 9. **Global Memory Sync**
@@ -82,7 +81,7 @@ The skill executes:
 
 ## Exit Conditions
 
-RTB is complete when:
+Finalization is complete when:
 
 - `git status` shows "up to date with origin"
 - All beads issues are properly resolved or updated
@@ -92,7 +91,7 @@ RTB is complete when:
 
 ## Error Handling
 
-If RTB fails:
+If Finalization fails:
 
 1. Check for merge conflicts - resolve and retry
 2. Verify network connectivity for git operations

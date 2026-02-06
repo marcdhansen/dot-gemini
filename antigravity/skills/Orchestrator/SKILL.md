@@ -13,13 +13,13 @@ The Orchestrator acts as an **agent supervisor**, verifying that each step of th
 
 ```bash
 # Initialization validation
-python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --init
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init
 
 # Finalization validation
-python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --finalize
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --finalize
 
 # Full orchestration status
-python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --status
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --status
 ```
 
 ## Purpose
@@ -84,7 +84,7 @@ graph TD
 - [ ] Quality gates passed
 - [ ] Git status clean
 - [ ] Reflect skill invoked
-- [ ] Mission Debriefing skill invoked (warning if not)
+- [ ] Retrospective skill invoked (warning if not)
 
 ## Skill Invocation Verification
 
@@ -92,10 +92,10 @@ Orchestrator verifies these skills are invoked at appropriate times:
 
 | Phase | Skill | Required |
 | :--- | :--- | :--- |
-| Initialization | `mission-briefing` | Recommended |
+| Initialization | `initialization-briefing` | Recommended |
 | Initialization | `devils-advocate` | Recommended for complex tasks |
 | Finalization | `reflect` | **Required** |
-| Finalization | `mission-debriefing` | **Required** |
+| Finalization | `retrospective` | **Required** |
 
 ## Output Format
 
@@ -139,8 +139,8 @@ The Orchestrator integrates with:
 If Orchestrator itself fails:
 
 1. Check Python environment: `python3 --version`
-2. Verify script exists: `ls ~/.gemini/antigravity/skills/FlightDirector/scripts/`
-3. Check file permissions: `chmod +x check_flight_readiness.py`
+2. Verify script exists: `ls ~/.gemini/antigravity/skills/Orchestrator/scripts/`
+3. Check file permissions: `chmod +x check_protocol_compliance.py`
 4. Run with verbose: `--verbose` flag for detailed output
 
 ## Configuration
