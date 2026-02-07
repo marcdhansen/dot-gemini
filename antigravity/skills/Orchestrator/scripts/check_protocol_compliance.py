@@ -13,6 +13,7 @@ Usage:
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timedelta
@@ -88,8 +89,66 @@ def check_tool_available(tool: str) -> bool:
         return False
 
 
-def check_git_status() -> tuple[bool, str]:
-    """Check if git working directory is clean."""
+def parse_version(version_str: str) -> tuple[int, ...]:
+    """Parse version string into a tuple of integers."""
+    match = re.search(r'(\d+(?:\.\d+)+)', version_str)
+    if match:
+        return tuple(map(int, match.group(1).split('.')))
+    return ()
+
+
+def check_tool_version(tool: str, min_version: str, version_flag: str = "--version") -> tuple[bool, str]:
+    """Check if a tool's version meets the minimum requirement."""
+    if not check_tool_available(tool):
+        return False, f"Tool '{tool}' not installed"
+
+    try:
+        result = subprocess.run(
+            [tool, version_flag],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            # Some tools might use stderr for version info
+            output = result.stdout.strip() or result.stderr.strip()
+            if not output:
+                return False, f"Could not get version for '{tool}'"
+        else:
+            output = result.stdout.strip() or result.stderr.strip()
+
+        current_v = parse_version(output)
+        required_v = parse_version(min_version)
+
+        if not current_v:
+            return False, f"Could not parse version from: {output}"
+
+        if current_v < required_v:
+            return False, f"Version for '{tool}' is too old: {output} (Required: {min_version})"
+
+        return True, f"{tool} version {'.'.join(map(str, current_v))} is OK"
+    except Exception as e:
+        return False, f"Error checking {tool} version: {e}"
+
+
+def check_workspace_integrity() -> tuple[bool, list[str]]:
+    """Verify workspace integrity by checking for mandatory directories and files."""
+    mandatory_paths = [
+        Path(".git"),
+        Path(".agent"),
+        Path(".beads"),
+    ]
+
+    missing = []
+    for path in mandatory_paths:
+        if not path.exists():
+            missing.append(str(path))
+
+    return len(missing) == 0, missing
+
+
+def check_git_status(turbo: bool = False) -> tuple[bool, str]:
+    """Check if git working directory is clean. Detects code changes for Turbo escalation."""
     try:
         result = subprocess.run(
             ["git", "status", "--porcelain"],
@@ -97,9 +156,26 @@ def check_git_status() -> tuple[bool, str]:
             text=True,
         )
         if result.returncode == 0:
-            if result.stdout.strip():
-                return False, f"Uncommitted changes:\n{result.stdout.strip()}"
-            return True, "Working directory clean"
+            changes = result.stdout.strip()
+            if not changes:
+                return True, "Working directory clean"
+            
+            # Detect code changes (.py, .js, .ts, etc.)
+            code_extensions = {".py", ".sh", ".js", ".ts", ".go", ".c", ".cpp"}
+            code_changes = []
+            for line in result.stdout.split("\n"):
+                if len(line) > 3:
+                    file_path = line[3:]
+                    if any(file_path.endswith(ext) for ext in code_extensions):
+                        code_changes.append(file_path)
+            
+            if turbo:
+                if code_changes:
+                    return False, f"ESCALATION REQUIRED: Code changes detected in Turbo Mode: {', '.join(code_changes)}. Please switch to Full SOP."
+                else:
+                    return True, "Metadata changes only (Turbo safe)"
+            
+            return False, f"Uncommitted changes:\n{changes}"
         return False, "Git command failed"
     except Exception as e:
         return False, f"Git check failed: {e}"
@@ -409,20 +485,48 @@ def run_initialization(verbose: bool = False) -> bool:
     warnings = []
 
     # Tool Check
-    required_tools = ["git", "bd"]
-    optional_tools = ["uv", "python3"]
+    required_tools = [
+        ("git", "2.25.0", "--version"),
+        ("bd", "0.40.0", "version"),
+    ]
+    optional_tools = [
+        ("uv", "0.5.0", "--version"),
+        ("python3", "3.10.0", "--version"),
+    ]
 
     tools_ok = True
-    for tool in required_tools:
-        if not check_tool_available(tool):
+    tool_details = []
+    for tool, min_v, flag in required_tools:
+        ok, msg = check_tool_version(tool, min_v, flag)
+        if not ok:
             tools_ok = False
-            blockers.append(f"Required tool '{tool}' not available")
+            blockers.append(msg)
+        tool_details.append((tool, ok, msg))
 
     print(f"├── Tools: {check_mark(tools_ok)} ", end="")
     if tools_ok:
-        print("All required tools available")
+        print("Required tools version check passed")
     else:
-        print(f"Missing: {[t for t in required_tools if not check_tool_available(t)]}")
+        print("Tool version requirements not met")
+
+    if verbose or not tools_ok:
+        for tool, ok, msg in tool_details:
+            print(f"│   └── {tool}: {check_mark(ok)} {msg}")
+
+    # Optional tool warnings
+    for tool, min_v, flag in optional_tools:
+        ok, msg = check_tool_version(tool, min_v, flag)
+        if not ok:
+            warnings.append(f"Optional tool {msg}")
+
+    # Workspace Integrity Check
+    integrity_ok, missing_paths = check_workspace_integrity()
+    print(f"├── Integrity: {check_mark(integrity_ok)} ", end="")
+    if integrity_ok:
+        print("Workspace integrity verified")
+    else:
+        print(f"Missing mandatory components: {missing_paths}")
+        blockers.append(f"Workspace integrity failure: Missing {missing_paths}")
 
     # Context Check
     docs_ok, missing_docs = check_planning_docs()
@@ -484,6 +588,34 @@ def run_initialization(verbose: bool = False) -> bool:
         print("Ready for execution!")
         update_progress_ledger("Initialization", "success", "Clean initialization complete")
         return True
+
+
+def run_turbo_initialization(verbose: bool = False) -> bool:
+    """Run lightweight Turbo Mode initialization validation."""
+    print(f"{Colors.BOLD}⚡ TURBO INITIALIZATION (Turbo Create Protocol){Colors.END}")
+    print("=" * 40)
+    print("Turbo Mode: Administrative/Metadata tasks only.")
+    print("Guidelines: No code changes, no full planning required.")
+    print()
+
+    # Tool Check (Only Git is strictly required for Turbo)
+    git_ok = check_tool_available("git")
+    print(f"├── Git: {check_mark(git_ok)}")
+    
+    # Check for existing code blockers (should not have uncommitted code changes)
+    git_clean, git_msg = check_git_status(turbo=True)
+    print(f"└── Git Clean: {check_mark(git_clean)} {git_msg.split(chr(10))[0]}")
+
+    print()
+    if not git_ok or not git_clean:
+        print(f"{Colors.RED}{Colors.BOLD}❌ TURBO BLOCKED{Colors.END}")
+        if not git_clean:
+            print(f"  {warning_mark()} Code changes detected. Escalate to Full SOP (--init).")
+        return False
+
+    print(f"{Colors.GREEN}{Colors.BOLD}✅ TURBO READY{Colors.END}")
+    print("Ready for administrative tasks (bd create, docs, research).")
+    return True
 
 
 def run_execution(verbose: bool = False) -> bool:
@@ -642,6 +774,30 @@ def run_finalization(verbose: bool = False) -> bool:
         print("Safe landing! Now proceed to Retrospective.")
         update_progress_ledger("Finalization", "success", "Clean Finalization complete")
         return True
+
+
+def run_turbo_finalization(verbose: bool = False) -> bool:
+    """Run lightweight Turbo Mode finalization validation."""
+    print(f"{Colors.BOLD}⚡ TURBO FINALIZATION{Colors.END}")
+    print("=" * 40)
+    print()
+
+    # Git Status Check (Escalation Detection)
+    git_ok, git_msg = check_git_status(turbo=True)
+    print(f"├── Git Status: {check_mark(git_ok)} {git_msg.split(chr(10))[0]}")
+    
+    # Beads Sync check (Optional but recommended)
+    bd_ok = check_tool_available("bd")
+    print(f"└── Beads Sync: {check_mark(bd_ok) if bd_ok else warning_mark()} {'Available' if bd_ok else 'Missing'}")
+
+    print()
+    if not git_ok:
+        print(f"{Colors.RED}{Colors.BOLD}❌ TURBO FINALIZATION BLOCKED{Colors.END}")
+        print(f"Error: {git_msg}")
+        return False
+
+    print(f"{Colors.GREEN}{Colors.BOLD}✅ TURBO FINALIZATION COMPLETE{Colors.END}")
+    return True
 
 
 def run_retrospective(verbose: bool = False) -> bool:
@@ -912,6 +1068,11 @@ Examples:
         action="store_true",
         help="Show verbose output",
     )
+    parser.add_argument(
+        "--turbo",
+        action="store_true",
+        help="Run in Turbo Mode (Turbo Create Protocol - lightweight validation)",
+    )
 
     args = parser.parse_args()
 
@@ -941,11 +1102,17 @@ Examples:
             print("❌ Pydantic validators not available.")
             success = False
     elif args.init:
-        success = run_initialization(args.verbose)
+        if args.turbo:
+            success = run_turbo_initialization(args.verbose)
+        else:
+            success = run_initialization(args.verbose)
     elif args.execute:
         success = run_execution(args.verbose)
     elif args.finalize:
-        success = run_finalization(args.verbose)
+        if args.turbo:
+            success = run_turbo_finalization(args.verbose)
+        else:
+            success = run_finalization(args.verbose)
     elif args.retrospective:
         success = run_retrospective(args.verbose)
     elif args.clean:
