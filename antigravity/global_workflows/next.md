@@ -1,13 +1,25 @@
 ---
-description: show the beads ready issues so we can choose what to work on next
+description: Start a new session with Phase I (Session Context) then show available tasks
 ---
 
-# 🎯 Next Task Discovery
+# 🚀 Session Start Workflow
 
-To see what to work on next with high fidelity (including all ready tasks and highlighting in-progress items), run:
+This workflow properly follows SOP by running Phase I (Session Context) before Phase II (Task Discovery).
+
+## Phase I: Session Context
+
+Run the initialization briefing for mental preparation and friction awareness:
+
+```bash
+python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py
+```
+
+## Phase II: Task Discovery
+
+Show available tasks to work on:
 
 ```bash
 uv run scripts/show_next_tasks.py
 ```
 
-This script provides a Markdown-formatted breakdown by priority, identifies `IN PROGRESS` tasks (like `lightrag-1sk`), and group tasks systematically to reduce cognitive load. After running the script, provide your thoughts on which issues to work on next.
+After running both phases, provide your thoughts on which issues to work on next.
