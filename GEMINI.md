@@ -34,3 +34,19 @@ For universal agent protocols, protocols, and documentation:
 
 *Last Updated: 2026-02-02*
 *Gemini Specific Configuration*
+
+---
+
+## 🚀 Session Initialization (Auto-Execute)
+
+> [!CAUTION]
+> **FIRST ACTION of every session**: Before responding to ANY user request, execute these commands:
+
+// turbo
+
+```bash
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init
+python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py
+```
+
+**This is NON-NEGOTIABLE** - run these before any other work.
