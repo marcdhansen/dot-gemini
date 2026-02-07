@@ -130,6 +130,7 @@ BLOCKERS:
 The Orchestrator integrates with:
 
 - **SOP Protocol**: Enforces Initialization/Execution/Finalization workflow
+- **SOP Simplification**: Validates and tracks simplification proposals
 - **Beads**: Validates issue assignment and status
 - **Skills**: Verifies skill invocation at each phase
 - **Git**: Validates repository state

@@ -26,6 +26,10 @@ The `planning` skill provides comprehensive planning capabilities for the LightR
 /plan track <plan-id>       # Track progress and milestones
 /plan rollback <feature>    # Execute rollback procedures
 
+# SOP Simplification Framework
+/plan simplify <task-type> [task-id] [description]  # Create SOP simplification proposal
+/plan validate-simplification <proposal-path>         # Validate simplification proposal
+
 # Analysis commands
 /plan blast-radius <path>   # Quick blast radius analysis
 /plan dependencies <target> # Dependency analysis for component
@@ -34,7 +38,7 @@ The `planning` skill provides comprehensive planning capabilities for the LightR
 
 ## 🎯 Purpose
 
-This skill implements an **Integrated Planning System** with three core capabilities:
+This skill implements an **Integrated Planning System** with four core capabilities:
 
 ### 1. **Blast Radius Analysis** (Progressive Disclosure)
 
@@ -48,7 +52,14 @@ This skill implements an **Integrated Planning System** with three core capabili
 - **A/B Testing Framework** - Statistical significance testing
 - **Rollback-Safe Deployment** - User-controlled rollback triggers
 
-### 3. **Task Planning & Integration** (Orchestrator Integration)
+### 3. **SOP Simplification Framework** (Agent Flexibility)
+
+- **Agent-Proposed Simplifications** - Agents can suggest SOP modifications for specific tasks
+- **User Approval Required** - All simplifications require explicit user approval
+- **Quality Preservation** - Non-negotiable requirements (TDD, code quality, git isolation) always maintained
+- **Risk-Based Validation** - Automatic validation of proposals with risk assessment
+
+### 4. **Task Planning & Integration** (Orchestrator Integration)
 
 - **Post-Task-Selection Planning** - Automatic scoping prompt after task selection
 - **Beads Integration** - Recommend and create tasks after user approval
@@ -205,6 +216,121 @@ The skill enhances the existing Initialization system with planning validation:
 - **Commit Validation**: Automatic blast radius checking
 - **PR Integration**: Planning status in pull requests
 - **Tag Management**: Milestone-based release tagging
+
+## 🔄 SOP Simplification Framework
+
+### Overview
+
+The **SOP Simplification Framework** allows agents to propose modifications to the standard SOP for specific tasks, maintaining quality while reducing friction. This addresses the core challenge of agents bypassing SOP entirely when it feels overly burdensome.
+
+### Process Flow
+
+```bash
+# SOP Simplification Workflow
+1. Task Analysis → Agent evaluates task complexity and SOP requirements
+2. Proposal Creation → Agent creates simplification proposal using template
+3. Validation → Automatic validation ensures quality gates preserved
+4. User Approval → User chooses between standard and simplified approaches
+5. Execution → Follow user-approved approach with retrospective tracking
+```
+
+### Core Principles
+
+- **Mandatory Compliance**: Agents must follow either standard OR approved simplified SOP
+- **User Control**: All simplifications require explicit user approval
+- **Quality Preservation**: Non-negotiable requirements never waived (TDD, code quality, git isolation)
+- **Risk-Based Assessment**: All proposals include comprehensive risk analysis
+
+### Proposal Creation
+
+```bash
+# Create a simplification proposal
+/plan simplify <task-type> [task-id] [description]
+
+# Examples
+/plan simplify bug-fix lightrag-123 "Fix memory leak in query processing"
+/plan simplify documentation "Update API documentation for new endpoints"
+/plan simplify configuration "Add new environment variable for rate limiting"
+```
+
+### Proposal Validation
+
+```bash
+# Validate proposal before submission
+python scripts/validate_simplification.py <proposal-path>
+
+# Validation checks:
+✅ Quality gates maintained (TDD, code quality, git isolation)
+✅ Justifications provided for all modifications
+✅ Risk assessment comprehensive with mitigation strategies
+✅ Success criteria clearly defined
+❌ Blocked modifications (TDD waivers, quality gate removals)
+```
+
+### User Approval Interface
+
+When a valid proposal is created, users see:
+
+```
+# SOP Simplification Approval Request
+
+## Task Information
+- **Task ID**: lightrag-123
+- **Task Type**: Bug Fix
+
+## Proposed Modifications
+• Remove performance benchmarking - not relevant for simple bug fixes
+• Focus testing on specific bug scenario - avoid full regression overhead
+
+## Approval Options
+[A] Approve Standard SOP - Follow full standard procedures
+[B] Approve Simplified SOP - Use proposed streamlined approach  
+[C] Reject - Require agent to revise proposal or use standard approach
+```
+
+### Quality Gates (Never Waived)
+
+```yaml
+non_negotiable_requirements:
+  - TDD Process: Red-Green-Refactor cycle always required
+  - Code Quality Gates: Linting, formatting, security scanning preserved
+  - Git Isolation: Feature branch and clean working directory required
+  - Documentation Updates: Changes documented appropriately
+```
+
+### Risk-Based Guidelines
+
+```yaml
+simplification_guidelines:
+  bug_fix:
+    common_simplifications:
+      - Skip performance benchmarking for non-performance fixes
+      - Focus testing on specific bug scenario
+      - Streamline retrospective to technical learnings
+    risk_focus: Regression risk and fix effectiveness
+    
+  documentation:
+    common_simplifications:
+      - Skip TDD for pure documentation changes
+      - Focus quality gates on documentation integrity
+      - Simplify finalization to documentation quality
+    risk_focus: Accuracy and clarity of information
+    
+  feature_addition:
+    common_simplifications:
+      - Phase documentation rollouts
+      - Focus performance testing on critical paths
+    risk_focus: Integration complexity and user adoption
+```
+
+### Implementation Integration
+
+The simplification framework integrates with existing systems:
+
+- **Planning Phase**: Proposals created during standard planning process
+- **Orchestrator Integration**: Validation enforced before execution
+- **Retrospective Enhancement**: Track simplification effectiveness and patterns
+- **Beads Integration**: Create tasks for proven simplification patterns
 
 ## 🛡️ Safety & Fallback Mechanisms
 

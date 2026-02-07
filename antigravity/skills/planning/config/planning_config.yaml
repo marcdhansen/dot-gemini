@@ -212,17 +212,61 @@ compatibility:
     auto_migrate_tasks: false        # Auto-migrate existing tasks to new system
     preserve_existing_data: true    # Preserve existing planning data
 
+# SOP Simplification Framework
+sop_simplification:
+  # Simplification Proposal Settings
+  proposals:
+    enabled: true                    # Enable SOP simplification proposals
+    require_justification: true      # Require justification for each modification
+    risk_assessment_mandatory: true   # Require risk assessment for all proposals
+    quality_gates_non_negotiable: true  # TDD, code quality, git isolation always required
+    
+  # Approval Process
+  approval:
+    user_approval_required: true     # User must explicitly approve simplified plans
+    approval_options:
+      - "Approve Standard SOP"
+      - "Approve Simplified SOP"
+      - "Reject - Require Revision"
+    approval_timeout_hours: 4        # Same timeout as standard approvals
+    
+  # Template and Documentation
+  templates:
+    simplification_template: "templates/simplified_sop_proposal.md"
+    auto_populate_task_info: true
+    include_risk_assessment: true
+    include_quality_gates_check: true
+    
+  # Validation Rules
+  validation:
+    blocked_modifications:
+      - "skip_tdd"                 # TDD can never be waived
+      - "skip_code_quality_gates"   # Code quality gates cannot be waived
+      - "skip_git_isolation"        # Git isolation cannot be waived
+      
+    require_justification_for:
+      - "remove_quality_gates"       # Must justify any quality gate removal
+      - "combine_steps"             # Must justify step combinations
+      - "modify_documentation_requirements"  # Must justify doc changes
+      
+    risk_thresholds:
+      max_allowed_risk: "medium"     # High/Critical risk requires exceptional justification
+      require_mitigation_for: ["high", "critical"]
+
 # Environment-Specific Settings
 environments:
   development:
     validation_strictness: "relaxed"     # Relaxed validation in development
     milestone_timeout_days: 60          # Longer timeouts in development
+    simplification_strictness: "flexible"  # More open to simplification in development
     
   staging:
     validation_strictness: "standard"    # Standard validation in staging
     milestone_timeout_days: 30          # Standard timeouts in staging
+    simplification_strictness: "moderate"  # Balanced approach in staging
     
   production:
     validation_strictness: "strict"      # Strict validation in production
     milestone_timeout_days: 14          # Shorter timeouts in production
     require_rollback_validation: true   # Require rollback validation in production
+    simplification_strictness: "conservative"  # Very cautious with production simplifications

@@ -81,9 +81,19 @@ Debrief saved to: `~/.gemini/antigravity/brain/{session-id}/debrief.md`
 
 During reflection, address:
 
-1. **Cognitive Load**: "Are there parts of the SOP where the agent's cognitive load could be reduced by using scripts?"
+1. **Cognitive Load**: "Are there parts of SOP where the agent's cognitive load could be reduced by using scripts?"
 2. **Design Patterns**: "Identify design patterns and recommended refactoring strategies."
 3. **Multi-Agent**: "What improvements could enhance parallel agent workflows?"
+4. **SOP Simplification Effectiveness**: 
+   - "Was SOP simplification proposed for this session? If so, was it approved?"
+   - "If approved, did the simplified approach achieve goals efficiently?"
+   - "Were there any quality issues with the simplified approach?"
+   - "Should this simplification pattern be available for future similar tasks?"
+5. **Documentation Review**:
+   - "How easy was it to find all relevant documentation?"
+   - "Did you encounter outdated or conflicting information?"
+   - "Was the documentation scope appropriate for your needs?"
+   - "What documentation improvements would help future work?"
 
 ## Integration
 

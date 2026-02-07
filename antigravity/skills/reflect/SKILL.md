@@ -174,6 +174,17 @@ Use this structure when performing enhanced reflection:
 
 During reflection, agents should explicitly address these strategic questions:
 
+### Organizational Debt & Artifact Hygiene
+>
+> **QUESTION**: Did this session introduce organizational debt (git noise, redundant files, non-standard artifact naming)? If so, how can we automate the prevention of this debt?
+
+Consider:
+
+- Multi-commit PRs that should have been squashed
+- Orphaned temporary files or logs
+- Inconsistent artifact naming or locations
+- Redundant logic or documentation gaps
+
 ### Cognitive Load Reduction
 >
 > **QUESTION**: Are there parts of the SOP where the agent's cognitive load could be reduced by using scripts?

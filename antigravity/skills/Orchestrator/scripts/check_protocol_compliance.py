@@ -35,9 +35,18 @@ def update_progress_ledger(phase: str, status: str, result: str):
         try:
             # We don't always have a task_id here, use 'system' or 'harness'
             subprocess.run(
-                [sys.executable, str(manager), "add-step", "harness", f"Phase: {phase}", result, "--status", status],
+                [
+                    sys.executable,
+                    str(manager),
+                    "add-step",
+                    "harness",
+                    f"Phase: {phase}",
+                    result,
+                    "--status",
+                    status,
+                ],
                 capture_output=True,
-                text=True
+                text=True,
             )
         except Exception:
             pass
@@ -150,6 +159,49 @@ def check_beads_issue() -> tuple[bool, str]:
         return False, "beads command timed out"
     except Exception as e:
         return False, f"beads check failed: {e}"
+
+
+def check_sop_simplification() -> tuple[bool, str]:
+    """Check for SOP simplification proposals and their validation status."""
+    # Look for simplification proposal files
+    proposal_patterns = ["*.md", ".agent/sop_simplification_*.md", "sop_simplification_*.md"]
+
+    proposals = []
+    for pattern in proposal_patterns:
+        proposals.extend(Path(".").glob(pattern))
+        proposals.extend(Path(".agent").glob(pattern))
+
+    if not proposals:
+        return True, "No SOP simplification proposals found"
+
+    # Check if any proposals need validation or approval
+    pending_proposals = []
+    approved_proposals = []
+
+    for proposal in proposals:
+        if "sop_simplification_" in proposal.name:
+            content = proposal.read_text()
+
+            # Check if proposal has been validated
+            if "## Approval Section" in content:
+                # Look for approval decision
+                if "Approve Simplified" in content:
+                    approved_proposals.append(proposal.name)
+                elif "Approve Standard" in content or "Reject" in content:
+                    # Decision made, no action needed
+                    continue
+                else:
+                    pending_proposals.append(proposal.name)
+            else:
+                pending_proposals.append(proposal.name)
+
+    if pending_proposals:
+        return False, f"Pending SOP simplification proposals: {', '.join(pending_proposals)}"
+
+    if approved_proposals:
+        return True, f"Approved simplified SOP: {', '.join(approved_proposals)}"
+
+    return True, "SOP simplification proposals processed"
 
 
 def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
@@ -296,11 +348,15 @@ def check_todo_completion() -> tuple[bool, str]:
                 return True, "All tasks completed (Sisyphus is happy)"
             else:
                 # Extract the failure message
-                msg = result.stdout.strip().split("\n")[-1] if result.stdout else "Unfinished tasks detected"
+                msg = (
+                    result.stdout.strip().split("\n")[-1]
+                    if result.stdout
+                    else "Unfinished tasks detected"
+                )
                 return False, msg
         except Exception as e:
             return False, f"Todo enforcer error: {e}"
-            
+
     return True, "Todo enforcer script not found (Skipping)"
 
 
@@ -343,6 +399,12 @@ def run_initialization(verbose: bool = False) -> bool:
     print(f"├── Issues: {check_mark(issues_ok)} {issues_msg}")
     if not issues_ok:
         warnings.append(issues_msg)
+
+    # SOP Simplification Check
+    simplification_ok, simplification_msg = check_sop_simplification()
+    print(f"├── Simplification: {check_mark(simplification_ok)} {simplification_msg}")
+    if not simplification_ok:
+        warnings.append(simplification_msg)
 
     # Plan Approval Check
     approval_ok, approval_msg = check_plan_approval()
@@ -474,6 +536,12 @@ def run_finalization(verbose: bool = False) -> bool:
     print(f"├── Branch: {branch_icon} {branch}")
     if not is_feature and branch not in ["main", "master"]:
         warnings.append(f"Not on a feature branch: {branch}")
+
+    # SOP Simplification Check
+    simplification_ok, simplification_msg = check_sop_simplification()
+    print(f"├── Simplification: {check_mark(simplification_ok)} {simplification_msg}")
+    if not simplification_ok:
+        warnings.append(simplification_msg)
 
     # Hand-off Compliance Check (for multi-phase implementations)
     handoff_ok, handoff_msg = check_handoff_compliance()
@@ -711,27 +779,33 @@ Examples:
     )
 
     parser.add_argument(
-        "--init", "--pfc",
+        "--init",
+        "--pfc",
         action="store_true",
         help="Run Initialization validation (formerly PFC)",
     )
     parser.add_argument(
-        "--execute", "--ifo",
+        "--execute",
+        "--ifo",
         action="store_true",
         help="Run Execution Phase status check (formerly IFO)",
     )
     parser.add_argument(
-        "--finalize", "--rtb",
+        "--finalize",
+        "--rtb",
         action="store_true",
         help="Run Finalization validation (formerly RTB)",
     )
     parser.add_argument(
-        "--retrospective", "--debrief",
+        "--retrospective",
+        "--debrief",
         action="store_true",
         help="Run Retrospective validation (formerly Debrief)",
     )
     parser.add_argument(
-        "--clean", "--cleanup", "--pristine",
+        "--clean",
+        "--cleanup",
+        "--pristine",
         action="store_true",
         help="Run Clean State validation (formerly Cleanup)",
     )
@@ -755,7 +829,17 @@ Examples:
     args = parser.parse_args()
 
     # Default to status if no option specified
-    if not any([args.init, args.execute, args.finalize, args.retrospective, args.clean, args.status, args.validate]):
+    if not any(
+        [
+            args.init,
+            args.execute,
+            args.finalize,
+            args.retrospective,
+            args.clean,
+            args.status,
+            args.validate,
+        ]
+    ):
         parser.print_help()
         sys.exit(0)
 
