@@ -1,0 +1,24 @@
+{
+  "id": "learning_$(date +%Y%m%d_%H%M%S)_0",
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+  "source": "conversation_analysis",
+  "content": {
+    "topic": "centralized_agent_information_structure",
+    "problem": "Multiple documentation copies cause sync issues and fragmented information access",
+    "solution": "Establish ~/.agent/ as single source of truth with symlinks to global files, implement automated structure validation",
+    "evidence": {
+      "files_affected": ["AGENTS.md", "skills/", "docs/sop/global-configs/"],
+      "symlinks_created": true,
+      "cross_agent_compatibility": true
+    },
+    "improvements": [
+      "Automated symlink health monitoring",
+      "Dynamic skill discovery system", 
+      "Version consistency validation",
+      "Centralized configuration management",
+      "Cross-reference integrity checking"
+    ]
+  },
+  "type": "process_improvement",
+  "status": "pending"
+}

@@ -1,0 +1,42 @@
+{
+  "id": "learning_$(date +%Y%m%d_%H%M%S)_2",
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+  "source": "manual_verification",
+  "content": {
+    "topic": "directory_architecture_evolution_not_migration",
+    "problem": "Assumed need to migrate content between ~/.gemini/ and ~/.agent/ when both directories contain legitimate, evolving content",
+    "discovery": "Both ~/.gemini/ (22 items) and ~/.agent/ (9 items) exist as real directories with substantial, legitimate content - this is not a migration scenario but evolution of the system",
+    "root_cause": "System evolved to support both provider-specific configs (~/.gemini/) AND universal agent protocols (~/.agent/) simultaneously",
+    "lesson": "Before attempting major structural changes, verify the actual problem vs. assumed problem. The system naturally evolved to have dual directories with different purposes, not fragmented copies that need merging.",
+    "actual_state": {
+      "~/.gemini/": "exists_with_22_items",
+      "~/.agent/": "exists_with_9_items",
+      "symlinks": "both_broken_due_to_failed_script"
+    },
+    "incorrect_assumptions": [
+      "One directory must be eliminated",
+      "Content needs migration from one to another",
+      "Symlinks represent temporary fixes",
+      "Script broke existing functional structure"
+    ],
+    "correct_understanding": {
+      "system_evolution": "Directory structure evolved organically to support both universal protocols and provider-specific configurations",
+      "current_architecture": "~/.agent/ (universal) + ~/.gemini/ (provider-specific) = dual-directory system",
+      "real_solution": "Update documentation to accurately reflect current state and clarify use cases for each directory"
+    },
+    "improvements_needed": [
+      "Update CROSS_COMPATIBILITY.md to document dual-directory architecture",
+      "Create bidirectional sync utilities if needed",
+      "Document specific use cases: ~/.agent/ for universal protocols, ~/.gemini/ for provider configs",
+      "Create verification script before making structural changes"
+    ],
+    "preventative_measures": [
+      "Always verify actual vs. assumed state with manual checks",
+      "Test structural changes on non-critical systems first", 
+      "Preserve existing functional content instead of assuming migration needed",
+      "Document architectural decisions and their rationale clearly"
+    ]
+  },
+  "type": "architecture_understanding",
+  "status": "applied"
+}

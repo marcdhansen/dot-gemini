@@ -1,0 +1,94 @@
+# Browser Manager Configuration
+# No default limits - user must configure explicitly
+
+limits:
+  # Maximum number of browser tabs per agent (null = no limit)
+  max_tabs_per_agent: null
+  
+  # Maximum browser age in minutes before warning (null = no limit)
+  max_browser_age_minutes: null
+  
+  # Maximum memory usage per agent in MB (null = no limit)
+  max_memory_mb: null
+  
+  # Maximum total browsers across all agents (null = no limit)
+  max_browsers_total: null
+
+# Administrative settings
+admin:
+  # Require user permission to clean up other agents' browsers
+  require_permission_for_others: true
+  
+  # Timeout for permission prompts in seconds
+  permission_timeout_seconds: 30
+  
+  # Enable audit logging for cross-agent operations
+  audit_log_enabled: true
+  
+  # Require confirmation for force cleanup operations
+  force_cleanup_confirmation: true
+
+# Browser session tracking
+tracking:
+  # Delete session tracking data at mission end (Finalization)
+  delete_on_mission_end: true
+  
+  # How long to keep session data in hours (for debugging)
+  session_retention_hours: 24
+  
+  # Timeout for tab detection via DevTools Protocol in seconds
+  tab_detection_timeout: 5
+  
+  # Interval between process scans in seconds
+  process_scan_interval: 2
+  
+  # Directory for session tracking data
+  session_data_dir: "~/.gemini/browser_sessions"
+
+# Tab detection settings
+tab_detection:
+  # Method for tab detection: "devtools" or "process"
+  preferred_method: "devtools"
+  
+  # Fallback to process detection if DevTools fails
+  enable_fallback: true
+  
+  # Show incognito tabs in status (counts only, no URLs/titles)
+  show_incognito_counts: true
+  
+  # Truncate URLs/titles in status output for privacy
+  truncate_length: 50
+
+# Output formatting
+display:
+  # Show detailed tab information in status
+  show_tabs_in_status: true
+  
+  # Show memory usage in status
+  show_memory_usage: true
+  
+  # Show browser age in status
+  show_age_info: true
+  
+  # Use colors in terminal output
+  use_colors: true
+  
+  # Verbose output for debugging
+  verbose_mode: false
+
+# Cleanup behavior
+cleanup:
+  # Graceful shutdown timeout in seconds
+  graceful_shutdown_timeout: 10
+  
+  # Force kill if graceful shutdown fails
+  enable_force_kill: true
+  
+  # Remove browser user data directories on cleanup
+  cleanup_user_data_dirs: false
+  
+  # Confirmation before cleanup of current agent's browsers
+  confirm_own_cleanup: false
+  
+  # Show cleanup summary
+  show_cleanup_summary: true
