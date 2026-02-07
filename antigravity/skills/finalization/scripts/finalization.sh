@@ -506,6 +506,11 @@ echo
 echo "🗑️  Cleaning up temporary files..."
 find . -name "*.tmp" -delete 2>/dev/null || true
 find . -name "*.log" -mtime +7 -delete 2>/dev/null || true
+
+# Run artifact lifecycle cleanup (task.md, walkthrough.md, etc.)
+if [ -f "$HOME/.agent/scripts/cleanup_artifacts.sh" ]; then
+    "$HOME/.agent/scripts/cleanup_artifacts.sh"
+fi
 echo
 
 

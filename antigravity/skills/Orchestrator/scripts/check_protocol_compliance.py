@@ -154,11 +154,50 @@ def check_beads_issue() -> tuple[bool, str]:
             lines = result.stdout.strip().split("\n")
             if lines:
                 return True, f"Issues ready: {len(lines)}"
-        return True, "No blocking issues"  # Not having issues isn't a blocker
+        return False, "No active Beads issues found"  # Precise status
     except subprocess.TimeoutExpired:
         return False, "beads command timed out"
     except Exception as e:
         return False, f"beads check failed: {e}"
+
+
+def get_active_issue_id() -> str | None:
+    """Identify the active beads issue ID."""
+    # Try branch name first
+    branch, _ = check_branch_info()
+    if branch.startswith(("agent/", "feature/", "chore/")):
+        parts = branch.split("/")
+        if len(parts) > 1:
+            return parts[-1]
+
+    # Try bd ready
+    if check_tool_available("bd"):
+        try:
+            result = subprocess.run(
+                ["bd", "ready"], capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0:
+                lines = result.stdout.strip().split("\n")
+                if lines:
+                    # Extract ID from first line (assuming format ID: Title)
+                    first_line = lines[0]
+                    if ":" in first_line:
+                        return first_line.split(":")[0].strip()
+        except Exception:
+            pass
+    return None
+
+
+def check_progress_log_exists() -> tuple[bool, str]:
+    """Check if progress log exists for the active issue."""
+    issue_id = get_active_issue_id()
+    if not issue_id:
+        return False, "Active issue ID not identified"
+
+    log_path = Path.home() / ".agent/progress-logs" / f"{issue_id}.md"
+    if log_path.exists():
+        return True, f"Progress log found: {log_path.name}"
+    return False, f"Progress log missing: {log_path.name}"
 
 
 def check_sop_simplification() -> tuple[bool, str]:
@@ -394,11 +433,11 @@ def run_initialization(verbose: bool = False) -> bool:
         print(f"Missing: {missing_docs}")
         warnings.append(f"Planning documents missing: {missing_docs}")
 
-    # Issue Check
+    # Issue Check (Optional for Init)
     issues_ok, issues_msg = check_beads_issue()
-    print(f"├── Issues: {check_mark(issues_ok)} {issues_msg}")
-    if not issues_ok:
-        warnings.append(issues_msg)
+    issue_icon = check_mark(issues_ok) if issues_ok else f"{Colors.BLUE}ℹ️{Colors.END}"
+    print(f"├── Issues: {issue_icon} {issues_msg} (Optional for planning)")
+    # No warning/blocker for missing issues during initialization
 
     # SOP Simplification Check
     simplification_ok, simplification_msg = check_sop_simplification()
@@ -408,9 +447,15 @@ def run_initialization(verbose: bool = False) -> bool:
 
     # Plan Approval Check
     approval_ok, approval_msg = check_plan_approval()
+    # Progress Log Check
+    progress_ok, progress_msg = check_progress_log_exists()
+    print(f"├── Progress Log: {check_mark(progress_ok)} {progress_msg}")
+
     print(f"└── Approval: {check_mark(approval_ok)} {approval_msg}")
     if not approval_ok:
         warnings.append(approval_msg)
+    if not progress_ok:
+        warnings.append("Progress log missing - run /log-progress to initialize context")
 
     print()
 
@@ -480,6 +525,12 @@ def run_execution(verbose: bool = False) -> bool:
     else:
         print("No task.md found")
         issues.append("Create task.md to track work")
+
+    # MANDATORY Beads Issue Check for Execution
+    issues_ok, issues_msg = check_beads_issue()
+    print(f"├── Beads Issue: {check_mark(issues_ok)} {issues_msg}")
+    if not issues_ok:
+        issues.append("MANDATORY: Current rule requires a Beads issue before implementation")
 
     # Git status - during IFO, uncommitted changes are expected
     git_ok, git_msg = check_git_status()
@@ -627,6 +678,32 @@ def run_retrospective(verbose: bool = False) -> bool:
         print(f"Plan still active: {approval_msg}")
         warnings.append("Clear the ## Approval marker in task.md")
 
+    # Progress Log Reflector Synthesis Check
+    log_ok, log_msg = check_progress_log_exists()
+    reflector_ok = False
+    reflector_msg = "Progress log missing"
+    if log_ok:
+        try:
+            issue_id = get_active_issue_id()
+            log_path = Path.home() / ".agent/progress-logs" / f"{issue_id}.md"
+            content = log_path.read_text()
+            if "## Reflector Synthesis" in content:
+                parts = content.split("## Reflector Synthesis")
+                if len(parts) > 1:
+                    # Skip the first line which might be the remainder of the heading
+                    section_lines = parts[1].split("\n")[1:]
+                    if any(line.strip() and not line.strip().startswith(("#", "!", "<!--")) for line in section_lines):
+                        reflector_ok = True
+                        reflector_msg = "Reflector synthesis captured in progress log"
+                    else:
+                        reflector_msg = "Reflector synthesis empty in progress log"
+        except Exception as e:
+            reflector_msg = f"Error checking reflector: {e}"
+
+    print(f"├── Reflector: {check_mark(reflector_ok)} {reflector_msg}")
+    if not reflector_ok:
+        warnings.append(reflector_msg)
+
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
     print(f"└── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
@@ -709,6 +786,16 @@ def run_clean_state(verbose: bool = False) -> bool:
     else:
         print("Behind remote")
         issues.append("Pull latest changes from remote")
+
+    # Artifact Cleanup Check
+    temp_artifacts = list(Path(".").glob("task.md")) + list(Path(".").glob("walkthrough.md")) + list(Path(".").glob("debrief.md"))
+    cleanup_ok = len(temp_artifacts) == 0
+    print(f"\n├── Cleanup: {check_mark(cleanup_ok)} ", end="")
+    if cleanup_ok:
+        print("Temporary artifacts removed")
+    else:
+        print(f"Found temporary artifacts: {[f.name for f in temp_artifacts]}")
+        issues.append(f"Remove temporary artifacts: {[f.name for f in temp_artifacts]}")
 
     print()
 
