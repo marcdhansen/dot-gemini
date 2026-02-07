@@ -7,6 +7,25 @@ allowed-tools: Bash, Read, Glob, Grep
 
 # Orchestrator Skill
 
+## 🚨 MANDATORY: Session Start Auto-Check
+
+> [!CAUTION]
+> **At the start of EVERY conversation**, regardless of how the user begins, you MUST:
+
+```bash
+# 1. Run initialization check
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init
+
+# 2. Run session context briefing
+python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py
+```
+
+**If `--init` fails**: Address blockers before proceeding with any work.
+
+This ensures SOP compliance (Phases 1-2) even when user skips `/next`.
+
+---
+
 The Orchestrator acts as an **agent supervisor**, verifying that each step of the Standard Operating Procedure (SOP) is completed adequately and that appropriate skills are invoked at the right times.
 
 ## Usage
