@@ -652,9 +652,9 @@ def request_cleanup_permission(
         print(f"  • browser-manager cleanup --all         # Clean all browsers")
         print(f"  • browser-manager config               # Show configuration")
 
-    def rtb_cleanup(self):
-        """RTB integration with automatic session cleanup."""
-        print(f"{Colors.BLUE}🌐 Browser Manager RTB Cleanup{Colors.END}")
+    def finalization_cleanup(self):
+        """Finalization integration with automatic session cleanup."""
+        print(f"{Colors.BLUE}🌐 Browser Manager Finalization Cleanup{Colors.END}")
         print("=" * 40)
 
         # Clean up current agent's browsers
@@ -750,7 +750,7 @@ Examples:
             "config",
             "sessions",
             "tabs",
-            "rtb-cleanup",
+            "finalization-cleanup",
             "check-limits",
         ],
         help="Command to execute",
@@ -810,8 +810,8 @@ Examples:
                     f"Cleanup completed: {stats['success']}/{stats['attempted']} successful"
                 )
 
-        elif args.command == "rtb-cleanup":
-            manager.rtb_cleanup()
+        elif args.command == "finalization-cleanup":
+            manager.finalization_cleanup()
 
         elif args.command == "check-limits":
             limits_ok, warnings = manager.check_resource_limits()

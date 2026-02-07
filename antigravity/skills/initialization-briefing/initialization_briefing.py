@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Mission Briefing Skill - Essential pre-mission information for agents
+Initialization Briefing Skill - Essential pre-mission information for agents
 Provides balanced overview of protocol, current status, and areas to watch
 """
 
@@ -12,15 +12,15 @@ from datetime import datetime
 from pathlib import Path
 
 
-class MissionBriefing:
+class InitializationBriefing:
     def __init__(self):
         self.workspace_dir = Path.cwd()
         self.agent_dir = self.workspace_dir / ".agent"
 
     def run_briefing(self):
-        """Generate and display comprehensive mission briefing"""
+        """Generate and display comprehensive initialization briefing"""
 
-        print("🚀 MISSION BRIEFING - Essential Pre-Mission Information")
+        print("🚀 INITIALIZATION BRIEFING - Essential Pre-Mission Information")
         print("=" * 60)
         print()
 
@@ -40,8 +40,8 @@ class MissionBriefing:
         self._show_session_checklist()
 
         print()
-        print("🎯 READY TO START: Mission briefing complete!")
-        print("💡 Save friction points as they happen - don't wait until RTB!")
+        print("🎯 READY TO START: Initialization briefing complete!")
+        print("💡 Save friction points as they happen - don't wait until Finalization!")
         print()
 
     def _show_current_status(self):
@@ -147,8 +147,8 @@ class MissionBriefing:
         print("   1. Tests (pytest) - if test suite exists")
         print("   2. Linting (ruff) - code quality checks")
         print("   3. Type Checking (mypy) - type validation")
-        print("   4. Markdown Duplicates - must be resolved before RTB")
-        print("   5. SOP Evaluation - PFC compliance check")
+        print("   4. Markdown Duplicates - must be resolved before Finalization")
+        print("   5. SOP Evaluation - Initialization compliance check")
         print()
         print("📝 Closure Requirements:")
         print("   • File locations and descriptions")
@@ -163,7 +163,7 @@ class MissionBriefing:
         print("   • User corrections and preferences")
         print("   • Success patterns and failures")
         print()
-        print("🚫 RTB Blockers:")
+        print("🚫 Finalization Blockers:")
         print("   • Uncommitted changes not pushed")
         print("   • Duplicate markdown files")
         print("   • Failed SOP evaluation")
@@ -216,9 +216,9 @@ class MissionBriefing:
         print("   • No production considerations")
         print()
         print("🧪 Quality Gate Issues:")
-        print("   • Not running tests before RTB")
+        print("   • Not running tests before Finalization")
         print("   • Ignoring linting/type checking errors")
-        print("   • Duplicate markdown files blocking RTB")
+        print("   • Duplicate markdown files blocking Finalization")
         print("   • Failed SOP evaluation")
         print()
         print("🔧 Git & Workflow:")
@@ -241,7 +241,7 @@ class MissionBriefing:
         print("📋 SESSION CHECKLIST")
         print("-------------------")
         print("✅ Pre-Mission:")
-        print("   □ Review this mission briefing")
+        print("   □ Review this initialization briefing")
         print("   □ Understand task requirements")
         print("   □ Note any special instructions")
         print()
@@ -252,13 +252,13 @@ class MissionBriefing:
         print("   □ Note user corrections exactly")
         print("   □ Track time spent on approaches")
         print()
-        print("🏁 Pre-RTB:")
+        print("🏁 Pre-Finalization:")
         print("   □ Run quality gates (if code changed)")
         print("   □ Add comprehensive closure notes")
         print("   □ Resolve duplicate markdown files")
         print("   □ Complete reflection capture")
         print()
-        print("🚀 After RTB:")
+        print("🚀 After Finalization:")
         print("   □ Verify all changes pushed successfully")
         print("   □ Confirm session cleaned up")
         print("   □ Check next agent has proper context")
@@ -280,7 +280,7 @@ class MissionBriefing:
 
 
 def main():
-    """Main entry point for mission briefing"""
+    """Main entry point for initialization briefing"""
 
     # Check if we're in a valid workspace
     if not Path(".git").exists():
@@ -288,15 +288,15 @@ def main():
         print("💡 Navigate to your LightRAG workspace and try again")
         sys.exit(1)
 
-    briefing = MissionBriefing()
+    briefing = InitializationBriefing()
 
     try:
         briefing.run_briefing()
     except KeyboardInterrupt:
-        print("\n👋 Mission briefing interrupted")
+        print("\n👋 Initialization briefing interrupted")
         sys.exit(0)
     except Exception as e:
-        print(f"❌ ERROR: Mission briefing failed: {e}")
+        print(f"❌ ERROR: Initialization briefing failed: {e}")
         sys.exit(1)
 
 

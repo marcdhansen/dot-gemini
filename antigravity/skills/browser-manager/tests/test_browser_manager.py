@@ -254,8 +254,8 @@ class TestBrowserManager(unittest.TestCase):
             self.assertEqual(audit_entry["target_agent_id"], "other-agent")
             self.assertEqual(audit_entry["browser_pid"], 1234)
 
-    def test_rtb_cleanup(self):
-        """Test RTB cleanup integration."""
+    def test_finalization_cleanup(self):
+        """Test Finalization cleanup integration."""
         with patch.object(
             self.manager,
             "cleanup_browsers",
@@ -265,7 +265,7 @@ class TestBrowserManager(unittest.TestCase):
                 self.manager, "cleanup_session_data"
             ) as mock_cleanup_data:
                 with patch("builtins.print") as mock_print:
-                    self.manager.rtb_cleanup()
+                    self.manager.finalization_cleanup()
 
                     # Should call cleanup methods
                     mock_cleanup.assert_called_once()

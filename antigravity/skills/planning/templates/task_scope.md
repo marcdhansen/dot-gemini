@@ -184,7 +184,7 @@ Based on this scoping analysis, you have the following options:
 
 **Planning Questions:** Use `/plan help` for assistance
 **Technical Questions:** Contact the development team
-**Process Questions:** Contact the Flight Director
+**Process Questions:** Contact the Orchestrator
 
 ---
 *This scoping document was generated using the LightRAG Planning Skill*

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Devil's Advocate PFC Integration
-Enhanced Pre-Flight Check with critical thinking and devil's advocate perspective
+Devil's Advocate Initialization Integration
+Enhanced Initialization check with critical thinking and devil's advocate perspective
 """
 
 import json
@@ -12,14 +12,14 @@ from datetime import datetime
 from pathlib import Path
 
 
-class DevilsAdvocatePFC:
+class DevilsAdvocateInitialization:
     def __init__(self):
         self.workspace_dir = Path.cwd()
         
-    def run_devils_advocate_pfc(self, force_enable=False):
-        """Run PFC with devil's advocate perspective"""
+    def run_devils_advocate_initialization(self, force_enable=False):
+        """Run Initialization with devil's advocate perspective"""
         
-        print("👹 Devil's Advocate Pre-Flight Check")
+        print("👹 Devil's Advocate Initialization Check")
         print("=" * 50)
         print()
         
@@ -44,8 +44,8 @@ class DevilsAdvocatePFC:
         print("💡 COMMAND USAGE:")
         print("   • Standard: /devils-advocate")
         print("   • Force enable: /devils-advocate --force")
-        print("   • PFC integration: /devils-advocate pfc")
-        print("   • Force enable + PFC: /devils-advocate --force pfc")
+        print("   • Initialization integration: /devils-advocate init")
+        print("   • Force enable + Initialization: /devils-advocate --force init")
         print()
         print("🚀 PREPARE FOR:")
         print("   • Rigorous questioning of assumptions")
@@ -289,22 +289,22 @@ class DevilsAdvocatePFC:
 
 
 def main():
-    """Main entry point for devil's advocate PFC"""
+    """Main entry point for devil's advocate Initialization"""
     
     # Parse command line arguments
     force_enable = "--force" in sys.argv
-    pfc_mode = None
-    if "pfc" in sys.argv:
-        pfc_mode = "pfc"
-    elif "force pfc" in sys.argv:
-        pfc_mode = "pfc"
+    init_mode = None
+    if "init" in sys.argv:
+        init_mode = "init"
+    elif "force init" in sys.argv:
+        init_mode = "init"
     
-    pfc = DevilsAdvocatePFC()
+    advocate = DevilsAdvocateInitialization()
     
     try:
-        if pfc_mode == "pfc":
-            print("👹 Devil's Advocate - PFC Integration Mode")
-            insights = pfc.run_devils_advocate_pfc(force_enable)
+        if init_mode == "init":
+            print("👹 Devil's Advocate - Initialization Integration Mode")
+            insights = advocate.run_devils_advocate_initialization(force_enable)
             
             # Save insights for later reference
             insights_file = Path.cwd() / ".devils_insights.json"
@@ -312,16 +312,16 @@ def main():
                 json.dump({
                     "timestamp": datetime.now().isoformat(),
                     "insights": insights,
-                    "mode": "pfc_integration",
+                    "mode": "initialization_integration",
                     "force_enabled": force_enable
                 }, f, indent=2)
             
             print(f"📝 Insights saved to: {insights_file}")
             print()
             
-        elif pfc_mode == "force pfc":
-            print("👹 Devil's Advocate - PFC Integration Mode (Forced)")
-            insights = pfc.run_devils_advocate_pfc(force_enable=True)
+        elif init_mode == "force init":
+            print("👹 Devil's Advocate - Initialization Integration Mode (Forced)")
+            insights = advocate.run_devils_advocate_initialization(force_enable=True)
             
             # Save insights for later reference
             insights_file = Path.cwd() / ".devils_insights.json"
@@ -329,7 +329,7 @@ def main():
                 json.dump({
                     "timestamp": datetime.now().isoformat(),
                     "insights": insights,
-                    "mode": "pfc_integration_forced",
+                    "mode": "initialization_integration_forced",
                     "force_enabled": force_enable
                 }, f, indent=2)
             
@@ -338,7 +338,7 @@ def main():
             
         else:
             print("👹 Devil's Advocate - Standard Critical Analysis")
-            insights = pfc.run_devils_advocate_pfc()
+            insights = advocate.run_devils_advocate_initialization()
             
             # Save insights for later reference
             insights_file = Path.cwd() / ".devils_insights.json"
@@ -357,7 +357,7 @@ def main():
         print("\n👋 Devil's advocate analysis interrupted")
         sys.exit(0)
     except Exception as e:
-        print(f"❌ ERROR: Devil's advocate PFC failed: {e}")
+        print(f"❌ ERROR: Devil's advocate Initialization failed: {e}")
         sys.exit(1)
 
 

@@ -1,35 +1,35 @@
 ---
-name: mission-debriefing
-description: Post-mission strategic analysis invoked after RTB. Synthesizes mission results, reflection learnings, and generates improvement suggestions for SOP and workflow optimization.
+name: retrospective
+description: Post-session strategic analysis invoked after Finalization. Synthesizes session results, reflection learnings, and generates improvement suggestions for SOP and workflow optimization.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Glob, Grep
 ---
 
-# Mission Debriefing Skill
+# Retrospective (Finalization Session Analysis) Skill
 
-**Separate phase** after RTB for strategic learning and session closure.
+**Separate phase** after Finalization for strategic learning and session closure.
 
 ## Usage
 
 ```bash
-/mission-debriefing
-python ~/.gemini/antigravity/skills/mission-debriefing/scripts/mission_debriefing.py
+/retrospective
+python ~/.gemini/antigravity/skills/retrospective/scripts/finalization_debriefing.py
 ```
 
 ## Workflow
 
 ```mermaid
 graph LR
-    A[PFC] --> B[Work]
-    B --> C[RTB]
-    C --> D[Mission Debrief]
+    A[Initialization] --> B[Work]
+    B --> C[Finalization]
+    C --> D[Retrospective]
     D --> E[Session End]
 ```
 
-**RTB** = Safe landing (quality gates, git, PR)  
-**Mission Debrief** = Strategic learning (reflect, handoff, analysis)
+**Finalization** = Safe landing (quality gates, git, PR)  
+**Retrospective** = Strategic learning (reflect, handoff, analysis)
 
-## Debrief Steps
+## Finalization Debriefing Steps
 
 ### 1. Reflect
 
@@ -54,17 +54,17 @@ Clear the `## Approval` marker in task.md to prevent accidental auto-starts.
 
 ### 4. Strategic Analysis
 
-Run `mission_debriefing.py` to generate:
+Run `finalization_debriefing.py` to generate:
 
-- Mission summary and git activity
+- Session summary and git activity
 - Friction reduction opportunities
 - Efficiency improvements (project and SOP level)
 - Agentic design patterns for multi-agent collaboration
 
-### 5. Flight Director Verification
+### 5. Orchestrator Verification
 
 ```bash
-python ~/.gemini/antigravity/skills/FlightDirector/scripts/check_flight_readiness.py --debrief
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --retrospective
 ```
 
 Verifies:
@@ -87,6 +87,6 @@ During reflection, address:
 
 ## Integration
 
-- **RTB**: Runs after RTB completion
+- **Finalization**: Runs after Finalization completion
 - **Reflect**: Integrated as first debrief step
-- **Flight Director**: Verified via `--debrief` flag
+- **Orchestrator**: Verified via `--retrospective` flag

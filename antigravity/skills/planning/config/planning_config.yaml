@@ -5,7 +5,7 @@ planning:
   default_analysis_level: "detailed"  # summary, detailed, deep_dive
   auto_create_tasks: false           # User approval required
   milestone_blocking: true           # Failed milestones block progress
-  flight_director_integration: true  # Enable Flight Director prompts
+  orchestrator_integration: true  # Enable Orchestrator prompts
   
 # Blast Radius Analysis
 blast_radius:
@@ -51,8 +51,8 @@ validation:
     default_blocking: true           # Default milestones to blocking
     timeout_days: 30                # Maximum days before milestone auto-fails
 
-# Flight Director Integration
-flight_director:
+# Orchestrator Integration
+orchestrator:
   # Prompt Settings
   auto_prompt_planning: true        # Automatically prompt for planning after task selection
   complexity_threshold: "medium"    # Minimum complexity to require planning

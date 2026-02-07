@@ -19,14 +19,14 @@
 
 ### Integration Features
 
-- **RTB Integration**: Automatic browser cleanup and session data deletion at mission end
+- **Finalization Integration**: Automatic browser cleanup and session data deletion at mission end
 - **Multi-Agent Coordination**: Agent ownership tracking, orphan cleanup handling
 - **Configuration Management**: User-configurable limits with no defaults
 - **Mission-End Cleanup**: Automatic session data deletion
 
 ## 🛠️ File Structure Created
 
-```
+```text
 ~/.gemini/antigravity/skills/browser-manager/
 ├── SKILL.md                              # Complete skill documentation
 ├── README.md                             # User guide with examples
@@ -66,7 +66,7 @@
 - ✅ Successfully detected and cleaned up running Chrome browser
 - ✅ Tab enumeration working with real browser (15 tabs detected)
 - ✅ Resource monitoring (224MB memory usage tracked)
-- ✅ RTB cleanup integration verified
+- ✅ Finalization cleanup integration verified
 
 ## 🎯 Key Requirements Met
 
@@ -92,10 +92,10 @@
 
 ### ✅ Mission-End Data Deletion
 
-- `rtb-cleanup` command integrated with RTB
+- `finalization-cleanup` command integrated with Finalization
 - Session tracking data automatically deleted
 - Graceful browser shutdown with cleanup summary
-- Integrated into return-to-base.sh script
+- Integrated into finalization.sh script
 
 ## 🚀 Usage Examples
 
@@ -133,11 +133,11 @@ browser-manager cleanup --agent agent-42
 browser-manager cleanup --all
 ```
 
-### RTB Integration
+### Finalization Integration
 
 ```bash
-# Automatic - called by RTB process
-browser-manager rtb-cleanup
+# Automatic - called by Finalization process
+browser-manager finalization-cleanup
 ```
 
 ## 🔍 Technical Highlights
@@ -196,9 +196,9 @@ browser-manager rtb-cleanup
 
 ## 🔗 Integration Points
 
-### RTB Integration (✅ Complete)
+### Finalization Integration (✅ Complete)
 
-- Added to return-to-base.sh script
+- Added to finalization.sh script
 - Automatic browser cleanup at mission end
 - Session data deletion
 - Clean reporting to user
@@ -224,7 +224,7 @@ browser-manager rtb-cleanup
 - ✅ **Real-World Validated**: Tested with actual browser processes
 - ✅ **Production Ready**: Comprehensive error handling and logging
 - ✅ **Documentation Complete**: User guide, API docs, examples
-- ✅ **Integration Ready**: RTB integration complete and tested
+- ✅ **Integration Ready**: Finalization integration complete and tested
 
 ## 🚀 Next Steps (Optional Enhancements)
 
@@ -260,7 +260,7 @@ browser-manager config
 
 **Implementation Status**: ✅ COMPLETE  
 **Test Status**: ✅ ALL PASSING  
-**Integration Status**: ✅ RTB INTEGRATED  
+**Integration Status**: ✅ FINALIZATION INTEGRATED  
 **Documentation Status**: ✅ COMPLETE  
 
 The Browser Manager skill is fully implemented, tested, and ready for production use! 🎉

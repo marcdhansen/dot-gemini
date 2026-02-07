@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 """
-Flight Director Integration for Planning Skill
+Orchestrator Integration for Planning Skill
 Provides post-task-selection planning prompts and workflow integration
 """
 
@@ -8,6 +7,7 @@ import json
 import os
 import re
 import sys
+import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -18,8 +18,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from scripts.blast_radius_analyzer import ChangeDetector, AnalysisLevel
 
 
-class FlightDirectorPlanningIntegration:
-    """Integration with Flight Director for post-task-selection planning"""
+class OrchestratorPlanningIntegration:
+    """Integration with Orchestrator for post-task-selection planning"""
 
     def __init__(self, repo_path: Path):
         self.repo_path = repo_path
@@ -502,9 +502,9 @@ class FlightDirectorPlanningIntegration:
 
 
 def main():
-    """Main entry point for Flight Director integration"""
+    """Main entry point for Orchestrator integration"""
     if len(sys.argv) < 2:
-        print("Usage: python flight_director_integration.py <command> [options]")
+        print("Usage: python orchestrator_integration.py <command> [options]")
         print("Commands:")
         print("  check-task-selection    # Check for selected task and prompt planning")
         print("  create-scope <task_id> <files>")
@@ -516,7 +516,7 @@ def main():
 
     command = sys.argv[1]
     repo_path = Path.cwd()
-    integration = FlightDirectorPlanningIntegration(repo_path)
+    integration = OrchestratorPlanningIntegration(repo_path)
 
     if command == "check-task-selection":
         prompted = integration.detect_task_selection_and_prompt_planning()

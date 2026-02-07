@@ -2,7 +2,7 @@
 
 ## Overview
 
-OpenViking is an enhanced agent system designed to replace the Standard Mission Protocol (SMP) with improved skill discovery, token efficiency, and conversation memory management.
+OpenViking is an enhanced agent system designed to replace the Standard Mission Protocol (SOP) with improved skill discovery, token efficiency, and conversation memory management.
 
 ## Quick Start for New Agents
 
@@ -29,11 +29,11 @@ curl -f http://localhost:8000/health
 curl -f http://localhost:9622/health
 ```
 
-## Key Differences from SMP
+## Key Differences from SOP
 
 ### Feature Comparison
 
-| Feature | SMP | OpenViking |
+| Feature | SOP | OpenViking |
 | :--- | :--- | :--- |
 | Skill Discovery | Manual file-based | Dynamic AI-powered |
 | Token Efficiency | Standard (850 avg) | Optimized (≤680 target) |
@@ -43,9 +43,9 @@ curl -f http://localhost:9622/health
 
 ### Architecture Differences
 
-- **SMP**: File-based skill system in `.agent/skills/`
+- **SOP**: File-based skill system in `.agent/skills/`
 - **OpenViking**: AI-powered skill discovery with conversation memory
-- **Port Mapping**: SMP uses :9621, OpenViking uses :9622 for LightRAG integration
+- **Port Mapping**: SOP uses :9621, OpenViking uses :9622 for LightRAG integration
 
 ### Slash Command Support
 
@@ -58,10 +58,10 @@ curl http://localhost:8000/commands
 # Get a specific command by name
 curl -X POST http://localhost:8000/commands/get \
   -H "Content-Type: application/json" \
-  -d '{"name": "/rtb"}'
+  -d '{"name": "/finalization"}'
 
 # Get command by path
-curl http://localhost:8000/commands/rtb
+curl http://localhost:8000/commands/finalization
 
 # Search commands
 curl http://localhost:8000/commands/search/beads
@@ -82,7 +82,7 @@ python3 openviking/commands.py --sync .agent/workflows/
 **Available Endpoints:**
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| :--- | :--- | :--- |
 | `/commands` | GET | List all slash commands |
 | `/commands/get` | POST | Get command by name (body: `{"name": "/cmd"}`) |
 | `/commands/{name}` | GET | Get command by path parameter |
@@ -94,7 +94,7 @@ python3 openviking/commands.py --sync .agent/workflows/
 
 ```bash
 # Check OpenViking session status
-./scripts/agent-status.sh  # Shows both SMP and OpenViking sessions
+./scripts/agent-status.sh  # Shows both SOP and OpenViking sessions
 
 # Start OpenViking-specific session
 ./scripts/agent-start.sh --task-id <id> --task-desc "OpenViking: <description>"
@@ -106,17 +106,17 @@ python3 openviking/commands.py --sync .agent/workflows/
 ### Performance Monitoring
 
 ```bash
-# Run A/B comparison with SMP
+# Run A/B comparison with SOP
 ./openviking/scripts/manage.sh compare
 
 # Monitor OpenViking performance
 watch -n 5 'curl -s -w "%{time_total}\n" -o /dev/null http://localhost:9622/api/chat -X POST -H "Content-Type: application/json" -d '"'"'{"query":"test"}'"'"''
 ```
 
-### Data Migration (from SMP)
+### Data Migration (from SOP)
 
 ```bash
-# Migrate existing SMP data to OpenViking
+# Migrate existing SOP data to OpenViking
 ./openviking/scripts/manage.sh migrate
 
 # Verify migration success
@@ -131,7 +131,7 @@ curl -s http://localhost:8000/migration/status
 1. **Bootstrap**: Enhanced `agent-init.sh` detects OpenViking availability
 2. **Task Management**: Uses same `bd` system for issue tracking
 3. **Quality Gates**: Identical testing and linting requirements
-4. **Documentation**: Same RTB procedure with OpenViking-specific logs
+4. **Documentation**: Same Finalization procedure with OpenViking-specific logs
 
 ### Service Architecture
 
@@ -210,7 +210,7 @@ ls -la .agent/session_locks/
 rm .agent/session_locks/stale_*.json
 ```
 
-## Migration from SMP
+## Migration from SOP
 
 ### When to Use OpenViking
 
@@ -221,7 +221,7 @@ rm .agent/session_locks/stale_*.json
 
 ### Migration Checklist
 
-- [ ] Export existing SMP session data
+- [ ] Export existing SOP session data
 - [ ] Set OpenAI API key
 - [ ] Start OpenViking services
 - [ ] Run data migration tool
@@ -231,7 +231,7 @@ rm .agent/session_locks/stale_*.json
 
 ## Performance Expectations
 
-### Target Metrics (vs SMP)
+### Target Metrics (vs SOP)
 
 - **Response Time**: 40% faster (≤1500ms vs 2500ms)
 - **Token Usage**: 20% reduction (≤680 vs 850)
@@ -254,13 +254,13 @@ OpenViking integrates seamlessly with the existing LightRAG SOP:
 1. **Bootstrap**: Enhanced `agent-init.sh` detects and configures OpenViking
 2. **Session Management**: Same scripts with OpenViking-aware coordination
 3. **Quality Gates**: Identical pytest, ruff, mypy requirements
-4. **RTB Procedure**: Same git push workflow with OpenViking service verification
+4. **Finalization Procedure**: Same git push workflow with OpenViking service verification
 5. **Documentation**: Same `/reflect` skill with OpenViking session data
 
-### Updated RTB for OpenViking
+### Updated Finalization for OpenViking
 
 ```bash
-# Standard RTB steps (unchanged)
+# Standard Finalization steps (unchanged)
 pytest && ruff check && ruff format
 bd sync && git push
 

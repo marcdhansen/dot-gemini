@@ -50,7 +50,7 @@ The skill executes:
    - BLOCKER if duplicate files exist
 
 4. **SOP Evaluation** (Mandatory)
-   - Evaluate SOP effectiveness and PFC compliance
+   - Evaluate SOP effectiveness and Initialization compliance
    - BLOCKER if SOP evaluation fails
 
 5. **Issue Management**
@@ -81,15 +81,7 @@ The skill executes:
 
 ## Exit Conditions
 
-Finalization is complete when:
-
-- `git status` shows "up to date with origin"
-- All beads issues are properly resolved or updated
-- No uncommitted changes remain
-- Session locks are cleared
-- Global memory is synchronized
-
-## Error Handling
+## Finalization Error Handling
 
 If Finalization fails:
 
@@ -102,11 +94,11 @@ If Finalization fails:
 ## 🚨 Critical Fix Applied: Auto-Commit Missing Files
 
 **Issue**: RTB process could miss uncommitted files (like rag storage files)  
-**Learning**: RTB must auto-commit ALL remaining changes, not just initial git status  
-**Solution Implemented**: Enhanced auto-commit section in return-to-base.sh
+**Learning**: Finalization must auto-commit ALL remaining changes, not just initial git status  
+**Solution Implemented**: Enhanced auto-commit section in finalization.sh
 
 ```bash
-# Auto-commit ALL remaining uncommitted changes to prevent RTB failures
+# Auto-commit ALL remaining uncommitted changes to prevent Finalization failures
 if [ ! -z "$GIT_STATUS" ]; then
     echo "🔧 Auto-committing remaining uncommitted changes..."
     git add -A
@@ -114,13 +106,13 @@ if [ ! -z "$GIT_STATUS" ]; then
 fi
 ```
 
-**Result**: RTB now catches ALL uncommitted files automatically
+**Result**: Finalization now catches ALL uncommitted files automatically
 
 ## 🚨 NEW GATE ADDED: Essential Closure Notes Verification
 
 **Issue**: Agents closing issues without proper documentation for future reference  
 **Learning**: Future agents need implementation details, file locations, and integration guidance  
-**Solution Implemented**: Added closure notes reminder gate in RTB workflow
+**Solution Implemented**: Added closure notes reminder gate in Finalization workflow
 
 ### 🔍 **Closure Notes Gate Added**
 
@@ -159,7 +151,7 @@ python script.py --option value
 
 ```
 
-### ✅ **RTB Enhancement Benefits**
+### ✅ **Finalization Enhancement Benefits**
 1. **Future Agent Context**: Clear understanding of what was implemented
 2. **Documentation Links**: Direct paths to relevant documentation
 3. **Integration Guidance**: How to use and connect components
@@ -172,7 +164,7 @@ python script.py --option value
 
 **Issue**: Agents completing sessions without systematic learning capture  
 **Learning**: Every session should capture learnings for continuous improvement  
-**Solution Implemented**: Added mandatory reflection step in RTB workflow
+**Solution Implemented**: Added mandatory reflection step in Finalization workflow
 
 ### 🔍 **Reflection Capture Gate Added**
 - **Location**: Step 6 - Reflection Capture section
@@ -212,7 +204,7 @@ reflection = {
 }
 ```
 
-### ✅ **RTB Enhancement Benefits**
+### ✅ **Finalization Enhancement Benefits**
 
 1. **Systematic Learning**: Every session captures knowledge automatically
 2. **Continuous Improvement**: Built-in process for agent learning
@@ -220,17 +212,17 @@ reflection = {
 4. **Quality Assurance**: Multiple fallback methods ensure reliability
 5. **Process Consistency**: Standardized reflection format across all sessions
 
-**Result**: Every RTB will now capture learnings systematically, preventing knowledge loss
+**Result**: Every Finalization will now capture learnings systematically, preventing knowledge loss
 
 ## 🚨 NEW GATE ADDED: Reflection Preview for Proactive Learning
 
 **Issue**: Agents capturing learnings retrospectively instead of in real-time  
 **Learning**: Better to know what to watch for during work, not discover it after  
-**Solution Implemented**: Added reflection preview at PFC for new work sessions
+**Solution Implemented**: Added reflection preview at Initialization for new work sessions
 
 ### 🎯 **Reflection Preview Gate Added**
 
-- **Location**: Step 1.1 - Pre-Flight Validation section
+- **Location**: Step 1.1 - Initialization Validation section
 - **Trigger**: New work session (no git activity in past hour)
 - **Purpose**: Prepare agents to capture friction points in real-time
 - **Focus**: Proactive learning vs retrospective capture
@@ -281,13 +273,13 @@ For new sessions, the system creates:
 **Before:**
 
 ```
-Agent works → RTB → "What should I remember?" → Retroactive capture
+Agent works → Finalization → "What should I remember?" → Retroactive capture
 ```
 
 **After:**
 
 ```
-Reflection preview → Agent watches for friction → Real-time notes → RTB → Rich reflection data
+Reflection preview → Agent watches for friction → Real-time notes → Finalization → Rich reflection data
 ```
 
 ### ✅ **Benefits of Proactive Reflection**
@@ -305,14 +297,14 @@ Reflection preview → Agent watches for friction → Real-time notes → RTB �
 
 This skill integrates with:
 
-- FlightDirector PFC/RTB system
+- Orchestrator Initialization/Finalization system
 - Beads task management
 - Multi-agent session locks
 - Git workflow automation
 
-## Error Handling
+## Troubleshooting
 
-If RTB fails:
+If Finalization fails:
 
 1. Check for merge conflicts - resolve and retry
 2. Verify network connectivity for git operations

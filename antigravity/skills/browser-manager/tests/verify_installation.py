@@ -86,7 +86,7 @@ def main():
         print("✅ Tab tracking via Chrome DevTools Protocol")
         print("✅ Resource limits configuration")
         print("✅ Permission-based cross-agent cleanup")
-        print("✅ RTB integration")
+        print("✅ Finalization integration")
         print("✅ Session tracking and cleanup")
         print("✅ Audit logging for security")
         print("✅ Graceful browser shutdown")

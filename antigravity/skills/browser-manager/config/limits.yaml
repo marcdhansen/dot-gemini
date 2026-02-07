@@ -30,7 +30,7 @@ admin:
 
 # Browser session tracking
 tracking:
-  # Delete session tracking data at mission end (RTB)
+  # Delete session tracking data at mission end (Finalization)
   delete_on_mission_end: true
   
   # How long to keep session data in hours (for debugging)

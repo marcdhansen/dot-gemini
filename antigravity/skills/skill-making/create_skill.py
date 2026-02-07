@@ -94,8 +94,8 @@ python {skill_name}.py [options]
 
 ## Integration
 
-- **RTB**: How it integrates with Return To Base workflow
-- **PFC**: How it's used during Pre-Flight Check
+- **Finalization**: How it integrates with Finalization workflow
+- **Initialization**: How it's used during Initialization check
 - **Skills**: Dependencies on other skills
 
 ## Testing
@@ -477,16 +477,16 @@ echo "" | python scripts/{skill_name}.py
 
 ## 🔗 Integration
 
-### RTB Integration
-Add to return-to-base.sh:
+### Finalization Integration
+Add to finalization.sh:
 ```bash
 if [ -f "$SKILL_PATH" ] && [ -x "$SKILL_PATH" ]; then
-    "$SKILL_PATH" rtb-mode || echo "⚠️ Skill encountered issues"
+    "$SKILL_PATH" finalise || echo "⚠️ Skill encountered issues"
 fi
 ```
 
-### PFC Integration
-Call during Pre-Flight Check for validation or data gathering.
+### Initialization Integration
+Call during Initialization Check for validation or data gathering.
 
 ## 📚 Dependencies
 
@@ -527,7 +527,7 @@ def main():
     parser.add_argument(
         "--category",
         default="utility",
-        choices=["utility", "rtb", "pfc", "planning", "analysis"],
+        choices=["utility", "finalization", "initialization", "planning", "analysis"],
         help="Skill category (default: utility)",
     )
 

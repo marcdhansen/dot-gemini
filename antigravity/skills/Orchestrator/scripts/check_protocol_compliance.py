@@ -700,13 +700,13 @@ def main():
         epilog="""
 Examples:
     # Run Initialization validation
-    python check_flight_readiness.py --init
+    python check_protocol_compliance.py --init
     
     # Run Finalization check  
-    python check_flight_readiness.py --finalize
+    python check_protocol_compliance.py --finalize
     
     # Show current status
-    python check_flight_readiness.py --status
+    python check_protocol_compliance.py --status
         """,
     )
 

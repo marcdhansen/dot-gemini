@@ -16,8 +16,8 @@ check_success() {
     fi
 }
 
-# 1. Pre-Flight Validation
-echo "🔍 1. Pre-Flight Validation"
+# 1. Initialization Validation
+echo "🔍 1. Initialization Validation"
 echo "---------------------------"
 
 # 1.1 Devil's Advocate Activation (STRONGLY RECOMMENDED)
@@ -46,7 +46,7 @@ if [ "$RECENT_ACTIVITY" -eq 0 ]; then
     echo ""
     echo "⚠️  ACTIVATION METHODS:"
     echo "   • /devils-advocate - Activate for critical decision making"
-    echo "   • Integrate with PFC: /devils-advocate pfc"
+    echo "   • Integrate with Initialization: /devils-advocate init"
     echo "   • Include in reflection: /reflect --devils-mode"
     echo ""
     echo "🔥 REMINDER: Balanced thinking requires BOTH:"
@@ -59,8 +59,8 @@ else
     echo ""
 fi
 
-# 1.2 Mission Briefing (STRONGLY RECOMMENDED for new sessions)
-echo "🎯 1.2. Mission Briefing - Essential Pre-Mission Information"
+# 1.2 Initialization Briefing - Essential Initialization Information
+echo "🎯 1.2. Initialization Briefing - Essential Initialization Information"
 echo "--------------------------------------------------------"
 
 # 1.2 Reflection Preview (STRONGLY RECOMMENDED)
@@ -134,7 +134,7 @@ if [ ! -z "$GIT_STATUS" ]; then
     
     # Create auto-commit message with timestamp
     TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-    git commit -m "rtb-auto-commit: uncommitted changes at $TIMESTAMP
+    git commit -m "finalization-auto-commit: uncommitted changes at $TIMESTAMP
 
 - Auto-committed during finalization process
 - These changes were missed by initial commit check
@@ -488,15 +488,15 @@ else
     echo "💡 No session cleanup script found"
 fi
 
-# Browser Cleanup (RTB Integration)
-echo "🌐 Browser Cleanup - RTB Integration"
+# Browser Cleanup - Finalization Integration
+echo "🌐 Browser Cleanup - Finalization Integration"
 echo "-----------------------------------"
 
 # Check if browser-manager skill is available
 BROWSER_MANAGER_PATH="$HOME/.gemini/antigravity/skills/browser-manager/scripts/browser_manager.py"
 if [ -f "$BROWSER_MANAGER_PATH" ] && [ -x "$BROWSER_MANAGER_PATH" ]; then
     echo "🔧 Running browser cleanup via browser-manager skill..."
-    "$BROWSER_MANAGER_PATH" rtb-cleanup || echo "⚠️ Browser cleanup encountered issues"
+    "$BROWSER_MANAGER_PATH" finalization-cleanup || echo "⚠️ Browser cleanup encountered issues"
 else
     echo "💡 Browser-manager skill not available - skipping browser cleanup"
 fi

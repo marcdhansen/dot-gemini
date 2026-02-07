@@ -10,9 +10,9 @@ You've selected task `lightrag-abc` from the `/next` command output and need to 
 
 ### Workflow
 
-#### Step 1: Flight Director Prompts Planning
+#### Step 1: Orchestrator Prompts Planning
 
-```
+```bash
 🎯 TASK SELECTED - PLANNING REQUIRED
 ============================================================
 📋 Selected Task: lightrag-abc
@@ -29,7 +29,7 @@ You've selected task `lightrag-abc` from the `/next` command output and need to 
 
 **Output:**
 
-```
+```text
 🎯 SCOPING TASK: lightrag-abc
 ==================================================
 📁 Analyzing 3 files...
@@ -55,7 +55,7 @@ You've selected task `lightrag-abc` from the `/next` command output and need to 
 
 **Output:**
 
-```
+```text
 🔍 DETAILED ANALYSIS: lightrag-abc
 ==================================================
 
@@ -88,7 +88,7 @@ You've selected task `lightrag-abc` from the `/next` command output and need to 
 
 **Interactive Selection:**
 
-```
+```text
 📋 RECOMMENDED TASKS (3):
 
 1. Add comprehensive test coverage for lightrag-abc [P2]
@@ -113,7 +113,7 @@ Your selection: 1,3
 
 **Final Output:**
 
-```
+```text
 🚀 PROCEEDING WITH IMPLEMENTATION: lightrag-abc
 ============================================================
 ✅ Created 2 additional tasks in Beads
@@ -137,7 +137,7 @@ Your selection: 1,3
 💡 Track progress with: /plan track lightrag-abc
 ```
 
-## Example 2: Emergency Bug Fix
+## Example 2: Emergency Bug Fix Scenario
 
 ### Scenario
 
@@ -201,7 +201,7 @@ Production is down and you need to fix a critical issue immediately.
 💡 Monitor closely and schedule retrospective planning
 ```
 
-## Example 3: Complex Database Migration
+## Example 3: Database Migration Scenario
 
 ### Scenario
 
@@ -286,7 +286,7 @@ Your selection: 1,2,3,4
       Criteria: 3
 ```
 
-## Example 4: Task Tabled for Later
+## Example 4: Task Tabling Scenario
 
 ### Scenario
 
@@ -312,7 +312,7 @@ You scoped a task but don't have resources to complete it now.
 💡 Use /next to select a different task
 ```
 
-## Example 5: Progress Tracking
+## Example 5: Tracking Scenario
 
 ### Scenario
 
@@ -344,7 +344,7 @@ You want to check the progress of an ongoing task.
    - Integration: Integration tests failing - See validation/lightrag-abc_blocked.json
 ```
 
-## Example 6: Rollback Execution
+## Example 6: Rollback Scenario
 
 ### Scenario
 
@@ -389,7 +389,7 @@ A deployment is causing issues and needs to be rolled back.
 ✅ Rollback completed for query-performance-improvement
 ```
 
-## Example 7: Quick Blast Radius Analysis
+## Example 7: Blast Radius Scenario
 
 ### Scenario
 
@@ -423,7 +423,7 @@ Level: summary
    3. Consider canary deployment approach
 ```
 
-## Example 8: Conflict Resolution
+## Example 8: Conflict Scenario
 
 ### Scenario
 
@@ -446,7 +446,7 @@ The system detects the conflict and automatically provides fallback options:
 💡 You can now proceed with enhanced manual plan or use combined approach
 ```
 
-## Example 9: Validation Status Check
+## Example 9: Validation Scenario
 
 ### Scenario
 
@@ -477,7 +477,7 @@ You need to check if validation gates are passed for a task.
    🚫 BLOCKED - See validation/lightrag-abc_blocked.json
 ```
 
-## Example 10: Resource Constraint Handling
+## Example 10: Resource Scenario
 
 ### Scenario
 

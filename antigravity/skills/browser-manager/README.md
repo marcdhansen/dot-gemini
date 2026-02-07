@@ -97,7 +97,7 @@ browser-manager config reset
 
 ### Status Output
 
-```
+```text
 🌐 Browser Manager Status - Agent: marchansen
 ==================================================
 
@@ -115,7 +115,7 @@ browser-manager config reset
 
 ### Tab Details
 
-```
+```text
 📄 All Browser Tabs:
 
 📍 PID 1234 (marchansen): 5 tabs
@@ -135,7 +135,7 @@ browser-manager config reset
 
 When limits are exceeded, you'll see warnings:
 
-```
+```text
 ⚠️ Resource Warnings:
   • High tab count: 8 >= 5
   • High memory usage: 1200MB >= 1000MB
@@ -175,7 +175,7 @@ browser-manager tabs --verbose
 
 When cleaning other agents' browsers, you'll see detailed information and be asked for permission:
 
-```
+```text
 🔒 Admin Permission Required
 Attempting to clean up 2 browser(s) from agent 'agent-42'
 
@@ -224,13 +224,13 @@ browser-manager config reset
 browser-manager config --verbose
 ```
 
-## 🔄 RTB Integration
+## 🔄 Finalization Integration
 
-The skill integrates automatically with Return To Base (RTB):
+The skill integrates automatically with Finalization:
 
 ```bash
-# RTB calls this automatically
-browser-manager rtb-cleanup
+# Finalization calls this automatically
+browser-manager finalization-cleanup
 ```
 
 This:
@@ -272,9 +272,9 @@ Check limits regularly:
 browser-manager check-limits || echo "Consider cleanup"
 ```
 
-### 4. Use RTB Integration
+### 4. Use Finalization Integration
 
-Let RTB handle automatic cleanup at mission end.
+Let Finalization handle automatic cleanup at mission end.
 
 ### 5. Respect Agent Ownership
 

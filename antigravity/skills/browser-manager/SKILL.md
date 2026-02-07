@@ -66,8 +66,8 @@ browser-manager sessions
 # Clean up session tracking data
 browser-manager sessions cleanup
 
-# Manual RTB integration
-browser-manager rtb-cleanup
+# Manual Finalization integration
+browser-manager finalization-cleanup
 ```
 
 ## 📋 Usage Examples
@@ -95,7 +95,7 @@ browser-manager rtb-cleanup
 /browser-manager cleanup --all
 ```
 
-### Configuration
+### User Configuration
 
 ```bash
 # Set limits to get warnings
@@ -118,11 +118,11 @@ browser-manager rtb-cleanup
 
 ## 🔗 Integration Points
 
-### RTB Integration (Mandatory)
+### Finalization Integration (Mandatory)
 
-- **Automatic Cleanup**: `browser-manager rtb-cleanup` called by RTB
+- **Automatic Cleanup**: `browser-manager finalization-cleanup` called by Finalization
 - **Session Data Deletion**: Removes browser tracking at mission end
-- **Resource Reporting**: Includes browser usage in RTB summary
+- **Resource Reporting**: Includes browser usage in Finalization summary
 
 ### UI Skill Integration
 
@@ -175,7 +175,7 @@ browser-manager rtb-cleanup
 
 ### Mission-End Cleanup
 
-- Automatic session data deletion on RTB
+- Automatic session data deletion on Finalization
 - Graceful browser shutdown with timeout
 - Orphaned process detection and cleanup
 - Audit trail before data deletion
@@ -215,14 +215,14 @@ pip install psutil requests
 pip install websocket-client
 ```
 
-### Configuration
+### Initial Setup
 
 ```bash
 # Initial setup (creates config with no limits)
 browser-manager config
 
 # Set your preferred limits
-browser-manager config set max_tabs_per_agent 5
+/browser-manager config set max_tabs_per_agent 5
 browser-manager config set max_memory_mb 1000
 ```
 
@@ -318,7 +318,7 @@ tracking:
 1. **Configure limits** based on your system capabilities
 2. **Monitor regularly** with `browser-manager status`
 3. **Clean up frequently** after testing sessions
-4. **Use RTB integration** for automatic cleanup
+4. **Use Finalization integration** for automatic cleanup
 
 ### Multi-Agent Coordination
 

@@ -15,7 +15,7 @@ from typing import Dict, List, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from scripts.blast_radius_analyzer import ChangeDetector, AnalysisLevel
-from scripts.flight_director_integration import FlightDirectorPlanningIntegration
+from scripts.orchestrator_integration import OrchestratorPlanningIntegration
 from scripts.incremental_validator import IncrementalValidator
 from integration.beads_integration import BeadsIntegration
 
@@ -29,7 +29,7 @@ class PlanningOrchestrator:
         
         # Initialize components
         self.blast_detector = ChangeDetector(repo_path)
-        self.flight_director = FlightDirectorPlanningIntegration(repo_path)
+        self.orchestrator = OrchestratorPlanningIntegration(repo_path)
         self.validator = IncrementalValidator(repo_path)
         self.beads = BeadsIntegration(repo_path)
     
@@ -52,7 +52,7 @@ class PlanningOrchestrator:
         
         # Create planning scope
         try:
-            scope = self.flight_director.create_task_scope(
+            scope = self.orchestrator.create_task_scope(
                 task_id, changed_files, analysis_level
             )
             
@@ -118,7 +118,7 @@ class PlanningOrchestrator:
         if not recommendations:
             print("ℹ️  No additional tasks recommended.")
             # Create implementation plan with just the main task
-            plan = self.flight_director.create_implementation_plan(task_id, [])
+            plan = self.orchestrator.create_implementation_plan(task_id, [])
             self._display_implementation_plan(plan)
             return plan
         
@@ -126,7 +126,7 @@ class PlanningOrchestrator:
         selected_titles = self.beads.present_recommendations_to_user(recommendations)
         
         # Create implementation plan
-        plan = self.flight_director.create_implementation_plan(task_id, selected_titles)
+        plan = self.orchestrator.create_implementation_plan(task_id, selected_titles)
         
         # Create selected tasks in beads
         if selected_titles:
@@ -151,7 +151,7 @@ class PlanningOrchestrator:
             reason = input("Reason for tabling (optional): ").strip()
         
         try:
-            summary = self.flight_director.table_task_with_scoping(task_id, reason)
+            summary = self.orchestrator.table_task_with_scoping(task_id, reason)
             
             print(f"✅ Task tabled with scoping saved")
             print(f"   Risk Level: {summary['blast_radius_summary']['risk_level']}")
@@ -201,7 +201,7 @@ class PlanningOrchestrator:
         print("=" * 40)
         
         # Check milestone completion
-        milestone_status = self.flight_director.check_milestone_completion(task_id)
+        milestone_status = self.orchestrator.check_milestone_completion(task_id)
         
         # Check validation status
         validation_status = self.validator.get_task_validation_status(task_id)
@@ -480,7 +480,7 @@ def main():
         print("• Incremental validation with milestone blocking")
         print("• A/B testing and rollback procedures")
         print("• Beads task integration")
-        print("• Flight Director workflow integration")
+        print("• Orchestrator workflow integration")
         print("\nExample workflows:")
         print("  /plan scope lightrag-abc              # Scope selected task")
         print("  /plan analyze lightrag-abc            # Detailed analysis")

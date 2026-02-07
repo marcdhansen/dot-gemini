@@ -1,26 +1,26 @@
 ---
-name: mission-briefing
-description: Essential pre-mission briefing for agents with current status, protocol highlights, and friction areas to watch. Provides balanced overview without overwhelming details.
+name: initialization-briefing
+description: Essential pre-session briefing for agents with current status, protocol highlights, and friction areas to watch. Provides balanced overview without overwhelming details.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Glob, Grep
 ---
 
-# Mission Briefing Skill
+# Initialization Briefing Skill
 
-Essential pre-mission information that prepares agents for successful task execution and learning capture.
+Essential pre-session information that prepares agents for successful task execution and learning capture.
 
 ## Usage
 
 ```bash
-/mission-briefing
+/initialization-briefing
 ```
 
 ## Purpose
 
-Provides balanced pre-mission briefing covering:
+Provides balanced pre-initialization briefing covering:
 
 - **Current Status**: Git, issues, session locks
-- **Protocol Highlights**: Quality gates, closure requirements, RTB blockers  
+- **Protocol Highlights**: Quality gates, closure requirements, Finalization blockers  
 - **Friction Areas**: Tool friction, corrections, success patterns, failures
 - **Common Pitfalls**: Mistakes to avoid based on past sessions
 - **Session Checklist**: Quick reference for work session
@@ -30,7 +30,7 @@ Provides balanced pre-mission briefing covering:
 The skill executes:
 
 ```bash
-python .agent/skills/mission-briefing.py
+python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py
 ```
 
 ## Briefing Sections
@@ -47,7 +47,7 @@ python .agent/skills/mission-briefing.py
 - Quality gates (tests, linting, type checking)
 - Closure requirements (file locations, quick start, docs)
 - Learning capture expectations
-- RTB blockers and requirements
+- Finalization blockers and requirements
 
 ### 3. Areas to Watch
 
@@ -66,14 +66,14 @@ python .agent/skills/mission-briefing.py
 
 ### 5. Session Checklist
 
-- Pre-mission preparation
-- During mission monitoring
-- Pre-RTB completion
-- Post-RTB verification
+- Pre-session preparation
+- During session monitoring
+- Pre-Finalization completion
+- Post-Finalization verification
 
 ## Benefits
 
-- **Time Efficient**: 2-3 minutes vs 10+ minutes for full RTB review
+- **Time Efficient**: 2-3 minutes vs 10+ minutes for full Finalization review
 - **Focused Information**: Only what agents need, not implementation details
 - **Proactive Learning**: Prepares agents to capture friction in real-time
 - **Context Awareness**: Current status and session context
@@ -86,22 +86,22 @@ This skill integrates with:
 - **Beads**: Issue status and assignment tracking
 - **Git**: Repository state and branch information  
 - **Session Management**: Lock coordination with other agents
-- **RTB Process**: Complements full return-to-base workflow
+- **Finalization Process**: Complements full Finalization workflow
 - **Reflection Skill**: Provides context for friction capture
 
 ## Workflow Integration
 
 **Optimal Usage Pattern:**
 
-1. **Start of Session**: `/mission-briefing` (2-3 minutes)
+1. **Start of Session**: `/initialization-briefing` (2-3 minutes)
 2. **During Work**: Real-time friction capture (guided by briefing)
-3. **End of Session**: `/return-to-base` (full RTB execution)
+3. **End of Session**: `/finalization` (full Finalization execution)
 
 This provides the perfect balance between:
 
 - **Too Little Information** (just reflect skill)
-- **Too Much Information** (full RTB protocol review)
-- **Just Right** (mission briefing)
+- **Too Much Information** (full Finalization protocol review)
+- **Just Right** (initialization briefing)
 
 ## Error Handling
 
@@ -115,9 +115,9 @@ If briefing fails:
 ## Advantages Over Alternatives
 
 | Approach | Time | Information Quality | Practicality |
-|-----------|-------|-------------------|--------------|
-| Full RTB Review | 10-15 min | Implementation focus | Low |
+| :--- | :--- | :--- | :--- |
+| Full Finalization Review | 10-15 min | Implementation focus | Low |
 | Just Reflect Skill | 2-3 min | Learning focus only | Medium |
-| **Mission Briefing** | **2-3 min** | **Balanced** | **High** |
+| **Initialization Briefing** | **2-3 min** | **Balanced** | **High** |
 
-The mission briefing hits the sweet spot: comprehensive enough for context, focused enough for efficiency, practical enough for daily use.
+The initialization briefing hits the sweet spot: comprehensive enough for context, focused enough for efficiency, practical enough for daily use.

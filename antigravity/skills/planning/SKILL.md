@@ -295,7 +295,7 @@ validation:
   rollback_validation: true
   emergency_bypass: require_justification
   
-flight_director:
+orchestrator:
   auto_prompt_planning: true
   complexity_threshold: "medium"
   fallback_enabled: true
@@ -307,7 +307,7 @@ flight_director:
 
 ```bash
 # Agent selects task lightrag-abc from /next
-Flight Director: "🎯 Task selected! Run `/plan scope lightrag-abc` to scope this task"
+Orchestrator: "🎯 Task selected! Run `/plan scope lightrag-abc` to scope this task"
 
 Agent: /plan scope lightrag-abc
 # → Blast radius analysis created

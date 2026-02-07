@@ -24,15 +24,15 @@ Provides devil's advocate perspective for:
 ```bash
 /devils-advocate                    # Standalone critical analysis
 /devils-advocate --force           # Force enable for high-stakes decisions
-/devils-advocate pfc               # Integrate with PFC workflow
-/devils-advocate --force pfc          # Force enable + PFC integration
+/devils-advocate init               # Integrate with Initialization workflow
+/devils-advocate --force init          # Force enable + Initialization integration
 ```
 
-## Integration
+## Workflow Integration
 
 The devil's advocate integrates with:
 
-- **PFC Process**: Enhanced pre-flight checks with critical thinking
+- **Initialization Process**: Enhanced initialization checks with critical thinking
 - **Mission Briefing**: Adds skepticism to task preparation
 - **Reflection Capture**: Includes devil's advocate insights in learning
 - **Evidence Standards**: Strict validation requirements for decisions
@@ -108,13 +108,13 @@ The devil's advocate integrates with:
 
 Run before making critical decisions, when major impacts are possible.
 
-### Method 2: PFC Integration
+### Method 2: Initialization Integration
 
 ```bash
-/devils-advocate pfc
+/devils-advocate init
 ```
 
-Integrate devil's advocate throughout PFC process for continuous critical thinking.
+Integrate devil's advocate throughout Initialization process for continuous critical thinking.
 
 ## Evidence-Based Decision Framework
 
@@ -143,11 +143,11 @@ Integrate devil's advocate throughout PFC process for continuous critical thinki
 - **Evidence-Based**: Reduces reliance on gut feelings or assumptions
 - **Alternative Discovery**: Often reveals better approaches than original idea
 
-## Integration
+## System Integration
 
 The devil's advocate enhances:
 
-- **PFC Process**: Critical thinking as pre-flight requirement
+- **Initialization Process**: Critical thinking as initialization requirement
 - **Mission Briefing**: Skeptical task preparation
 - **Reflection System**: Includes counterarguments and risk analysis
 - **Decision Quality**: Evidence-based over assumption-based choices

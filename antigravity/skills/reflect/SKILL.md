@@ -9,7 +9,7 @@ allowed-tools: Bash, Read, Edit, Glob, Grep
 
 ## Goal
 
-Implement "correct once, never again" philosophy by analyzing current session for "memories"—specific corrections, coding preferences, or logic improvements—and permanently documenting them into relevant `SKILL.md` files. This ensures that every mission contributes to the system's collective intelligence.
+Implement "correct once, never again" philosophy by analyzing current session for "memories"—specific corrections, coding preferences, or logic improvements—and permanently documenting them into relevant `SKILL.md` files. This ensures that every session contributes to the system's collective intelligence.
 
 ## Enhanced Features
 
@@ -30,7 +30,7 @@ python .agent/skills/reflect/enhanced_reflection.py
 - **Quality Gates Overview**: Tests, linting, type checking requirements
 - **Closure Standards**: File locations, quick start, documentation requirements
 - **Learning Emphasis**: Real-time capture, exact error messages, user corrections
-- **Common RTB Blockers**: Missing closure notes, duplicate files, uncommitted changes
+- **Common Finalization Blockers**: Missing closure notes, duplicate files, uncommitted changes
 
 ### Interactive Reflection Capture
 
@@ -44,7 +44,7 @@ python .agent/skills/reflect/enhanced_reflection.py
 - **Technical Learnings**: Code patterns, architectural insights
 - **Challenges Overcome**: Problems solved and solutions implemented
 - **Process Improvements**: Workflow optimizations and friction reduction
-- **Protocol Issues**: Quality gate problems and RTB blockers
+- **Protocol Issues**: Quality gate problems and Finalization blockers
 
 ## 🛠️ Tools & Scripts
 
@@ -77,7 +77,7 @@ python .agent/skills/reflect/enhanced_reflection.py
 
 ### 2. Legacy Scripts (Maintained for Compatibility)
 
-- `enhanced_reflect_system.py` - Comprehensive analysis with PFC/RTB diagnostics
+- `enhanced_reflect_system.py` - Comprehensive analysis with Initialization/Finalization diagnostics
 - `reflect_assistant.py` - Memory discovery and rule auditing
 - `skill_version_manager.py` - Version management for skill files
 - `proactive_improvements.py` - Pattern analysis and suggestions
@@ -90,7 +90,7 @@ Before reflection, enhanced version shows:
 
 - Quality gate requirements
 - Closure documentation standards
-- Common RTB blockers
+- Common Finalization blockers
 - Learning capture emphasis
 
 ### 2. Session Analysis (ENHANCED)
@@ -103,7 +103,7 @@ Before reflection, enhanced version shows:
 
 **Interactive capture with prompts for:**
 
-- Mission details and outcome
+- Session details and outcome
 - Success metrics (key:value pairs)
 - Technical learnings
 - Challenges overcome
@@ -157,7 +157,7 @@ Use this structure when performing enhanced reflection:
 ### Protocol Issues (NEW)
 
 - [Quality gate problem]
-- [RTB blocker encountered]
+- [Finalization blocker encountered]
 - [Process friction point]
 - [Documentation gap]
 
@@ -180,7 +180,7 @@ During reflection, agents should explicitly address these strategic questions:
 
 Consider:
 
-- Manual steps in PFC/RTB that could be automated
+- Manual steps in Initialization/Finalization that could be automated
 - Repeated decision points that could have default behaviors
 - Complex validations that could be scripted
 - Information gathering that could be pre-collected
@@ -235,8 +235,8 @@ Consider:
 
 Enhanced reflect skill integrates with:
 
-- **Mission Briefing**: Provides protocol context before work
-- **PFC/RTB Process**: Captures protocol-related friction
+- **Initialization Briefing**: Provides protocol context before work
+- **Initialization/Finalization Process**: Captures protocol-related friction
 - **Quality Gates**: Identifies and documents recurring issues
 - **Skill Management**: Version tracking and conflict resolution
 - **Process Improvement**: Systematic workflow optimization
@@ -244,7 +244,7 @@ Enhanced reflect skill integrates with:
 ## Advantages Over Basic Reflection
 
 | Feature | Basic Reflection | Enhanced Reflection |
-|---------|----------------|-------------------|
+| :--- | :--- | :--- |
 | Protocol Context | ❌ | ✅ |
 | Interactive Capture | ❌ | ✅ |
 | Session Analysis | ❌ | ✅ |
@@ -267,7 +267,7 @@ If reflection fails:
 
 ### 🚨 Fixed Issues
 
-**EOF Error in Non-Interactive Environments (Fixed 2025-02-04)**
+### 🛡️ EOF Error Resolved
 
 - **Problem**: Enhanced reflection script failed with "EOF when reading a line" in non-interactive environments
 - **Root Cause**: Script used `input()` without proper non-interactive fallback detection
@@ -285,7 +285,7 @@ If reflection fails:
 
 ```json
 {
-  "mission_name": "Task Name",
+  "session_name": "Task Name",
   "outcome": "SUCCESS",
   "duration_hours": 1.0,
   "success_metrics": {"Files Changed": 5},
