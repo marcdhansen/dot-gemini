@@ -17,32 +17,68 @@ class InitializationBriefing:
         self.workspace_dir = Path.cwd()
         self.agent_dir = self.workspace_dir / ".agent"
 
-    def run_briefing(self):
-        """Generate and display comprehensive initialization briefing"""
+    def run_briefing(self, turbo=False):
+        """Generate and display initialization briefing (Turbo or Full)"""
 
-        print("🚀 INITIALIZATION BRIEFING - Essential Pre-Mission Information")
+        # Detect escalation if in turbo mode
+        if turbo:
+            is_clean, msg = self._check_for_code_changes()
+            if not is_clean:
+                print("⚠️ ESCALATION DETECTED: Code changes found. Switching to FULL BRIEFING.")
+                turbo = False
+
+        mode_str = "TURBO" if turbo else "FULL"
+        print(f"🚀 INITIALIZATION BRIEFING - {mode_str} MODE")
         print("=" * 60)
         print()
 
         # 1. Current Status Check
         self._show_current_status()
 
-        # 2. Protocol Highlights
-        self._show_protocol_highlights()
+        if turbo:
+            print("⚡ TURBO MODE ACTIVE: Minimal protocol required.")
+            print("   • Focus: Administrative/Metadata tasks (Beads, Q&A)")
+            print("   • Status: Direct execution enabled")
+            print("   • Note: ANY code change will require escalation to Full SOP.")
+        else:
+            # 2. Protocol Highlights
+            self._show_protocol_highlights()
 
-        # 3. Areas to Watch
-        self._show_friction_areas()
+            # 3. Areas to Watch
+            self._show_friction_areas()
 
-        # 4. Common Pitfalls
-        self._show_common_pitfalls()
+            # 4. Common Pitfalls
+            self._show_common_pitfalls()
 
-        # 5. Session Checklist
-        self._show_session_checklist()
+            # 5. Session Checklist
+            self._show_session_checklist()
 
         print()
-        print("🎯 READY TO START: Initialization briefing complete!")
-        print("💡 Save friction points as they happen - don't wait until Finalization!")
+        print(f"🎯 READY TO START: {mode_str} briefing complete!")
+        if not turbo:
+            print("💡 Save friction points as they happen - don't wait until Finalization!")
         print()
+
+    def _check_for_code_changes(self):
+        """Check if any code files have changed (Turbo Mode check)"""
+        try:
+            result = subprocess.run(
+                ["git", "status", "--porcelain"],
+                capture_output=True,
+                text=True,
+                cwd=self.workspace_dir,
+            )
+            changes = result.stdout.strip()
+            if not changes:
+                return True, "Clean"
+
+            code_exts = {".py", ".sh", ".js", ".ts", ".go", ".c", ".cpp"}
+            for line in changes.split("\n"):
+                if any(line.split()[-1].endswith(ext) for ext in code_exts):
+                    return False, "Code changes detected"
+            return True, "No code changes"
+        except:
+            return True, "Unknown"
 
     def _show_current_status(self):
         """Display current workspace and session status"""
@@ -281,6 +317,10 @@ class InitializationBriefing:
 
 def main():
     """Main entry point for initialization briefing"""
+    import argparse
+    parser = argparse.ArgumentParser(description="Initialization Briefing Skill")
+    parser.add_argument("--turbo", action="store_true", help="Run in Turbo Mode (lightweight)")
+    args = parser.parse_args()
 
     # Check if we're in a valid workspace
     if not Path(".git").exists():
@@ -291,7 +331,7 @@ def main():
     briefing = InitializationBriefing()
 
     try:
-        briefing.run_briefing()
+        briefing.run_briefing(turbo=args.turbo)
     except KeyboardInterrupt:
         print("\n👋 Initialization briefing interrupted")
         sys.exit(0)

@@ -13,14 +13,34 @@ allowed-tools: Bash, Read, Glob, Grep
 > **At the start of EVERY conversation**, regardless of how the user begins, you MUST:
 
 ```bash
-# 1. Run initialization check
-python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init
+# 1. Run initialization check (Turbo Mode by default)
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init --turbo
 
 # 2. Run session context briefing
-python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py
+python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py --turbo
 ```
 
-**If `--init` fails**: Address blockers before proceeding with any work.
+**If `--init` fails**: Address blockers or escalate to Full SOP if code changes are detected.
+
+---
+
+## ⚡ Turbo Create Protocol
+
+The **Turbo Create** protocol is designed for administrative and metadata tasks (e.g., issue management, minor documentation fixes, Q&A). It skips heavyweight planning and quality gates.
+
+### Triggers
+
+- Starting a session with no uncommitted code changes.
+- Using the `--turbo` flag manually.
+- Tasks like `bd create`, `bd ready`, or roadmap updates.
+
+### Escalation Path
+
+If code changes (`.py`, `.sh`, `.js`, etc.) are detected during a Turbo session, the Orchestrator will demand escalation:
+
+1. Run full initialization: `python ... --init`
+2. Create `ImplementationPlan.md` and get approval.
+3. Proceed with standard SOP quality gates.
 
 This ensures SOP compliance (Phases 1-2) even when user skips `/next`.
 

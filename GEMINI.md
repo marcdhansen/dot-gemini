@@ -45,8 +45,8 @@ For universal agent protocols, protocols, and documentation:
 // turbo
 
 ```bash
-python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init
-python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init --turbo
+python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py --turbo
 ```
 
 **This is NON-NEGOTIABLE** - run these before any other work.
