@@ -48,6 +48,7 @@ def update_progress_ledger(phase: str, status: str, result: str):
                 ],
                 capture_output=True,
                 text=True,
+                timeout=10,
             )
         except Exception:
             pass
@@ -83,6 +84,7 @@ def check_tool_available(tool: str) -> bool:
             ["which", tool],
             capture_output=True,
             text=True,
+            timeout=2,
         )
         return result.returncode == 0
     except Exception:
