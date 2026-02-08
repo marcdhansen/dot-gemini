@@ -264,6 +264,134 @@ def get_active_issue_id() -> str | None:
     return None
 
 
+def validate_atomic_commits() -> tuple[bool, list[str]]:
+    """Validate atomic commit requirements per SOP git-workflow.
+    
+    Checks:
+    1. Single commit ahead of origin/main (atomic commit)
+    2. No merge commits in branch history
+    3. Commit message includes Beads issue ID
+    4. Commit message follows conventional format
+    
+    Returns:
+        (bool, list[str]): (is_valid, error_messages)
+    """
+    errors = []
+    
+    try:
+        # Check 1: Count commits ahead of origin/main
+        result = subprocess.run(
+            ["git", "log", "--oneline", "origin/main..HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            errors.append("Could not compare with origin/main. Ensure branch is pushed.")
+            return False, errors
+        
+        commits = [line for line in result.stdout.strip().split("\n") if line]
+        commit_count = len(commits)
+        
+        if commit_count == 0:
+            errors.append("No commits ahead of origin/main")
+            return False, errors
+        
+        if commit_count > 1:
+            errors.append(f"Multiple commits detected ({commit_count}). Squash required.")
+            errors.append(f"  Run: git rebase -i HEAD~{commit_count}")
+        
+        # Check 2: Detect merge commits
+        result = subprocess.run(
+            ["git", "log", "--merges", "origin/main..HEAD", "--oneline"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            merge_commits = result.stdout.strip().split("\n")
+            errors.append(f"Merge commits not allowed ({len(merge_commits)} found). Use rebase strategy.")
+            errors.append("  Run: git rebase origin/main")
+        
+        # Check 3 & 4: Validate commit message format
+        if commit_count == 1:
+            result = subprocess.run(
+                ["git", "log", "-1", "--pretty=%B"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                commit_msg = result.stdout.strip()
+                
+                # Check for Beads issue ID [xxx-xxx]
+                issue_pattern = r'\[([a-zA-Z0-9-]+)\]'
+                if not re.search(issue_pattern, commit_msg):
+                    errors.append("Commit message must include Beads issue ID in format [issue-id]")
+                    errors.append("  Example: feat(auth): add validation [agent-harness-v0o]")
+                
+                # Check conventional commit format <type>(<scope>): <description>
+                conv_pattern = r'^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+'
+                if not re.match(conv_pattern, commit_msg.split('\n')[0]):
+                    errors.append("Commit message must follow conventional format")
+                    errors.append("  Format: <type>(<scope>): <description> [issue-id]")
+        
+        return len(errors) == 0, errors
+        
+    except Exception as e:
+        errors.append(f"Atomic commit validation error: {e}")
+        return False, errors
+
+
+def validate_tdd_compliance() -> tuple[bool, str]:
+    """Validate that code changes are preceded by or accompanied by test changes.
+    
+    Enforces the 'Spec-Driven TDD' rule from tdd-workflow.md.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            return False, "Failed to get git status"
+            
+        lines = result.stdout.strip().split("\n")
+        if not lines or (len(lines) == 1 and not lines[0]):
+            return True, "No changes detected"
+            
+        code_files = []
+        test_files = []
+        
+        # Extensions that count as code
+        code_exts = {".py", ".js", ".ts", ".go", ".c", ".cpp", ".java"}
+        
+        for line in lines:
+            if len(line) < 4: continue
+            status = line[:2].strip()
+            file_path = line[3:].strip()
+            
+            ext = Path(file_path).suffix
+            if ext in code_exts:
+                if "test" in file_path.lower() or file_path.startswith("tests/"):
+                    test_files.append(file_path)
+                else:
+                    code_files.append(file_path)
+                    
+        if not code_files and test_files:
+            return True, f"Red Phase: Test stubs detected without implementation ({', '.join(test_files)})"
+            
+        if code_files and not test_files:
+            return False, f"TDD Violation: Implementation changes detected without corresponding tests: {', '.join(code_files)}"
+            
+        return True, "TDD compliance verified (Balanced changes)"
+        
+    except Exception as e:
+        return False, f"TDD validation error: {e}"
+
+
 def check_progress_log_exists() -> tuple[bool, str]:
     """Check if progress log exists for the active issue."""
     issue_id = get_active_issue_id()
@@ -543,11 +671,30 @@ def run_initialization(verbose: bool = False) -> bool:
     print(f"├── Issues: {issue_icon} {issues_msg} (Optional for planning)")
     # No warning/blocker for missing issues during initialization
 
-    # SOP Simplification Check
+    # SOP Modification/Simplification Check
     simplification_ok, simplification_msg = check_sop_simplification()
     print(f"├── Simplification: {check_mark(simplification_ok)} {simplification_msg}")
     if not simplification_ok:
         warnings.append(simplification_msg)
+
+    # SOP Gate Change Check
+    sop_mod_script = Path.home() / ".gemini/antigravity/skills/sop-modification/scripts/validate_sop_change.py"
+    if sop_mod_script.exists():
+        try:
+            result = subprocess.run(
+                [sys.executable, str(sop_mod_script)],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            sop_ok = result.returncode == 0
+            sop_msg = result.stdout.strip() or result.stderr.strip()
+            first_line = "No issues" if not sop_msg else sop_msg.split('\n')[0]
+            print(f"├── SOP Gates: {check_mark(sop_ok)} {first_line}")
+            if not sop_ok:
+                blockers.append(f"SOP gate violation: {sop_msg}")
+        except Exception as e:
+            print(f"├── SOP Gates: {warning_mark()} Error checking SOP gates: {e}")
 
     # Plan Approval Check
     approval_ok, approval_msg = check_plan_approval()
@@ -664,7 +811,13 @@ def run_execution(verbose: bool = False) -> bool:
     if not issues_ok:
         issues.append("MANDATORY: Current rule requires a Beads issue before implementation")
 
-    # Git status - during IFO, uncommitted changes are expected
+    # MANDATORY TDD Compliance Check
+    tdd_ok, tdd_msg = validate_tdd_compliance()
+    print(f"├── TDD Compliance: {check_mark(tdd_ok)} {tdd_msg}")
+    if not tdd_ok:
+        issues.append(tdd_msg)
+
+    # Git status - during Execution, uncommitted changes are expected
     git_ok, git_msg = check_git_status()
     print(f"└── Git Status: ", end="")
     if git_ok:
@@ -674,12 +827,12 @@ def run_execution(verbose: bool = False) -> bool:
 
     print()
 
-    # IFO Guidelines
-    print(f"{Colors.BOLD}IFO Guidelines:{Colors.END}")
+    # Execution Guidelines
+    print(f"{Colors.BOLD}Execution Guidelines:{Colors.END}")
     print("  • Follow Spec-Driven TDD: Red → Green → Refactor")
     print("  • Update task.md as you complete items")
     print("  • Commit frequently with clear messages")
-    print("  • Run quality gates before RTB")
+    print("  • Run quality gates before Finalization")
     print()
 
     if issues:
@@ -733,11 +886,22 @@ def run_finalization(verbose: bool = False) -> bool:
     if not handoff_ok and "not a multi-phase implementation" not in handoff_msg:
         blockers.append("Hand-off compliance failed - run verify_handoff_compliance.sh")
 
-    # Reflection Check (Enforced at RTB to ensure it's not skipped)
+    # Atomic Commit Validation (SOP git-workflow requirement)
+    atomic_ok, atomic_errors = validate_atomic_commits()
+    print(f"├── Atomic Commits: {check_mark(atomic_ok)} ", end="")
+    if atomic_ok:
+        print("Single atomic commit verified")
+    else:
+        print("Validation failed")
+        for error in atomic_errors:
+            print(f"│   └── {error}")
+        blockers.extend(atomic_errors)
+    
+    # Reflection Check (Enforced at Finalization to ensure it's not skipped)
     reflect_ok, reflect_msg = check_reflection_invoked()
     print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
-        blockers.append("Reflection not captured - invoke /reflect (Mandatory for RTB)")
+        blockers.append("Reflection not captured - invoke /reflect (Mandatory for Finalization)")
 
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
@@ -972,6 +1136,39 @@ def run_clean_state(verbose: bool = False) -> bool:
         return True
 
 
+def run_summary(verbose: bool = False) -> bool:
+    """Provide a concise SOP compliance summary for session handoffs."""
+    print(f"{Colors.BOLD}📋 SOP COMPLIANCE SUMMARY{Colors.END}")
+    print("=" * 40)
+    
+    # Initialization status
+    init_ok, init_msg = check_plan_approval()
+    # Finalization status
+    git_ok, git_msg = check_git_status()
+    # Retrospective status
+    reflect_ok, _ = check_reflection_invoked()
+    debrief_ok, _ = check_debriefing_invoked()
+    
+    # Higher-level phase status
+    phases = [
+        ("Initialization", init_ok),
+        ("Execution", True),  # Implicit if we are at this stage
+        ("Finalization", git_ok),
+        ("Retrospective", reflect_ok and debrief_ok)
+    ]
+    
+    for phase, ok in phases:
+        print(f"{check_mark(ok)} {phase}")
+        
+    print("-" * 40)
+    if all(ok for _, ok in phases):
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ ALL PHASES COMPLIANT{Colors.END}")
+    else:
+        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ COMPLIANCE PENDING{Colors.END}")
+        
+    return all(ok for _, ok in phases)
+
+
 def run_status(verbose: bool = False) -> bool:
     """Show full orchestration status."""
     print(f"{Colors.BOLD}📊 ORCHESTRATOR STATUS{Colors.END}")
@@ -999,6 +1196,8 @@ def run_status(verbose: bool = False) -> bool:
     print(f"  - Plan Approval: {check_mark(approval_ok)} {approval_msg}")
 
     print()
+    run_summary(verbose)
+    print()
     print("Run --init, --execute, --finalize, or --retrospective for detailed phase checks.")
 
     return True
@@ -1018,6 +1217,9 @@ Examples:
     
     # Show current status
     python check_protocol_compliance.py --status
+    
+    # Get concise compliance summary for handoff
+    python check_protocol_compliance.py --summary
         """,
     )
 
@@ -1037,7 +1239,7 @@ Examples:
         "--finalize",
         "--rtb",
         action="store_true",
-        help="Run Finalization validation (formerly RTB)",
+        help="Run Finalization validation",
     )
     parser.add_argument(
         "--retrospective",
@@ -1056,6 +1258,11 @@ Examples:
         "--status",
         action="store_true",
         help="Show full orchestration status",
+    )
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Provide a concise SOP compliance summary for session handoffs",
     )
     parser.add_argument(
         "--validate",
@@ -1085,6 +1292,7 @@ Examples:
             args.retrospective,
             args.clean,
             args.status,
+            args.summary,
             args.validate,
         ]
     ):
@@ -1119,6 +1327,8 @@ Examples:
         success = run_clean_state(args.verbose)
     elif args.status:
         success = run_status(args.verbose)
+    elif args.summary:
+        success = run_summary(args.verbose)
 
     sys.exit(0 if success else 1)
 
