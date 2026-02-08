@@ -845,22 +845,37 @@ def check_linked_repositories() -> tuple[bool, list[str]]:
 
 def check_pr_review_issue_created() -> tuple[bool, str]:
     """Check if a P0 PR review issue exists for the current branch.
+<<<<<<< HEAD
 
     This is MANDATORY for Full Mode finalization. The PR merge is blocked
     until the review issue is closed by another agent.
 
+=======
+    
+    This is MANDATORY for Full Mode finalization. The PR merge is blocked
+    until the review issue is closed by another agent.
+    
+>>>>>>> ba33d6c (feat(sop): implement mandatory PR review requirement [agent-harness-8ze])
     Returns:
         tuple[bool, str]: (is_valid, status_message)
     """
     if not check_tool_available("bd"):
         return False, "beads (bd) not available"
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> ba33d6c (feat(sop): implement mandatory PR review requirement [agent-harness-8ze])
     # Get current branch name
     branch, is_feature = check_branch_info()
     if not is_feature:
         # On main/master, no PR review needed
         return True, "Not on feature branch (PR review not required)"
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> ba33d6c (feat(sop): implement mandatory PR review requirement [agent-harness-8ze])
     try:
         # Query beads for P0 issues with 'pr-review' in title or tag
         # Also check for issues mentioning the current branch
@@ -870,6 +885,7 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
             text=True,
             timeout=10,
         )
+<<<<<<< HEAD
 
         if result.returncode != 0:
             return False, "Failed to query beads for PR review issues"
@@ -881,6 +897,16 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
                 f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'",
             )
 
+=======
+        
+        if result.returncode != 0:
+            return False, "Failed to query beads for PR review issues"
+        
+        output = result.stdout.strip()
+        if not output:
+            return False, f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'"
+        
+>>>>>>> ba33d6c (feat(sop): implement mandatory PR review requirement [agent-harness-8ze])
         # Check if any issue mentions PR review or current branch
         lines = output.split("\n")
         for line in lines:
@@ -899,12 +925,18 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
                 if parts:
                     issue_id = parts[0].strip()
                     return True, f"PR review issue found (branch match): {issue_id}"
+<<<<<<< HEAD
 
         return (
             False,
             f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'",
         )
 
+=======
+        
+        return False, f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'"
+        
+>>>>>>> ba33d6c (feat(sop): implement mandatory PR review requirement [agent-harness-8ze])
     except subprocess.TimeoutExpired:
         return False, "beads command timed out"
     except Exception as e:
@@ -1257,20 +1289,27 @@ def run_finalization(verbose: bool = False) -> bool:
         blockers.append(f"Code Review failure: {review_msg} - run /code-review")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ba33d6c (feat(sop): implement mandatory PR review requirement [agent-harness-8ze])
     # PR Review Issue Check (MANDATORY for Full Mode - blocks PR merge)
     pr_review_ok, pr_review_msg = check_pr_review_issue_created()
     print(f"├── PR Review Issue: {check_mark(pr_review_ok)} {pr_review_msg}")
     if not pr_review_ok:
         blockers.append(f"PR Review Issue required: {pr_review_msg}")
 
+<<<<<<< HEAD
 =======
 >>>>>>> 0e09186 (feat(skill): implement code-review skill and integrate as SOP gate [agent-harness-pr6])
+=======
+>>>>>>> ba33d6c (feat(sop): implement mandatory PR review requirement [agent-harness-8ze])
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
     print(f"├── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
     if not todo_ok:
         blockers.append(f"Todo Enforcer failed: {todo_msg}")
 
+<<<<<<< HEAD
     # Hook Integrity Check (NEW MANDATORY GATE)
     hook_ok, hook_msg = check_hook_integrity()
     print(f"└── Hook Integrity: {check_mark(hook_ok)} {hook_msg}")
@@ -1278,6 +1317,8 @@ def run_finalization(verbose: bool = False) -> bool:
         blockers.append(
             f"Hook integrity failure: {hook_msg} - hooks may have been tampered with"
         )
+=======
+>>>>>>> ba33d6c (feat(sop): implement mandatory PR review requirement [agent-harness-8ze])
 
     print()
 
