@@ -93,23 +93,22 @@ def check_tool_available(tool: str) -> bool:
 
 def parse_version(version_str: str) -> tuple[int, ...]:
     """Parse version string into a tuple of integers."""
-    match = re.search(r'(\d+(?:\.\d+)+)', version_str)
+    match = re.search(r"(\d+(?:\.\d+)+)", version_str)
     if match:
-        return tuple(map(int, match.group(1).split('.')))
+        return tuple(map(int, match.group(1).split(".")))
     return ()
 
 
-def check_tool_version(tool: str, min_version: str, version_flag: str = "--version") -> tuple[bool, str]:
+def check_tool_version(
+    tool: str, min_version: str, version_flag: str = "--version"
+) -> tuple[bool, str]:
     """Check if a tool's version meets the minimum requirement."""
     if not check_tool_available(tool):
         return False, f"Tool '{tool}' not installed"
 
     try:
         result = subprocess.run(
-            [tool, version_flag],
-            capture_output=True,
-            text=True,
-            timeout=5
+            [tool, version_flag], capture_output=True, text=True, timeout=5
         )
         if result.returncode != 0:
             # Some tools might use stderr for version info
@@ -126,7 +125,10 @@ def check_tool_version(tool: str, min_version: str, version_flag: str = "--versi
             return False, f"Could not parse version from: {output}"
 
         if current_v < required_v:
-            return False, f"Version for '{tool}' is too old: {output} (Required: {min_version})"
+            return (
+                False,
+                f"Version for '{tool}' is too old: {output} (Required: {min_version})",
+            )
 
         return True, f"{tool} version {'.'.join(map(str, current_v))} is OK"
     except Exception as e:
@@ -161,7 +163,7 @@ def check_git_status(turbo: bool = False) -> tuple[bool, str]:
             changes = result.stdout.strip()
             if not changes:
                 return True, "Working directory clean"
-            
+
             # Detect code changes (.py, .js, .ts, etc.)
             code_extensions = {".py", ".sh", ".js", ".ts", ".go", ".c", ".cpp"}
             code_changes = []
@@ -170,13 +172,16 @@ def check_git_status(turbo: bool = False) -> tuple[bool, str]:
                     file_path = line[3:]
                     if any(file_path.endswith(ext) for ext in code_extensions):
                         code_changes.append(file_path)
-            
+
             if turbo:
                 if code_changes:
-                    return False, f"ESCALATION REQUIRED: Code changes detected in Turbo Mode: {', '.join(code_changes)}. Please switch to Full SOP."
+                    return (
+                        False,
+                        f"ESCALATION REQUIRED: Code changes detected in Turbo Mode: {', '.join(code_changes)}. Please switch to Full SOP.",
+                    )
                 else:
                     return True, "Metadata changes only (Turbo safe)"
-            
+
             return False, f"Uncommitted changes:\n{changes}"
         return False, "Git command failed"
     except Exception as e:
@@ -268,78 +273,88 @@ def get_active_issue_id() -> str | None:
 
 def validate_atomic_commits() -> tuple[bool, list[str]]:
     """Validate atomic commit requirements per SOP git-workflow.
-    
+
     Checks:
     1. Single commit ahead of origin/main (atomic commit)
     2. No merge commits in branch history
     3. Commit message includes Beads issue ID
     4. Commit message follows conventional format
-    
+
     Returns:
         (bool, list[str]): (is_valid, error_messages)
     """
     errors = []
-    
+
     try:
         # Check 1: Count commits ahead of origin/main
         result = subprocess.run(
             ["git", "log", "--oneline", "origin/main..HEAD"],
             capture_output=True,
             text=True,
-            timeout=5
+            timeout=5,
         )
         if result.returncode != 0:
-            errors.append("Could not compare with origin/main. Ensure branch is pushed.")
+            errors.append(
+                "Could not compare with origin/main. Ensure branch is pushed."
+            )
             return False, errors
-        
+
         commits = [line for line in result.stdout.strip().split("\n") if line]
         commit_count = len(commits)
-        
+
         if commit_count == 0:
             errors.append("No commits ahead of origin/main")
             return False, errors
-        
+
         if commit_count > 1:
-            errors.append(f"Multiple commits detected ({commit_count}). Squash required.")
+            errors.append(
+                f"Multiple commits detected ({commit_count}). Squash required."
+            )
             errors.append(f"  Run: git rebase -i HEAD~{commit_count}")
-        
+
         # Check 2: Detect merge commits
         result = subprocess.run(
             ["git", "log", "--merges", "origin/main..HEAD", "--oneline"],
             capture_output=True,
             text=True,
-            timeout=5
+            timeout=5,
         )
         if result.returncode == 0 and result.stdout.strip():
             merge_commits = result.stdout.strip().split("\n")
-            errors.append(f"Merge commits not allowed ({len(merge_commits)} found). Use rebase strategy.")
+            errors.append(
+                f"Merge commits not allowed ({len(merge_commits)} found). Use rebase strategy."
+            )
             errors.append("  Run: git rebase origin/main")
-        
+
         # Check 3 & 4: Validate commit message format
         if commit_count == 1:
             result = subprocess.run(
                 ["git", "log", "-1", "--pretty=%B"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
             if result.returncode == 0:
                 commit_msg = result.stdout.strip()
-                
+
                 # Check for Beads issue ID [xxx-xxx]
-                issue_pattern = r'\[([a-zA-Z0-9-]+)\]'
+                issue_pattern = r"\[([a-zA-Z0-9-]+)\]"
                 if not re.search(issue_pattern, commit_msg):
-                    errors.append("Commit message must include Beads issue ID in format [issue-id]")
-                    errors.append("  Example: feat(auth): add validation [agent-harness-v0o]")
-                
+                    errors.append(
+                        "Commit message must include Beads issue ID in format [issue-id]"
+                    )
+                    errors.append(
+                        "  Example: feat(auth): add validation [agent-harness-v0o]"
+                    )
+
                 # Check conventional commit format <type>(<scope>): <description>
-                conv_pattern = r'^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+'
-                if not re.match(conv_pattern, commit_msg.split('\n')[0]):
+                conv_pattern = r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
+                if not re.match(conv_pattern, commit_msg.split("\n")[0]):
                     errors.append("Commit message must follow conventional format")
                     errors.append("  Format: <type>(<scope>): <description> [issue-id]")
-        
+
         return len(errors) == 0, errors
-        
+
     except Exception as e:
         errors.append(f"Atomic commit validation error: {e}")
         return False, errors
@@ -347,49 +362,53 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
 
 def validate_tdd_compliance() -> tuple[bool, str]:
     """Validate that code changes are preceded by or accompanied by test changes.
-    
+
     Enforces the 'Spec-Driven TDD' rule from tdd-workflow.md.
     """
     try:
         result = subprocess.run(
-            ["git", "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-            timeout=5
+            ["git", "status", "--porcelain"], capture_output=True, text=True, timeout=5
         )
         if result.returncode != 0:
             return False, "Failed to get git status"
-            
+
         lines = result.stdout.strip().split("\n")
         if not lines or (len(lines) == 1 and not lines[0]):
             return True, "No changes detected"
-            
+
         code_files = []
         test_files = []
-        
+
         # Extensions that count as code
         code_exts = {".py", ".js", ".ts", ".go", ".c", ".cpp", ".java"}
-        
+
         for line in lines:
-            if len(line) < 4: continue
+            if len(line) < 4:
+                continue
             status = line[:2].strip()
             file_path = line[3:].strip()
-            
+
             ext = Path(file_path).suffix
             if ext in code_exts:
                 if "test" in file_path.lower() or file_path.startswith("tests/"):
                     test_files.append(file_path)
                 else:
                     code_files.append(file_path)
-                    
+
         if not code_files and test_files:
-            return True, f"Red Phase: Test stubs detected without implementation ({', '.join(test_files)})"
-            
+            return (
+                True,
+                f"Red Phase: Test stubs detected without implementation ({', '.join(test_files)})",
+            )
+
         if code_files and not test_files:
-            return False, f"TDD Violation: Implementation changes detected without corresponding tests: {', '.join(code_files)}"
-            
+            return (
+                False,
+                f"TDD Violation: Implementation changes detected without corresponding tests: {', '.join(code_files)}",
+            )
+
         return True, "TDD compliance verified (Balanced changes)"
-        
+
     except Exception as e:
         return False, f"TDD validation error: {e}"
 
@@ -409,7 +428,11 @@ def check_progress_log_exists() -> tuple[bool, str]:
 def check_sop_simplification() -> tuple[bool, str]:
     """Check for SOP simplification proposals and their validation status."""
     # Look for simplification proposal files
-    proposal_patterns = ["*.md", ".agent/sop_simplification_*.md", "sop_simplification_*.md"]
+    proposal_patterns = [
+        "*.md",
+        ".agent/sop_simplification_*.md",
+        "sop_simplification_*.md",
+    ]
 
     proposals = []
     for pattern in proposal_patterns:
@@ -441,12 +464,102 @@ def check_sop_simplification() -> tuple[bool, str]:
                 pending_proposals.append(proposal.name)
 
     if pending_proposals:
-        return False, f"Pending SOP simplification proposals: {', '.join(pending_proposals)}"
+        return (
+            False,
+            f"Pending SOP simplification proposals: {', '.join(pending_proposals)}",
+        )
 
     if approved_proposals:
         return True, f"Approved simplified SOP: {', '.join(approved_proposals)}"
 
     return True, "SOP simplification proposals processed"
+
+
+def check_hook_integrity() -> tuple[bool, str]:
+    """Check if git hooks are intact and not tampered with. Supports pre-commit and beads."""
+    # Define standard hook sets
+    standard_hooks = {
+        "pre-commit-framework": {
+            ".git/hooks/pre-commit": [
+                "#!/usr/bin/env bash",
+                "# File generated by pre-commit:",
+                'pre_commit "${ARGS[@]}"',
+            ],
+            ".git/hooks/pre-push": [
+                "#!/usr/bin/env bash",
+                "# File generated by pre-commit:",
+                'pre_commit "${ARGS[@]}"',
+            ],
+        },
+        "beads": {
+            ".git/hooks/pre-commit": [
+                "bd (beads) pre-commit hook",
+                "bd sync --flush-only",
+            ],
+            ".git/hooks/post-merge": [
+                "bd (beads) post-merge hook",
+                "bd import",
+            ]
+        }
+    }
+
+    # Detect which standard is in use
+    detected_standard = None
+    if Path(".pre-commit-config.yaml").exists():
+        detected_standard = "pre-commit-framework"
+    elif Path(".beads").exists():
+        detected_standard = "beads"
+
+    if not detected_standard:
+        # Fallback: check if any actual hook matches a standard
+        for name, hook_set in standard_hooks.items():
+            for path, patterns in hook_set.items():
+                hook_file = Path(path)
+                if hook_file.exists() and hook_file.is_file():
+                    content = hook_file.read_text()
+                    if all(pattern in content for pattern in patterns):
+                        detected_standard = name
+                        break
+            if detected_standard:
+                break
+
+    if not detected_standard:
+        return True, "No standard hook framework detected (Integrity check skipped)"
+
+    # Validate against the detected standard
+    hook_set = standard_hooks[detected_standard]
+    missing_hooks = []
+    tampered_hooks = []
+
+    for hook_path, expected_patterns in hook_set.items():
+        hook_file = Path(hook_path)
+
+        if not hook_file.exists():
+            missing_hooks.append(hook_path)
+            continue
+
+        if not hook_file.is_file() or not os.access(hook_file, os.X_OK):
+            tampered_hooks.append(f"{hook_path} (not executable or not a file)")
+            continue
+
+        # Check for expected content patterns
+        content = hook_file.read_text()
+        for pattern in expected_patterns:
+            if pattern not in content:
+                tampered_hooks.append(
+                    f"{hook_path} (missing expected pattern: {pattern[:30]}...)"
+                )
+                break
+
+    if missing_hooks or tampered_hooks:
+        issues = []
+        if missing_hooks:
+            issues.append(f"Missing hooks: {', '.join(missing_hooks)}")
+        if tampered_hooks:
+            issues.append(f"Tampered hooks: {', '.join(tampered_hooks)}")
+        return False, f"Hook integrity failure ({detected_standard}): {'; '.join(issues)}"
+
+    return True, f"All {detected_standard} hooks intact"
 
 
 def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
@@ -542,7 +655,9 @@ def check_debriefing_invoked() -> tuple[bool, str]:
 
 def check_code_review_status() -> tuple[bool, str]:
     """Check if code review skill was recently invoked and passed."""
-    code_review_script = Path.home() / ".gemini/antigravity/skills/code-review/scripts/code_review.py"
+    code_review_script = (
+        Path.home() / ".gemini/antigravity/skills/code-review/scripts/code_review.py"
+    )
     if not code_review_script.exists():
         return False, "Code Review Skill not installed"
 
@@ -554,7 +669,7 @@ def check_code_review_status() -> tuple[bool, str]:
             capture_output=True,
             text=True,
             timeout=10,
-            env={**os.environ, "AUTOMATED_MODE": "1"}
+            env={**os.environ, "AUTOMATED_MODE": "1"},
         )
         if result.returncode == 0:
             return True, "Code Review passed (Automated check)"
@@ -632,13 +747,13 @@ def check_todo_completion() -> tuple[bool, str]:
 def check_linked_repositories() -> tuple[bool, list[str]]:
     """Validate that linked repositories follow SOP. Auto-detects changes in global dirs."""
     errors = []
-    
+
     # 1. auto-detect global repositories
     global_repos = [
         Path.home() / ".gemini",
         Path.home() / ".agent",
     ]
-    
+
     # 2. Extract from task.md if present
     task_paths = [Path(".agent/task.md"), Path("task.md")]
     for task_path in task_paths:
@@ -646,7 +761,7 @@ def check_linked_repositories() -> tuple[bool, list[str]]:
             try:
                 content = task_path.read_text()
                 # Simple regex search for - path: /path/to/repo
-                paths = re.findall(r'-\s+path:\s+([^\n\s]+)', content)
+                paths = re.findall(r"-\s+path:\s+([^\n\s]+)", content)
                 for p in paths:
                     try:
                         repo_path = Path(p).expanduser()
@@ -657,7 +772,7 @@ def check_linked_repositories() -> tuple[bool, list[str]]:
                         continue
             except Exception:
                 pass
-    
+
     checked_repos = set()
     for repo in global_repos:
         try:
@@ -665,18 +780,18 @@ def check_linked_repositories() -> tuple[bool, list[str]]:
             if repo_abs in checked_repos:
                 continue
             checked_repos.add(repo_abs)
-            
+
             # Check for uncommitted changes
             # Skip if repo is same as current workspace
             if repo_abs == str(Path(".").resolve()):
                 continue
-                
+
             res = subprocess.run(
                 ["git", "status", "--porcelain"],
                 cwd=repo_abs,
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
             if res.returncode == 0:
                 status = res.stdout.strip()
@@ -687,49 +802,65 @@ def check_linked_repositories() -> tuple[bool, list[str]]:
                         cwd=repo_abs,
                         capture_output=True,
                         text=True,
-                        timeout=2
+                        timeout=2,
                     )
-                    branch = branch_res.stdout.strip() if branch_res.returncode == 0 else "unknown"
-                    
+                    branch = (
+                        branch_res.stdout.strip()
+                        if branch_res.returncode == 0
+                        else "unknown"
+                    )
+
                     if branch in ["main", "master"]:
-                        errors.append(f"Linked repo {repo.name} has changes on protected branch '{branch}'. Please use a feature branch.")
-                    
+                        errors.append(
+                            f"Linked repo {repo.name} has changes on protected branch '{branch}'. Please use a feature branch."
+                        )
+
                     if branch != "unknown":
                         # Check for PR if gh is available
                         if check_tool_available("gh"):
                             pr_res = subprocess.run(
-                                ["gh", "pr", "list", "--author", "@me", "--head", branch],
+                                [
+                                    "gh",
+                                    "pr",
+                                    "list",
+                                    "--author",
+                                    "@me",
+                                    "--head",
+                                    branch,
+                                ],
                                 cwd=repo_abs,
                                 capture_output=True,
                                 text=True,
-                                timeout=5
+                                timeout=5,
                             )
                             if pr_res.returncode == 0 and not pr_res.stdout.strip():
-                                errors.append(f"No PR found for linked repo {repo.name} (branch: {branch})")
+                                errors.append(
+                                    f"No PR found for linked repo {repo.name} (branch: {branch})"
+                                )
         except Exception:
             pass
-            
+
     return len(errors) == 0, errors
 
 
 def check_pr_review_issue_created() -> tuple[bool, str]:
     """Check if a P0 PR review issue exists for the current branch.
-    
+
     This is MANDATORY for Full Mode finalization. The PR merge is blocked
     until the review issue is closed by another agent.
-    
+
     Returns:
         tuple[bool, str]: (is_valid, status_message)
     """
     if not check_tool_available("bd"):
         return False, "beads (bd) not available"
-    
+
     # Get current branch name
     branch, is_feature = check_branch_info()
     if not is_feature:
         # On main/master, no PR review needed
         return True, "Not on feature branch (PR review not required)"
-    
+
     try:
         # Query beads for P0 issues with 'pr-review' in title or tag
         # Also check for issues mentioning the current branch
@@ -739,14 +870,17 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
             text=True,
             timeout=10,
         )
-        
+
         if result.returncode != 0:
             return False, "Failed to query beads for PR review issues"
-        
+
         output = result.stdout.strip()
         if not output:
-            return False, f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'"
-        
+            return (
+                False,
+                f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'",
+            )
+
         # Check if any issue mentions PR review or current branch
         lines = output.split("\n")
         for line in lines:
@@ -765,9 +899,12 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
                 if parts:
                     issue_id = parts[0].strip()
                     return True, f"PR review issue found (branch match): {issue_id}"
-        
-        return False, f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'"
-        
+
+        return (
+            False,
+            f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'",
+        )
+
     except subprocess.TimeoutExpired:
         return False, "beads command timed out"
     except Exception as e:
@@ -834,7 +971,7 @@ def run_initialization(verbose: bool = False) -> bool:
         print("Planning documents accessible")
     else:
         print(f"Missing: {missing_docs}")
-        warnings.append(f"Planning documents missing: {missing_docs}")
+        blockers.append(f"Planning documents missing: {missing_docs}")
 
     # Issue Check (Optional for Init)
     issues_ok, issues_msg = check_beads_issue()
@@ -849,7 +986,10 @@ def run_initialization(verbose: bool = False) -> bool:
         warnings.append(simplification_msg)
 
     # SOP Gate Change Check
-    sop_mod_script = Path.home() / ".gemini/antigravity/skills/sop-modification/scripts/validate_sop_change.py"
+    sop_mod_script = (
+        Path.home()
+        / ".gemini/antigravity/skills/sop-modification/scripts/validate_sop_change.py"
+    )
     if sop_mod_script.exists():
         try:
             result = subprocess.run(
@@ -860,7 +1000,7 @@ def run_initialization(verbose: bool = False) -> bool:
             )
             sop_ok = result.returncode == 0
             sop_msg = result.stdout.strip() or result.stderr.strip()
-            first_line = "No issues" if not sop_msg else sop_msg.split('\n')[0]
+            first_line = "No issues" if not sop_msg else sop_msg.split("\n")[0]
             print(f"├── SOP Gates: {check_mark(sop_ok)} {first_line}")
             if not sop_ok:
                 blockers.append(f"SOP gate violation: {sop_msg}")
@@ -875,9 +1015,11 @@ def run_initialization(verbose: bool = False) -> bool:
 
     print(f"└── Approval: {check_mark(approval_ok)} {approval_msg}")
     if not approval_ok:
-        warnings.append(approval_msg)
+        blockers.append(approval_msg)
     if not progress_ok:
-        warnings.append("Progress log missing - run /log-progress to initialize context")
+        warnings.append(
+            "Progress log missing - run /log-progress to initialize context"
+        )
 
     print()
 
@@ -891,20 +1033,26 @@ def run_initialization(verbose: bool = False) -> bool:
         update_progress_ledger("Initialization", "failure", f"Blocked: {blockers}")
         return False
     elif warnings:
-        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ INITIALIZATION PASSED WITH WARNINGS{Colors.END}")
+        print(
+            f"{Colors.YELLOW}{Colors.BOLD}⚠️ INITIALIZATION PASSED WITH WARNINGS{Colors.END}"
+        )
         print()
         print("WARNINGS:")
         for i, warning in enumerate(warnings, 1):
             print(f"  {i}. {warning}")
         print()
         print("Ready for execution (address warnings when possible)")
-        update_progress_ledger("Initialization", "success", f"Passed with warnings: {warnings}")
+        update_progress_ledger(
+            "Initialization", "success", f"Passed with warnings: {warnings}"
+        )
         return True
     else:
         print(f"{Colors.GREEN}{Colors.BOLD}✅ INITIALIZATION COMPLETE{Colors.END}")
         print()
         print("Ready for execution!")
-        update_progress_ledger("Initialization", "success", "Clean initialization complete")
+        update_progress_ledger(
+            "Initialization", "success", "Clean initialization complete"
+        )
         return True
 
 
@@ -919,7 +1067,7 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     # Tool Check (Only Git is strictly required for Turbo)
     git_ok = check_tool_available("git")
     print(f"├── Git: {check_mark(git_ok)}")
-    
+
     # Check for existing code blockers (should not have uncommitted code changes)
     git_clean, git_msg = check_git_status(turbo=True)
     print(f"└── Git Clean: {check_mark(git_clean)} {git_msg.split(chr(10))[0]}")
@@ -928,7 +1076,9 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     if not git_ok or not git_clean:
         print(f"{Colors.RED}{Colors.BOLD}❌ TURBO BLOCKED{Colors.END}")
         if not git_clean:
-            print(f"  {warning_mark()} Code changes detected. Escalate to Full SOP (--init).")
+            print(
+                f"  {warning_mark()} Code changes detected. Escalate to Full SOP (--init)."
+            )
         return False
 
     print(f"{Colors.GREEN}{Colors.BOLD}✅ TURBO READY{Colors.END}")
@@ -980,7 +1130,17 @@ def run_execution(verbose: bool = False) -> bool:
     issues_ok, issues_msg = check_beads_issue()
     print(f"├── Beads Issue: {check_mark(issues_ok)} {issues_msg}")
     if not issues_ok:
-        issues.append("MANDATORY: Current rule requires a Beads issue before implementation")
+        issues.append(
+            "MANDATORY: Current rule requires a Beads issue before implementation"
+        )
+
+    # MANDATORY Plan Approval Check for Execution
+    approval_ok, approval_msg = check_plan_approval()
+    print(f"├── Plan Approval: {check_mark(approval_ok)} {approval_msg}")
+    if not approval_ok:
+        issues.append(
+            f"MANDATORY: {approval_msg}. Approval required in task.md before implementation."
+        )
 
     # MANDATORY TDD Compliance Check
     tdd_ok, tdd_msg = validate_tdd_compliance()
@@ -1025,7 +1185,9 @@ def run_finalization(verbose: bool = False) -> bool:
     print(f"{Colors.BOLD}🛬 FINALIZATION CHECK{Colors.END}")
     print("=" * 40)
     print()
-    print("Finalization focuses on safe landing: code quality, clean git, successful push.")
+    print(
+        "Finalization focuses on safe landing: code quality, clean git, successful push."
+    )
     print()
 
     blockers = []
@@ -1067,12 +1229,14 @@ def run_finalization(verbose: bool = False) -> bool:
         for error in atomic_errors:
             print(f"│   └── {error}")
         blockers.extend(atomic_errors)
-    
+
     # Reflection Check (Enforced at Finalization to ensure it's not skipped)
     reflect_ok, reflect_msg = check_reflection_invoked()
     print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
-        blockers.append("Reflection not captured - invoke /reflect (Mandatory for Finalization)")
+        blockers.append(
+            "Reflection not captured - invoke /reflect (Mandatory for Finalization)"
+        )
 
     # Linked Repository Validation
     linked_ok, linked_errors = check_linked_repositories()
@@ -1100,10 +1264,17 @@ def run_finalization(verbose: bool = False) -> bool:
 
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
-    print(f"└── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
+    print(f"├── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
     if not todo_ok:
         blockers.append(f"Todo Enforcer failed: {todo_msg}")
 
+    # Hook Integrity Check (NEW MANDATORY GATE)
+    hook_ok, hook_msg = check_hook_integrity()
+    print(f"└── Hook Integrity: {check_mark(hook_ok)} {hook_msg}")
+    if not hook_ok:
+        blockers.append(
+            f"Hook integrity failure: {hook_msg} - hooks may have been tampered with"
+        )
 
     print()
 
@@ -1119,14 +1290,18 @@ def run_finalization(verbose: bool = False) -> bool:
         update_progress_ledger("Finalization", "failure", f"Blocked: {blockers}")
         return False
     elif warnings:
-        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ FINALIZATION PASSED WITH WARNINGS{Colors.END}")
+        print(
+            f"{Colors.YELLOW}{Colors.BOLD}⚠️ FINALIZATION PASSED WITH WARNINGS{Colors.END}"
+        )
         print()
         print("WARNINGS:")
         for i, warning in enumerate(warnings, 1):
             print(f"  {i}. {warning}")
         print()
         print("Safe landing! Now proceed to Retrospective.")
-        update_progress_ledger("Finalization", "success", f"Passed with warnings: {warnings}")
+        update_progress_ledger(
+            "Finalization", "success", f"Passed with warnings: {warnings}"
+        )
         return True
     else:
         print(f"{Colors.GREEN}{Colors.BOLD}✅ FINALIZATION COMPLETE{Colors.END}")
@@ -1145,10 +1320,12 @@ def run_turbo_finalization(verbose: bool = False) -> bool:
     # Git Status Check (Escalation Detection)
     git_ok, git_msg = check_git_status(turbo=True)
     print(f"├── Git Status: {check_mark(git_ok)} {git_msg.split(chr(10))[0]}")
-    
+
     # Beads Sync check (Optional but recommended)
     bd_ok = check_tool_available("bd")
-    print(f"└── Beads Sync: {check_mark(bd_ok) if bd_ok else warning_mark()} {'Available' if bd_ok else 'Missing'}")
+    print(
+        f"└── Beads Sync: {check_mark(bd_ok) if bd_ok else warning_mark()} {'Available' if bd_ok else 'Missing'}"
+    )
 
     print()
     if not git_ok:
@@ -1208,7 +1385,10 @@ def run_retrospective(verbose: bool = False) -> bool:
                 if len(parts) > 1:
                     # Skip the first line which might be the remainder of the heading
                     section_lines = parts[1].split("\n")[1:]
-                    if any(line.strip() and not line.strip().startswith(("#", "!", "<!--")) for line in section_lines):
+                    if any(
+                        line.strip() and not line.strip().startswith(("#", "!", "<!--"))
+                        for line in section_lines
+                    ):
                         reflector_ok = True
                         reflector_msg = "Reflector synthesis captured in progress log"
                     else:
@@ -1304,7 +1484,11 @@ def run_clean_state(verbose: bool = False) -> bool:
         issues.append("Pull latest changes from remote")
 
     # Artifact Cleanup Check
-    temp_artifacts = list(Path(".").glob("task.md")) + list(Path(".").glob("walkthrough.md")) + list(Path(".").glob("debrief.md"))
+    temp_artifacts = (
+        list(Path(".").glob("task.md"))
+        + list(Path(".").glob("walkthrough.md"))
+        + list(Path(".").glob("debrief.md"))
+    )
     cleanup_ok = len(temp_artifacts) == 0
     print(f"\n├── Cleanup: {check_mark(cleanup_ok)} ", end="")
     if cleanup_ok:
@@ -1336,7 +1520,7 @@ def run_summary(verbose: bool = False) -> bool:
     """Provide a concise SOP compliance summary for session handoffs."""
     print(f"{Colors.BOLD}📋 SOP COMPLIANCE SUMMARY{Colors.END}")
     print("=" * 40)
-    
+
     # Initialization status
     init_ok, init_msg = check_plan_approval()
     # Finalization status
@@ -1344,24 +1528,24 @@ def run_summary(verbose: bool = False) -> bool:
     # Retrospective status
     reflect_ok, _ = check_reflection_invoked()
     debrief_ok, _ = check_debriefing_invoked()
-    
+
     # Higher-level phase status
     phases = [
         ("Initialization", init_ok),
         ("Execution", True),  # Implicit if we are at this stage
         ("Finalization", git_ok),
-        ("Retrospective", reflect_ok and debrief_ok)
+        ("Retrospective", reflect_ok and debrief_ok),
     ]
-    
+
     for phase, ok in phases:
         print(f"{check_mark(ok)} {phase}")
-        
+
     print("-" * 40)
     if all(ok for _, ok in phases):
         print(f"{Colors.GREEN}{Colors.BOLD}✅ ALL PHASES COMPLIANT{Colors.END}")
     else:
         print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ COMPLIANCE PENDING{Colors.END}")
-        
+
     return all(ok for _, ok in phases)
 
 
@@ -1397,7 +1581,9 @@ def run_status(verbose: bool = False) -> bool:
     print()
     run_summary(verbose)
     print()
-    print("Run --init, --execute, --finalize, or --retrospective for detailed phase checks.")
+    print(
+        "Run --init, --execute, --finalize, or --retrospective for detailed phase checks."
+    )
 
     return True
 

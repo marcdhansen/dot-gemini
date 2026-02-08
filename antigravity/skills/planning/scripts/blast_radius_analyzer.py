@@ -281,6 +281,8 @@ class DependencyGraph:
                     self.api_graph,
                     self.data_graph,
                 ]:
+                    if node not in layer_graph:
+                        continue
                     neighbors = set(layer_graph.successors(node))
                     new_impacts = neighbors - affected
                     frontier.update(new_impacts)
@@ -304,9 +306,10 @@ class ChangeDetector:
         ]
 
     def analyze_changes(
-        self, changed_files: List[str], level: AnalysisLevel = AnalysisLevel.DETAILED
+        self, changed_files: List[Any], level: AnalysisLevel = AnalysisLevel.DETAILED
     ) -> BlastRadiusResult:
         """Analyze changes and generate blast radius report"""
+        changed_files = [str(f) for f in changed_files]
 
         if level == AnalysisLevel.SUMMARY:
             return self._summary_analysis(changed_files)
@@ -438,18 +441,20 @@ class ChangeDetector:
 
     def _is_critical_path(self, file_path: str) -> bool:
         """Check if file is on a critical path"""
-        return any(critical in file_path for critical in self.critical_paths)
+        file_path_str = str(file_path)
+        return any(critical in file_path_str for critical in self.critical_paths)
 
     def _calculate_risk_level(self, changed_files: List[str]) -> RiskLevel:
         """Calculate overall risk level"""
         risk_score = 0
 
         for file_path in changed_files:
+            file_path_str = str(file_path)
             if self._is_critical_path(file_path):
                 risk_score += 3
-            elif "api" in file_path or "routes" in file_path:
+            elif "api" in file_path_str or "routes" in file_path_str:
                 risk_score += 2
-            elif "config" in file_path or "deployment" in file_path:
+            elif "config" in file_path_str or "deployment" in file_path_str:
                 risk_score += 2
             else:
                 risk_score += 1
@@ -479,9 +484,9 @@ class ChangeDetector:
 
     def _estimate_deployment_impact(self, changed_files: List[str]) -> str:
         """Estimate deployment impact"""
-        has_api_changes = any("api" in f or "routes" in f for f in changed_files)
-        has_config_changes = any("config" in f for f in changed_files)
-        has_db_changes = any("database" in f or "schema" in f for f in changed_files)
+        has_api_changes = any("api" in str(f) or "routes" in str(f) for f in changed_files)
+        has_config_changes = any("config" in str(f) for f in changed_files)
+        has_db_changes = any("database" in str(f) or "schema" in str(f) for f in changed_files)
 
         if has_db_changes:
             return "FULL_RESTART"
@@ -503,8 +508,9 @@ class ChangeDetector:
         else:
             return "1-2 days"
 
-    def _analyze_file_impact(self, file_path: str) -> FileImpact:
+    def _analyze_file_impact(self, file_path: Any) -> FileImpact:
         """Analyze impact of changes to a specific file"""
+        file_path = str(file_path)
 
         # Determine change type
         change_type = self._classify_change_type(file_path)
@@ -603,7 +609,7 @@ class ChangeDetector:
 
         test_found = False
         for pattern in test_patterns:
-            if any(pattern in f for f in self.repo_path.rglob("*.py")):
+            if any(pattern in str(f) for f in self.repo_path.rglob("*.py")):
                 test_found = True
                 break
 

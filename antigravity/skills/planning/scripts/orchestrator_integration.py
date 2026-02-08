@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import subprocess
+from dataclasses import asdict
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -135,7 +136,7 @@ class OrchestratorPlanningIntegration:
             "task_id": task_id,
             "created_at": datetime.now().isoformat(),
             "task_details": task_details,
-            "blast_radius_analysis": analysis_result,
+            "blast_radius_analysis": asdict(analysis_result),
             "changed_files": changed_files,
             "analysis_level": analysis_level.value,
             "planning_status": "scoped",
@@ -163,7 +164,10 @@ class OrchestratorPlanningIntegration:
                 timeout=10,
             )
             if result.returncode == 0:
-                return json.loads(result.stdout)
+                data = json.loads(result.stdout)
+                if isinstance(data, list) and len(data) > 0:
+                    return data[0]
+                return data
         except (
             subprocess.TimeoutExpired,
             subprocess.CalledProcessError,
