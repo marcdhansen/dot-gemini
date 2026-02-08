@@ -603,6 +603,89 @@ def check_todo_completion() -> tuple[bool, str]:
     return True, "Todo enforcer script not found (Skipping)"
 
 
+def check_linked_repositories() -> tuple[bool, list[str]]:
+    """Validate that linked repositories follow SOP. Auto-detects changes in global dirs."""
+    errors = []
+    
+    # 1. auto-detect global repositories
+    global_repos = [
+        Path.home() / ".gemini",
+        Path.home() / ".agent",
+    ]
+    
+    # 2. Extract from task.md if present
+    task_paths = [Path(".agent/task.md"), Path("task.md")]
+    for task_path in task_paths:
+        if task_path.exists():
+            try:
+                content = task_path.read_text()
+                # Simple regex search for - path: /path/to/repo
+                paths = re.findall(r'-\s+path:\s+([^\n\s]+)', content)
+                for p in paths:
+                    try:
+                        repo_path = Path(p).expanduser()
+                        if repo_path.exists() and repo_path.is_dir():
+                            if (repo_path / ".git").exists():
+                                global_repos.append(repo_path)
+                    except Exception:
+                        continue
+            except Exception:
+                pass
+    
+    checked_repos = set()
+    for repo in global_repos:
+        try:
+            repo_abs = str(repo.resolve())
+            if repo_abs in checked_repos:
+                continue
+            checked_repos.add(repo_abs)
+            
+            # Check for uncommitted changes
+            # Skip if repo is same as current workspace
+            if repo_abs == str(Path(".").resolve()):
+                continue
+                
+            res = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=repo_abs,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if res.returncode == 0:
+                status = res.stdout.strip()
+                if status:
+                    # Repo has changes, check branch and PR
+                    branch_res = subprocess.run(
+                        ["git", "branch", "--show-current"],
+                        cwd=repo_abs,
+                        capture_output=True,
+                        text=True,
+                        timeout=2
+                    )
+                    branch = branch_res.stdout.strip() if branch_res.returncode == 0 else "unknown"
+                    
+                    if branch in ["main", "master"]:
+                        errors.append(f"Linked repo {repo.name} has changes on protected branch '{branch}'. Please use a feature branch.")
+                    
+                    if branch != "unknown":
+                        # Check for PR if gh is available
+                        if check_tool_available("gh"):
+                            pr_res = subprocess.run(
+                                ["gh", "pr", "list", "--author", "@me", "--head", branch],
+                                cwd=repo_abs,
+                                capture_output=True,
+                                text=True,
+                                timeout=5
+                            )
+                            if pr_res.returncode == 0 and not pr_res.stdout.strip():
+                                errors.append(f"No PR found for linked repo {repo.name} (branch: {branch})")
+        except Exception:
+            pass
+            
+    return len(errors) == 0, errors
+
+
 def run_initialization(verbose: bool = False) -> bool:
     """Run Initialization validation."""
     print(f"{Colors.BOLD}📋 INITIALIZATION CHECK{Colors.END}")
@@ -902,6 +985,18 @@ def run_finalization(verbose: bool = False) -> bool:
     print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
         blockers.append("Reflection not captured - invoke /reflect (Mandatory for Finalization)")
+
+    # Linked Repository Validation
+    linked_ok, linked_errors = check_linked_repositories()
+    linked_icon = check_mark(linked_ok) if linked_ok else warning_mark()
+    print(f"├── Linked Repos: {linked_icon} ", end="")
+    if linked_ok:
+        print("All linked repositories compliant")
+    else:
+        print("Validation failed")
+        for error in linked_errors:
+            print(f"│   └── {error}")
+        blockers.extend(linked_errors)
 
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
