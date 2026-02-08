@@ -712,6 +712,68 @@ def check_linked_repositories() -> tuple[bool, list[str]]:
     return len(errors) == 0, errors
 
 
+def check_pr_review_issue_created() -> tuple[bool, str]:
+    """Check if a P0 PR review issue exists for the current branch.
+    
+    This is MANDATORY for Full Mode finalization. The PR merge is blocked
+    until the review issue is closed by another agent.
+    
+    Returns:
+        tuple[bool, str]: (is_valid, status_message)
+    """
+    if not check_tool_available("bd"):
+        return False, "beads (bd) not available"
+    
+    # Get current branch name
+    branch, is_feature = check_branch_info()
+    if not is_feature:
+        # On main/master, no PR review needed
+        return True, "Not on feature branch (PR review not required)"
+    
+    try:
+        # Query beads for P0 issues with 'pr-review' in title or tag
+        # Also check for issues mentioning the current branch
+        result = subprocess.run(
+            ["bd", "list", "--priority", "P0"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        
+        if result.returncode != 0:
+            return False, "Failed to query beads for PR review issues"
+        
+        output = result.stdout.strip()
+        if not output:
+            return False, f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'"
+        
+        # Check if any issue mentions PR review or current branch
+        lines = output.split("\n")
+        for line in lines:
+            line_lower = line.lower()
+            # Match patterns: "pr review", "pr-review", or the branch name
+            if "pr review" in line_lower or "pr-review" in line_lower:
+                # Extract issue ID if possible
+                parts = line.split(":")
+                if parts:
+                    issue_id = parts[0].strip()
+                    return True, f"PR review issue found: {issue_id}"
+            # Also match by branch name in the issue
+            branch_slug = branch.split("/")[-1] if "/" in branch else branch
+            if branch_slug.lower() in line_lower:
+                parts = line.split(":")
+                if parts:
+                    issue_id = parts[0].strip()
+                    return True, f"PR review issue found (branch match): {issue_id}"
+        
+        return False, f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'"
+        
+    except subprocess.TimeoutExpired:
+        return False, "beads command timed out"
+    except Exception as e:
+        return False, f"PR review check failed: {e}"
+
+
 def run_initialization(verbose: bool = False) -> bool:
     """Run Initialization validation."""
     print(f"{Colors.BOLD}📋 INITIALIZATION CHECK{Colors.END}")
@@ -1030,11 +1092,18 @@ def run_finalization(verbose: bool = False) -> bool:
     if not review_ok:
         blockers.append(f"Code Review failure: {review_msg} - run /code-review")
 
+    # PR Review Issue Check (MANDATORY for Full Mode - blocks PR merge)
+    pr_review_ok, pr_review_msg = check_pr_review_issue_created()
+    print(f"├── PR Review Issue: {check_mark(pr_review_ok)} {pr_review_msg}")
+    if not pr_review_ok:
+        blockers.append(f"PR Review Issue required: {pr_review_msg}")
+
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
     print(f"└── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
     if not todo_ok:
         blockers.append(f"Todo Enforcer failed: {todo_msg}")
+
 
     print()
 

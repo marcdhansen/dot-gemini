@@ -55,3 +55,22 @@ block_on_request_changes: true
 
 - **Orchestrator**: Blocks finalization if the review status is `REQUEST_CHANGES`.
 - **Beads**: Links review outcomes to the active task.
+
+## P0 Review Issue Protocol
+
+When assigned a P0 PR review issue:
+
+1. **Read Issue**: Open the PR link from the issue description
+2. **Run Review**: `python ~/.gemini/antigravity/skills/code-review/scripts/code_review.py`
+3. **Complete Checklist**: Answer all interactive checklist items
+4. **Document Outcome**: Update the issue with your review outcome
+
+### Outcomes
+
+| Decision | Action |
+| --- | --- |
+| **APPROVE** | Close the issue → Unblocks PR merge |
+| **REQUEST_CHANGES** | Add comment with required changes → Keep issue open |
+
+> [!IMPORTANT]
+> The reviewing agent MUST be different from the implementing agent. This is enforced by Beads task assignment.
