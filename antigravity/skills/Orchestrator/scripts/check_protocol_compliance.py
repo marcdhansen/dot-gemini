@@ -540,6 +540,30 @@ def check_debriefing_invoked() -> tuple[bool, str]:
     return False, "No recent debrief found"
 
 
+def check_code_review_status() -> tuple[bool, str]:
+    """Check if code review skill was recently invoked and passed."""
+    code_review_script = Path.home() / ".gemini/antigravity/skills/code-review/scripts/code_review.py"
+    if not code_review_script.exists():
+        return False, "Code Review Skill not installed"
+
+    try:
+        # Check if the code review was successful by running it in non-interactive mode
+        # If it returns 0, it means it would pass (or has no changes to review)
+        result = subprocess.run(
+            [sys.executable, str(code_review_script)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            env={**os.environ, "AUTOMATED_MODE": "1"}
+        )
+        if result.returncode == 0:
+            return True, "Code Review passed (Automated check)"
+        else:
+            return False, "Code Review failed or requires manual intervention"
+    except Exception as e:
+        return False, f"Code Review check error: {e}"
+
+
 def check_handoff_compliance() -> tuple[bool, str]:
     """Check if hand-off compliance verification passes for multi-phase implementations."""
     # Look for hand-off directory and verification script
@@ -1000,6 +1024,12 @@ def run_finalization(verbose: bool = False) -> bool:
             print(f"│   └── {error}")
         blockers.extend(linked_errors)
 
+    # Code Review Check (NEW MANDATORY GATE)
+    review_ok, review_msg = check_code_review_status()
+    print(f"├── Code Review: {check_mark(review_ok)} {review_msg}")
+    if not review_ok:
+        blockers.append(f"Code Review failure: {review_msg} - run /code-review")
+
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
     print(f"└── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
@@ -1285,6 +1315,9 @@ def run_status(verbose: bool = False) -> bool:
 
     reflect_ok, reflect_msg = check_reflection_invoked()
     print(f"  - Reflect: {check_mark(reflect_ok)} {reflect_msg}")
+
+    review_ok, review_msg = check_code_review_status()
+    print(f"  - Code Review: {check_mark(review_ok)} {review_msg}")
 
     debrief_ok, debrief_msg = check_debriefing_invoked()
     print(f"  - Retrospective: {check_mark(debrief_ok)} {debrief_msg}")
