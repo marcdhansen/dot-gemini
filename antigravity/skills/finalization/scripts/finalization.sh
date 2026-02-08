@@ -257,15 +257,55 @@ if [ -f ".agent/scripts/evaluate_sop_effectiveness.sh" ]; then
         echo ""
         echo "🔧 Action Required:"
         echo "   1. Address all identified friction points"
-        echo "   2. Improve Initialization compliance to 85%+"
-        echo "   3. Re-run SOP evaluation before Finalization"
+        echo "   2. 🚨 CRITICAL: If multi-phase work detected, CREATE HAND-OFF DOCUMENTS"
+        echo "   3. Improve Initialization compliance to 85%+"
+        echo "   4. Re-run SOP evaluation before Finalization"
         echo ""
         echo "💡 Run '.agent/scripts/evaluate_sop_effectiveness.sh' to see detailed issues"
         exit 1
     fi
 else
-    echo "⚠️  SOP evaluation script not found - skipping mandatory check"
-    echo "💡 This may indicate a project configuration issue"
+        echo "⚠️  SOP evaluation script not found - skipping mandatory check"
+        echo "💡 This may indicate a project configuration issue"
+    fi
+
+# Enhanced hand-off compliance check for multi-phase work
+echo "🔍 4.1. Enhanced Hand-off Compliance Check"
+echo "-----------------------------------------"
+
+# Check if multi-phase patterns are present and hand-offs are missing
+if [ -f ".agent/scripts/multi_phase_detector.py" ]; then
+    echo "🔍 Checking for multi-phase implementation patterns..."
+    
+    # Run multi-phase detection
+    local detection_result=$(python3 .agent/scripts/multi_phase_detector.py 2>/dev/null)
+    local detector_exit_code=$?
+    
+    if [ $detector_exit_code -eq 1 ] || [[ "$detection_result" == *"DETECTED"* ]]; then
+        echo "🚨 Multi-phase implementation patterns detected"
+        
+        # Check if hand-off directory exists and has content
+        local handoff_dir="${HANDOFF_DIR:-.agent/handoffs}"
+        if [ ! -d "$handoff_dir" ] || [ -z "$(ls -A "$handoff_dir" 2>/dev/null)" ]; then
+            echo "❌ CRITICAL VIOLATION: Multi-phase work without mandatory hand-off documents"
+            echo "🚫 BLOCKER: Cannot proceed with Finalization without hand-off compliance"
+            echo ""
+            echo "🔧 MANDATORY ACTION REQUIRED:"
+            echo "   1. Create hand-off documents in: .agent/handoffs/<feature>/phase-XX-handoff.md"
+            echo "   2. Use template: .agent/docs/sop/MULTI_PHASE_HANDOFF_PROTOCOL.md"
+            echo "   3. Verify compliance: .agent/scripts/verify_handoff_compliance.sh --phase <phase-id>"
+            echo "   4. Re-run Finalization after hand-off creation"
+            echo ""
+            echo "💡 This prevents SOP bypass incidents like the CI_CD_P0_RESOLUTION_PLAYBOOK.md"
+            exit 1
+        else
+            echo "✅ Hand-off documents found - compliance verified"
+        fi
+    else
+        echo "✅ No multi-phase patterns detected - hand-off verification not required"
+    fi
+else
+    echo "⚠️ Multi-phase detector not found - skipping enhanced check"
 fi
 
 echo
