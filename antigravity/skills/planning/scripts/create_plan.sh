@@ -62,6 +62,8 @@ class PlanningOrchestrator:
             return scope
             
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             print(f"❌ Error creating scope: {e}")
             return {}
     

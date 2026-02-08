@@ -1,0 +1,9 @@
+max_diff_lines: 500
+require_tests: true
+block_on_request_changes: true
+checklist:
+  - "Logic is correct and handles edge cases."
+  - "No sensitive information (API keys, etc.) is exposed."
+  - "Code follows project style and naming conventions."
+  - "New functionality is covered by tests."
+  - "Documentation is updated if necessary."

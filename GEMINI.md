@@ -40,12 +40,24 @@ For universal agent protocols, protocols, and documentation:
 ## 🚀 Session Initialization (Auto-Execute)
 
 > [!CAUTION]
-> **FIRST ACTION of every session**: Before responding to ANY user request, execute these commands:
+> **FIRST ACTION of every session**: Before responding to ANY user request, execute the universal session gate:
 
 // turbo
 
 ```bash
-python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --init --turbo
+export AGENT_PROVIDER=gemini
+~/.agent/bin/agent-session-gate
+```
+
+This universal gate automatically handles:
+- Orchestrator SOP compliance validation
+- Session audit logging
+- Environment configuration
+- Compliance enforcement
+
+After the gate completes successfully, continue with initialization briefing:
+
+```bash
 python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py --turbo
 ```
 
