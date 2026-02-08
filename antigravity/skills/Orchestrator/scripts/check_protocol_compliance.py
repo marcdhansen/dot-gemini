@@ -1256,12 +1256,15 @@ def run_finalization(verbose: bool = False) -> bool:
     if not review_ok:
         blockers.append(f"Code Review failure: {review_msg} - run /code-review")
 
+<<<<<<< HEAD
     # PR Review Issue Check (MANDATORY for Full Mode - blocks PR merge)
     pr_review_ok, pr_review_msg = check_pr_review_issue_created()
     print(f"├── PR Review Issue: {check_mark(pr_review_ok)} {pr_review_msg}")
     if not pr_review_ok:
         blockers.append(f"PR Review Issue required: {pr_review_msg}")
 
+=======
+>>>>>>> 0e09186 (feat(skill): implement code-review skill and integrate as SOP gate [agent-harness-pr6])
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
     print(f"├── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
