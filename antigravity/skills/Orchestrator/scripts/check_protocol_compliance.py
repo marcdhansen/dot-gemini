@@ -279,7 +279,7 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
     """Validate atomic commit requirements per SOP git-workflow.
 
     Checks:
-    1. Single commit ahead of origin/main (atomic commit)
+    1. Single commit ahead of base branch (usually main or origin/main)
     2. No merge commits in branch history
     3. Commit message includes Beads issue ID
     4. Commit message follows conventional format
@@ -290,35 +290,76 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
     errors = []
 
     try:
-        # Check 1: Count commits ahead of origin/main
+        # Determine base branch for comparison (prefer origin/main, fallback to main)
+        base_branch = "origin/main"
+        res = subprocess.run(
+            ["git", "rev-parse", "--verify", base_branch],
+            capture_output=True,
+            text=True,
+        )
+        if res.returncode != 0:
+            base_branch = "main"
+            res = subprocess.run(
+                ["git", "rev-parse", "--verify", base_branch],
+                capture_output=True,
+                text=True,
+            )
+            if res.returncode != 0:
+                base_branch = "master"
+                res = subprocess.run(
+                    ["git", "rev-parse", "--verify", base_branch],
+                    capture_output=True,
+                    text=True,
+                )
+
+        if res.returncode != 0:
+            errors.append(
+                "Could not identify base branch (main/master/origin/main) for comparison."
+            )
+            return False, errors
+
+        # Check 1: Count commits ahead of base branch
         result = subprocess.run(
-            ["git", "log", "--oneline", "origin/main..HEAD"],
+            ["git", "log", "--oneline", f"{base_branch}..HEAD"],
             capture_output=True,
             text=True,
             timeout=5,
         )
         if result.returncode != 0:
-            errors.append(
-                "Could not compare with origin/main. Ensure branch is pushed."
-            )
+            errors.append(f"Could not compare with {base_branch}.")
             return False, errors
 
         commits = [line for line in result.stdout.strip().split("\n") if line]
         commit_count = len(commits)
 
         if commit_count == 0:
-            errors.append("No commits ahead of origin/main")
-            return False, errors
+            # If we are on the base branch itself, we should check if we have any unpushed commits
+            current_branch, _ = check_branch_info()
+            if current_branch in ["main", "master", "origin/main"]:
+                 # Working directly on main/master - check against upstream
+                 upstream = "@{u}"
+                 res = subprocess.run(["git", "rev-parse", "--verify", upstream], capture_output=True, text=True)
+                 if res.returncode == 0:
+                     result = subprocess.run(
+                        ["git", "log", "--oneline", f"{upstream}..HEAD"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                    )
+                     commits = [line for line in result.stdout.strip().split("\n") if line]
+                     commit_count = len(commits)
+                     if commit_count == 0:
+                         return True, [] # No new work to validate
 
         if commit_count > 1:
             errors.append(
-                f"Multiple commits detected ({commit_count}). Squash required."
+                f"Multiple commits detected ({commit_count}). Squash required before merging to ensure atomic history."
             )
-            errors.append(f"  Run: git rebase -i HEAD~{commit_count}")
+            errors.append(f"  Run: git rebase -i {base_branch}")
 
         # Check 2: Detect merge commits
         result = subprocess.run(
-            ["git", "log", "--merges", "origin/main..HEAD", "--oneline"],
+            ["git", "log", "--merges", f"{base_branch}..HEAD", "--oneline"],
             capture_output=True,
             text=True,
             timeout=5,
@@ -326,11 +367,14 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
         if result.returncode == 0 and result.stdout.strip():
             merge_commits = result.stdout.strip().split("\n")
             errors.append(
-                f"Merge commits not allowed ({len(merge_commits)} found). Use rebase strategy."
+                f"Merge commits detected ({len(merge_commits)}). Merge commits are strictly forbidden by SOP."
             )
-            errors.append("  Run: git rebase origin/main")
+            errors.append(f"  Action: Rebase onto {base_branch} instead of merging it.")
+            errors.append(f"  Run: git rebase {base_branch}")
+        elif result.returncode != 0:
+            errors.append(f"Merge commit check failed for range {base_branch}..HEAD")
 
-        # Check 3 & 4: Validate commit message format
+        # Check 3 & 4: Validate commit message format (only if exactly 1 commit)
         if commit_count == 1:
             result = subprocess.run(
                 ["git", "log", "-1", "--pretty=%B"],
@@ -348,19 +392,19 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
                         "Commit message must include Beads issue ID in format [issue-id]"
                     )
                     errors.append(
-                        "  Example: feat(auth): add validation [agent-harness-v0o]"
+                        "  Correct Format Example: feat(auth): add validation [agent-harness-v0o]"
                     )
 
                 # Check conventional commit format <type>(<scope>): <description>
                 conv_pattern = r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
                 if not re.match(conv_pattern, commit_msg.split("\n")[0]):
-                    errors.append("Commit message must follow conventional format")
-                    errors.append("  Format: <type>(<scope>): <description> [issue-id]")
+                    errors.append("Commit message does not follow conventional commit format")
+                    errors.append("  Required: <type>(<scope>): <description> [issue-id]")
 
         return len(errors) == 0, errors
 
     except Exception as e:
-        errors.append(f"Atomic commit validation error: {e}")
+        errors.append(f"Atomic commit validation system error: {e}")
         return False, errors
 
 
