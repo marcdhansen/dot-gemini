@@ -420,6 +420,9 @@ echo
 echo "🔀 6. Git Operations"
 echo "-------------------"
 
+# Refresh git status to catch changes from previous steps (formatting, beads sync, etc.)
+GIT_STATUS=$(git status --porcelain)
+
 # Stage all changes
 if [ ! -z "$GIT_STATUS" ]; then
     echo "📝 Staging changes..."
@@ -428,11 +431,22 @@ if [ ! -z "$GIT_STATUS" ]; then
     # Commit if there are staged changes
     if ! git diff --cached --quiet; then
         echo "💬 Committing changes..."
-        # Use a sensible commit message based on the branch name
-        if [[ "$CURRENT_BRANCH" == "agent/"* ]]; then
-            COMMIT_MSG="Agent work on $CURRENT_BRANCH"
+        # Try to extract Beads issue ID from branch name (e.g., agent/agent-harness-v0o -> [agent-harness-v0o])
+        ISSUE_ID=$(echo "$CURRENT_BRANCH" | grep -oE "[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+")
+        if [ -z "$ISSUE_ID" ]; then
+             ISSUE_ID=$(echo "$CURRENT_BRANCH" | grep -oE "[a-zA-Z0-9]+-[a-zA-Z0-9]+")
+        fi
+        
+        ISSUE_SUFFIX=""
+        if [ ! -z "$ISSUE_ID" ]; then
+            ISSUE_SUFFIX=" [$ISSUE_ID]"
+        fi
+
+        # Use a sensible commit message following conventional commit format
+        if [[ "$CURRENT_BRANCH" == "agent/"* ]] || [[ "$CURRENT_BRANCH" == "feature/"* ]]; then
+            COMMIT_MSG="feat: auto-commit of session work on $CURRENT_BRANCH$ISSUE_SUFFIX"
         else
-            COMMIT_MSG="Update $(date '+%Y-%m-%d %H:%M')"
+            COMMIT_MSG="chore: auto-update changes at $(date '+%Y-%m-%d %H:%M')$ISSUE_SUFFIX"
         fi
         git commit -m "$COMMIT_MSG" || check_success "git commit"
     fi

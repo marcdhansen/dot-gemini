@@ -72,5 +72,12 @@ When assigned a P0 PR review issue:
 | **APPROVE** | Close the issue → Unblocks PR merge |
 | **REQUEST_CHANGES** | Add comment with required changes → Keep issue open |
 
+### 🚀 Merging Protocol
+
+After approving a PR, always use the **"Squash and merge"** option on GitHub to maintain a clean atomic history.
+
+- **Automation**: Use the `browser_subagent` to navigate to the PR URL and explicitly select "Squash and merge" from the dropdown before confirming.
+- **Verification**: Ensure the final merged commit follows the conventional format and includes the issue ID.
+
 > [!IMPORTANT]
 > The reviewing agent MUST be different from the implementing agent. This is enforced by Beads task assignment.
