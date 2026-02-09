@@ -261,11 +261,15 @@ def get_active_issue_id() -> str | None:
             )
             if result.returncode == 0:
                 lines = result.stdout.strip().split("\n")
-                if lines:
-                    # Extract ID from first line (assuming format ID: Title)
-                    first_line = lines[0]
-                    if ":" in first_line:
-                        return first_line.split(":")[0].strip()
+                # Skip header and empty lines, find first line with ID: Title pattern
+                for line in lines:
+                    line = line.strip()
+                    if not line or "Ready work" in line:
+                        continue
+                    # Match pattern like "1. [● P0] [task] issue-id: Title"
+                    match = re.search(r"([a-zA-Z0-9-]+):", line)
+                    if match:
+                        return match.group(1).strip()
         except Exception:
             pass
     return None
@@ -581,7 +585,8 @@ def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
         if task_path.exists():
             try:
                 content = task_path.read_text()
-                if "## Approval" in content or "[x]" in content.lower():
+                # Must have Approval heading AND an checked box following it
+                if "## Approval" in content and "[x]" in content[content.find("## Approval"):].lower():
                     # Check file modification time
                     mtime = datetime.fromtimestamp(task_path.stat().st_mtime)
                     age = datetime.now() - mtime
@@ -1447,8 +1452,8 @@ def run_retrospective(verbose: bool = False) -> bool:
             issue_id = get_active_issue_id()
             log_path = Path.home() / ".agent/progress-logs" / f"{issue_id}.md"
             content = log_path.read_text()
-            if "## Reflector Synthesis" in content:
-                parts = content.split("## Reflector Synthesis")
+            if "Reflector Synthesis" in content:
+                parts = content.split("Reflector Synthesis")
                 if len(parts) > 1:
                     # Skip the first line which might be the remainder of the heading
                     section_lines = parts[1].split("\n")[1:]
