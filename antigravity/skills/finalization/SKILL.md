@@ -160,6 +160,11 @@ python script.py --option value
 
 **Result**: Future agents can quickly understand and build upon previous work without digging through codebase
 
+## 🚨 TOOLING FRICTION ALERT: Beads Closure Notes
+**Issue**: Agents frequently hallucinate `bd note` which does not exist.
+**Correct Command**: Use `bd comments add <issue-id> "<content>"` for final closure notes.
+**Future Improvement**: An alias or new command `bd note` is under investigation in issue `agent-harness-4nb`.
+
 ## 🚨 NEW GATE ADDED: Mandatory Reflection Capture
 
 **Issue**: Agents completing sessions without systematic learning capture  
@@ -272,13 +277,13 @@ For new sessions, the system creates:
 
 **Before:**
 
-```
+```markdown
 Agent works → Finalization → "What should I remember?" → Retroactive capture
 ```
 
 **After:**
 
-```
+```markdown
 Reflection preview → Agent watches for friction → Real-time notes → Finalization → Rich reflection data
 ```
 
