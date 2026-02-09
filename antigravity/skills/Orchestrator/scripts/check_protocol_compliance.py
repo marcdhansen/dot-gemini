@@ -908,6 +908,70 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
         return False, f"PR review check failed: {e}"
 
 
+def check_pr_exists() -> tuple[bool, str]:
+    """Check if a Pull Request exists for the current branch using gh CLI."""
+    branch, is_feature = check_branch_info()
+    if not is_feature:
+        return True, "No PR required for non-feature branch"
+
+    if not check_tool_available("gh"):
+        return False, "gh (GitHub CLI) not available. PR cannot be verified."
+
+    try:
+        # Check if PR exists for current head branch
+        result = subprocess.run(
+            ["gh", "pr", "list", "--head", branch, "--json", "url", "--jq", ".[0].url"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if result.returncode == 0:
+            pr_url = result.stdout.strip()
+            if pr_url:
+                return True, f"PR found: {pr_url}"
+            else:
+                return (
+                    False,
+                    f"No PR found for branch '{branch}'. Create one with: gh pr create --fill",
+                )
+        return False, f"gh command failed: {result.stderr.strip()}"
+    except subprocess.TimeoutExpired:
+        return False, "gh command timed out"
+    except Exception as e:
+        return False, f"PR check failed: {e}"
+
+
+def check_handoff_pr_link() -> tuple[bool, str]:
+    """Check if the session handoff (debrief.md) contains a GitHub PR link."""
+    # Look for debrief files in brain directory
+    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
+    if not brain_dir.exists():
+        return False, "Brain directory not found"
+
+    session_dirs = sorted(
+        [d for d in brain_dir.iterdir() if d.is_dir()],
+        key=lambda x: x.stat().st_mtime,
+        reverse=True,
+    )[:3]
+
+    pr_pattern = r"https://github\.com/[^/]+/[^/]+/pull/\d+"
+
+    for session_dir in session_dirs:
+        debrief_path = session_dir / "debrief.md"
+        if debrief_path.exists():
+            try:
+                content = debrief_path.read_text()
+                # Check for PR link and specifically the "PR Link" text
+                if "PR Link" in content or "pull request" in content.lower():
+                    if re.search(pr_pattern, content):
+                        return True, f"PR link found in debrief: {debrief_path.name}"
+            except Exception:
+                pass
+
+    return False, "No GitHub PR link found in recent debrief.md"
+
+
 def run_initialization(verbose: bool = False) -> bool:
     """Run Initialization validation."""
     print(f"{Colors.BOLD}📋 INITIALIZATION CHECK{Colors.END}")
@@ -1259,6 +1323,12 @@ def run_finalization(verbose: bool = False) -> bool:
     if not pr_review_ok:
         blockers.append(f"PR Review Issue required: {pr_review_msg}")
 
+    # PR Existence Check (MANDATORY for code changes)
+    pr_ok, pr_msg = check_pr_exists()
+    print(f"├── PR Created: {check_mark(pr_ok)} {pr_msg}")
+    if not pr_ok:
+        blockers.append(f"PR required for code changes: {pr_msg}")
+
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
     print(f"├── Todo Enforcer: {check_mark(todo_ok)} {todo_msg}")
@@ -1396,6 +1466,15 @@ def run_retrospective(verbose: bool = False) -> bool:
     print(f"├── Reflector: {check_mark(reflector_ok)} {reflector_msg}")
     if not reflector_ok:
         warnings.append(reflector_msg)
+
+    # PR Link in Handoff Check
+    handoff_pr_ok, handoff_pr_msg = check_handoff_pr_link()
+    print(f"├── PR Link in Handoff: {check_mark(handoff_pr_ok)} {handoff_pr_msg}")
+    if not handoff_pr_ok:
+        # Check if we actually changed code (if we didn't, PR link might not be required)
+        git_clean, _ = check_git_status()
+        if not git_clean:
+            blockers.append(f"PR Link required in handoff: {handoff_pr_msg}")
 
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()
