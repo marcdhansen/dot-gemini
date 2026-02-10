@@ -44,6 +44,7 @@ python .agent/skills/reflect/enhanced_reflection.py
 - **Technical Learnings**: Code patterns, architectural insights
 - **Challenges Overcome**: Problems solved and solutions implemented
 - **Process Improvements**: Workflow optimizations and friction reduction
+- **Refactoring Candidates**: Identify code needing cleanup or restructuring
 - **Protocol Issues**: Quality gate problems and Finalization blockers
 
 ## 🛠️ Tools & Scripts
@@ -168,6 +169,13 @@ Use this structure when performing enhanced reflection:
 - [Time-saving approach]
 - [Error prevention method]
 
+### Refactoring Candidates (NEW)
+
+- [Monolithic script identified]
+- [High complexity function]
+- [Pattern violation]
+- [Consolidation opportunity]
+
 ### Quantitative Results (NEW)
 
 ## 🔍 Strategic Analysis Questions
@@ -199,6 +207,8 @@ Consider:
 ### Design Patterns & Refactoring
 >
 > **QUESTION**: Identify design patterns and recommended refactoring strategies.
+>
+> **CRITICAL**: Explicitly list any code identified during this session that should be refactored (e.g., monolithic scripts, complexity hotspots).
 
 Consider:
 
@@ -206,6 +216,7 @@ Consider:
 - Template-based approaches to reduce boilerplate
 - Code/workflow duplication that could be consolidated
 - Anti-patterns observed during the session
+- Large monolithic files (e.g., >1000 lines) needing decomposition
 
 ### Multi-Agent Collaboration
 >

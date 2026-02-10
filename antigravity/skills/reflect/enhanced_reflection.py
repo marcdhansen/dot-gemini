@@ -138,6 +138,7 @@ class EnhancedReflection:
             "success_metrics": self._capture_success_metrics(),
             "technical_learnings": self._capture_learnings("Technical learnings"),
             "challenges_overcome": self._capture_learnings("Challenges overcome"),
+            "refactoring_candidates": self._capture_learnings("Refactoring candidates"),
             "protocol_issues": self._capture_protocol_issues(),
             "process_improvements": self._capture_learnings("Process improvements"),
             "quantitative_results": self._capture_quantitative_results(),
@@ -209,6 +210,7 @@ class EnhancedReflection:
                 "process_improvements",
                 ["Reflection system now supports non-interactive mode"],
             ),
+            "refactoring_candidates": self.fallback_data.get("refactoring_candidates", []),
             "quantitative_results": self.fallback_data.get("quantitative_results", {}),
             "handoff_quality": self.fallback_data.get(
                 "handoff_quality", self._evaluate_handoff_quality()
@@ -483,6 +485,8 @@ class EnhancedReflection:
         print(
             f"📊 Learnings captured: {len(reflection_data['technical_learnings'])} technical, {len(reflection_data['process_improvements'])} process"
         )
+        if reflection_data.get("refactoring_candidates"):
+            print(f"🧹 Refactoring candidates: {len(reflection_data['refactoring_candidates'])}")
         if reflection_data["protocol_issues"]:
             print(f"📜 Protocol issues: {len(reflection_data['protocol_issues'])}")
         print(f"💾 Total reflections in history: {len(reflections)}")

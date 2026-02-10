@@ -431,22 +431,6 @@ def request_cleanup_permission(
             print(f"❌ Error requesting permission: {e}")
             return False
 
-                try:
-                    response = input(prompt).strip().lower()
-                    break
-                except EOFError:
-                    print(f"\n⏰ Permission timeout - operation cancelled")
-                    return False
-                except KeyboardInterrupt:
-                    print(f"\n❌ Operation cancelled by user")
-                    return False
-
-            return response in ["y", "yes"]
-
-        except Exception as e:
-            print(f"⚠️ Error getting permission: {e}")
-            return False
-
     def cleanup_browsers(
         self, target_agent: Optional[str] = None, force: bool = False
     ) -> Dict:
