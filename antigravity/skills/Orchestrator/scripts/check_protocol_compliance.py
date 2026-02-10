@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -651,8 +652,43 @@ def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
 
 
 def check_reflection_invoked() -> tuple[bool, str]:
-    """Check if reflection was recently invoked."""
-    # Check for recent reflection files
+    """Check if reflection was recently invoked and follows structured JSON format."""
+    # 1. Primary check: Mandatory structured JSON artifact
+    input_artifact = Path(".reflection_input.json")
+    if input_artifact.exists():
+        try:
+            with open(input_artifact, "r") as f:
+                data = json.load(f)
+            
+            # Basic schema validation (required fields)
+            required = ["session_name", "outcome", "technical_learnings"]
+            missing = [field for field in required if field not in data]
+            
+            if missing:
+                return (
+                    False,
+                    f"Reflection artifact .reflection_input.json is missing required fields: {', '.join(missing)}",
+                )
+            
+            # Recency check
+            mtime = datetime.fromtimestamp(input_artifact.stat().st_mtime)
+            age = datetime.now() - mtime
+            if age < timedelta(hours=2):
+                return (
+                    True,
+                    f"Structured reflection captured {age.total_seconds() / 60:.0f} minutes ago",
+                )
+            else:
+                return (
+                    False,
+                    f"Reflection artifact .reflection_input.json is too old ({age.total_seconds() / 3600:.1f} hours). Please run /reflect again.",
+                )
+        except json.JSONDecodeError:
+            return False, "Reflection artifact .reflection_input.json is malformed JSON"
+        except Exception as e:
+            return False, f"Error validating reflection artifact: {e}"
+
+    # 2. Secondary check: History files (Legacy support)
     reflection_paths = [
         Path(".agent/reflections.json"),
         Path("reflections.json"),
@@ -666,12 +702,12 @@ def check_reflection_invoked() -> tuple[bool, str]:
                 if age < timedelta(hours=2):
                     return (
                         True,
-                        f"Reflection captured {age.total_seconds() / 60:.0f} minutes ago",
+                        f"Reflection (legacy) found {age.total_seconds() / 60:.0f} minutes ago. Please generate .reflection_input.json with /reflect.",
                     )
             except Exception:
                 pass
 
-    return False, "No recent reflection found"
+    return False, "No recent reflection found. Please run /reflect to capture session learnings."
 
 
 def check_debriefing_invoked() -> tuple[bool, str]:
