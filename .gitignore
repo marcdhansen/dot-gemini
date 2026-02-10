@@ -36,3 +36,4 @@ commands/**
 !AGENT_ONBOARDING.md
 !CROSS_COMPATIBILITY.md
 !env.sh
+antigravity/browser_recordings/**
