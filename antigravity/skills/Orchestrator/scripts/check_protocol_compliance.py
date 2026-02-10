@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -27,6 +28,93 @@ try:
     from compliance_validators import validate_initialization
 except ImportError:
     validate_initialization = None
+
+
+def load_json_checklist(phase_name: str) -> dict | None:
+    """Load SOP checklist from workspace JSON."""
+    paths = [
+        Path(".agent/rules/checklists") / f"{phase_name}.json",
+        Path(".agent/checklists") / f"{phase_name}.json",
+    ]
+    for path in paths:
+        if path.exists():
+            try:
+                with open(path, "r") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return None
+
+
+def run_phase_from_json(phase_name: str, verbose: bool = False) -> tuple[bool, list[str], list[str]]:
+    """Run a checklist phase defined in JSON."""
+    data = load_json_checklist(phase_name)
+    if not data or "phases" not in data or not data["phases"]:
+        return False, [], []
+
+    phase = data["phases"][0]
+    print(f"{Colors.BOLD}📋 {phase['name'].upper()} (JSON-Driven){Colors.END}")
+    print("=" * 40)
+    if phase.get("description"):
+        print(f"{phase['description']}")
+    print()
+
+    blockers = []
+    warnings = []
+
+    for check in phase.get("checks", []):
+        validator_name = check["validator"]
+        # Get function from global scope
+        validator = globals().get(validator_name)
+        if not validator:
+            print(f"├── {check['id']}: {Colors.RED}❌{Colors.END} Validator '{validator_name}' not found")
+            blockers.append(f"Missing validator: {validator_name}")
+            continue
+
+        try:
+            args = check.get("args", [])
+            # Convert args to int if they look like numbers
+            processed_args = []
+            for arg in args:
+                try:
+                    processed_args.append(int(arg))
+                except (ValueError, TypeError):
+                    processed_args.append(arg)
+
+            # Special handling for invertible validators if needed
+            result = validator(*processed_args)
+            if isinstance(result, tuple) and len(result) == 2:
+                # Most validators return (passed, msg), but check_branch_info returns (name, is_feature)
+                if isinstance(result[1], bool):
+                    passed = result[1]
+                    msg = f"Branch: {result[0]}"
+                else:
+                    passed = result[0]
+                    msg = result[1]
+                
+                if isinstance(msg, list):
+                    if not msg:
+                        msg = "verified"
+                    else:
+                        msg = f"found items: {', '.join(map(str, msg))}"
+            else:
+                passed = bool(result)
+                msg = "Check passed" if passed else "Check failed"
+
+            icon = check_mark(passed)
+            print(f"├── {check['description']}: {icon} {msg}")
+            
+            if not passed:
+                if check["type"] == "BLOCKER":
+                    blockers.append(f"{check['description']}: {msg}")
+                else:
+                    warnings.append(f"{check['description']}: {msg}")
+        except Exception as e:
+            print(f"├── {check['description']}: {Colors.RED}❌{Colors.END} Error: {e}")
+            blockers.append(f"Validator error ({validator_name}): {e}")
+
+    print()
+    return True, blockers, warnings
 
 
 def update_progress_ledger(phase: str, status: str, result: str):
@@ -135,8 +223,30 @@ def check_tool_version(
         return False, f"Error checking {tool} version: {e}"
 
 
-def check_workspace_integrity() -> tuple[bool, list[str]]:
+def check_workspace_integrity(*args) -> tuple[bool, list[str]]:
     """Verify workspace integrity by checking for mandatory directories and files."""
+    if args:
+        if args[0] == "task":
+            # Check for task.md in brain directory
+            brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
+            if brain_dir.exists():
+                session_dirs = sorted(
+                    [d for d in brain_dir.iterdir() if d.is_dir()],
+                    key=lambda x: x.stat().st_mtime,
+                    reverse=True,
+                )[:1]
+                for d in session_dirs:
+                    if (d / "task.md").exists():
+                        return True, [str(d / "task.md")]
+            return False, ["task.md not found in recent brain directory"]
+        if args[0] == "cleanup":
+            # Verify temporary artifacts like task.md are NOT in root
+            temp_files = ["task.md", "debrief.md"]
+            present = [f for f in temp_files if (Path.cwd() / f).exists()]
+            if present:
+                return False, present
+            return True, ["No temporary artifacts found"]
+
     mandatory_paths = [
         Path(".git"),
         Path(".agent"),
@@ -188,7 +298,71 @@ def check_git_status(turbo: bool = False) -> tuple[bool, str]:
         return False, f"Git check failed: {e}"
 
 
-def check_branch_info() -> tuple[str, bool]:
+def check_sop_infrastructure_changes() -> tuple[bool, str]:
+    """Check if changes involve SOP infrastructure (Orchestrator, skills, SOP docs).
+    
+    SOP infrastructure changes require Full Mode escalation per the SOP Modification workflow.
+    
+    Returns:
+        tuple[bool, str]: (requires_full_mode, status_message)
+    """
+    try:
+        # Get list of changed files from git diff
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        
+        if result.returncode != 0:
+            # Try checking staged changes
+            result = subprocess.run(
+                ["git", "diff", "--cached", "--name-only"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        
+        if result.returncode != 0:
+            return False, "Could not determine changed files (skipping SOP infrastructure check)"
+        
+        changed_files = result.stdout.strip().split("\n") if result.stdout.strip() else []
+        
+        # Define SOP infrastructure patterns
+        sop_patterns = [
+            ".gemini/antigravity/skills/Orchestrator/scripts/",
+            ".gemini/antigravity/skills/",  # Any skill script
+            "/SKILL.md",  # Any SKILL.md file
+            ".agent/docs/SOP_COMPLIANCE_CHECKLIST.md",
+            ".agent/docs/sop/",
+            ".gemini/antigravity/skills/sop-modification/",
+        ]
+        
+        sop_files = []
+        for file_path in changed_files:
+            if not file_path:
+                continue
+            # Check if file matches any SOP infrastructure pattern
+            if any(pattern in file_path for pattern in sop_patterns):
+                sop_files.append(file_path)
+        
+        if sop_files:
+            files_str = "\n  - ".join(sop_files)
+            return (
+                True,
+                f"SOP infrastructure changes detected (Full Mode required):\n  - {files_str}"
+            )
+        
+        return False, "No SOP infrastructure changes detected"
+        
+    except subprocess.TimeoutExpired:
+        return False, "Git command timed out (skipping SOP infrastructure check)"
+    except Exception as e:
+        return False, f"SOP infrastructure check error (skipping): {e}"
+
+
+def check_branch_info(*args) -> tuple[str, bool]:
     """Get current branch and check if it's a feature branch."""
     try:
         result = subprocess.run(
@@ -205,17 +379,39 @@ def check_branch_info() -> tuple[str, bool]:
         return "unknown", False
 
 
-def check_planning_docs() -> tuple[bool, list[str]]:
-    """Check if planning documents exist and are readable."""
-    missing = []
-    paths_to_check = [
-        Path(".agent/rules/ROADMAP.md"),
-        Path(".agent/rules/ImplementationPlan.md"),
+def check_planning_docs(*args) -> tuple[bool, list[str]]:
+    """Check if planning documents exist and are readable. Supports checklist args."""
+    project_root = Path.cwd()
+    roadmap_locations = [
+        project_root / ".agent/rules/ROADMAP.md",
+        project_root / ".agent/ROADMAP.md",
+        project_root / "ROADMAP.md",
+    ]
+    impl_locations = [
+        project_root / ".agent/rules/ImplementationPlan.md",
+        project_root / ".agent/ImplementationPlan.md",
+        project_root / "ImplementationPlan.md",
     ]
 
-    for path in paths_to_check:
-        if not path.exists():
-            missing.append(str(path))
+    roadmap_exists = any(p.exists() for p in roadmap_locations)
+    impl_exists = any(p.exists() for p in impl_locations)
+
+    if args:
+        if args[0] == "ImplementationPlan.md":
+            if not impl_exists:
+                return False, ["ImplementationPlan.md missing"]
+            return True, ["ImplementationPlan.md exists"]
+        if args[0] == "blast_radius":
+            for p in impl_locations:
+                if p.exists() and "Blast Radius" in p.read_text():
+                    return True, ["Blast radius analysis found"]
+            return False, ["Blast radius analysis not found in ImplementationPlan.md"]
+
+    missing = []
+    if not roadmap_exists:
+        missing.append("ROADMAP.md")
+    if not impl_exists:
+        missing.append("ImplementationPlan.md")
 
     return len(missing) == 0, missing
 
@@ -367,7 +563,7 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
         if result.returncode == 0 and result.stdout.strip():
             merge_commits = result.stdout.strip().split("\n")
             errors.append(
-                f"Merge commits detected ({len(merge_commits)}). Merge commits are strictly forbidden by SOP."
+                f"Merge commits not allowed ({len(merge_commits)} detected). Merge commits are strictly forbidden by SOP."
             )
             errors.append(f"  Action: Rebase onto {base_branch} instead of merging it.")
             errors.append(f"  Run: git rebase {base_branch}")
@@ -610,8 +806,20 @@ def check_hook_integrity() -> tuple[bool, str]:
     return True, f"All {detected_standard} hooks intact"
 
 
-def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
-    """Check if plan approval exists and is fresh."""
+def check_plan_approval(*args) -> tuple[bool, str]:
+    """Check if plan approval exists and is fresh. Supports 'invert' argument."""
+    max_hours = 4
+    invert = False
+    
+    if args:
+        if args[0] == "invert":
+            invert = True
+        else:
+            try:
+                max_hours = int(args[0])
+            except ValueError:
+                pass
+
     # Look for task.md with approval marker
     task_paths = [
         Path(".agent/task.md"),
@@ -631,6 +839,9 @@ def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
                 content = task_path.read_text()
                 # Must have Approval heading AND an checked box following it
                 if "## Approval" in content and "[x]" in content[content.find("## Approval"):].lower():
+                    if invert:
+                        return False, "Plan approval marker still present in task.md"
+                    
                     # Check file modification time
                     mtime = datetime.fromtimestamp(task_path.stat().st_mtime)
                     age = datetime.now() - mtime
@@ -647,12 +858,49 @@ def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
             except Exception:
                 pass
 
+    if invert:
+        return True, "Plan approval marker cleared"
     return False, "No plan approval found"
 
 
 def check_reflection_invoked() -> tuple[bool, str]:
-    """Check if reflection was recently invoked."""
-    # Check for recent reflection files
+    """Check if reflection was recently invoked and follows structured JSON format."""
+    # 1. Primary check: Mandatory structured JSON artifact
+    input_artifact = Path(".reflection_input.json")
+    if input_artifact.exists():
+        try:
+            with open(input_artifact, "r") as f:
+                data = json.load(f)
+            
+            # Basic schema validation (required fields)
+            required = ["session_name", "outcome", "technical_learnings"]
+            missing = [field for field in required if field not in data]
+            
+            if missing:
+                return (
+                    False,
+                    f"Reflection artifact .reflection_input.json is missing required fields: {', '.join(missing)}",
+                )
+            
+            # Recency check
+            mtime = datetime.fromtimestamp(input_artifact.stat().st_mtime)
+            age = datetime.now() - mtime
+            if age < timedelta(hours=2):
+                return (
+                    True,
+                    f"Reflection captured: Structured reflection captured {age.total_seconds() / 60:.0f} minutes ago",
+                )
+            else:
+                return (
+                    False,
+                    f"No recent reflection: Reflection artifact .reflection_input.json is too old ({age.total_seconds() / 3600:.1f} hours). Please run /reflect again.",
+                )
+        except json.JSONDecodeError:
+            return False, "Reflection artifact .reflection_input.json is malformed JSON"
+        except Exception as e:
+            return False, f"Error validating reflection artifact: {e}"
+
+    # 2. Secondary check: History files (Legacy support)
     reflection_paths = [
         Path(".agent/reflections.json"),
         Path("reflections.json"),
@@ -666,12 +914,12 @@ def check_reflection_invoked() -> tuple[bool, str]:
                 if age < timedelta(hours=2):
                     return (
                         True,
-                        f"Reflection captured {age.total_seconds() / 60:.0f} minutes ago",
+                        f"Reflection (legacy) found {age.total_seconds() / 60:.0f} minutes ago. Please generate .reflection_input.json with /reflect.",
                     )
             except Exception:
                 pass
 
-    return False, "No recent reflection found"
+    return False, "No recent reflection found. Please run /reflect to capture session learnings."
 
 
 def check_debriefing_invoked() -> tuple[bool, str]:
@@ -1021,9 +1269,199 @@ def check_handoff_pr_link() -> tuple[bool, str]:
     return False, "No GitHub PR link found in recent debrief.md"
 
 
+def check_pr_decomposition_closure() -> tuple[bool, str]:
+    """Verify that decomposed PRs are properly closed per PR Response Protocol.
+    
+    Checks:
+    1. If child issues exist (part-of dependency), verify original PR is closed
+    2. Detect thrashing: If a PR has ≥2 REQUEST_CHANGES reviews, decomposition is MANDATORY
+    
+    Returns:
+        tuple[bool, str]: (is_valid, status_message)
+    """
+    if not check_tool_available("bd"):
+        return True, "beads not available (skipping decomposition check)"
+    
+    if not check_tool_available("gh"):
+        return True, "gh not available (skipping decomposition check)"
+    
+    try:
+        # Get the current active issue
+        active_issue = get_active_issue_id()
+        if not active_issue:
+            return True, "No active issue (decomposition check not applicable)"
+        
+        # Check if this issue has child issues (is a parent/epic)
+        result = subprocess.run(
+            ["bd", "show", active_issue],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        
+        if result.returncode != 0:
+            return True, "Could not query issue details (skipping)"
+        
+        output = result.stdout
+        output_lower = output.lower()
+        
+        # Look for child issues in the output
+        # Beads shows dependencies, look for issues that have this as parent
+        has_children = "part-of" in output_lower or "child" in output or "epic" in output
+        
+        if not has_children:
+            return True, "No child issues detected (not a decomposition)"
+        
+        # If this is a parent issue, find the original PR number from the description/comments
+        # Pattern: Look for PR #<number> in comments or description
+        pr_pattern = r"PR #(\d+)|pull/(\d+)"
+        pr_matches = re.findall(pr_pattern, output)
+        
+        if not pr_matches:
+            # No PR mentioned, might be freshly created epic
+            return True, "Parent issue with children but no original PR referenced"
+        
+        # Extract PR number (first match)
+        pr_number = None
+        for match in pr_matches:
+            pr_number = match[0] or match[1]
+            if pr_number:
+                break
+        
+        if not pr_number:
+            return True, "Could not extract PR number from issue"
+        
+        # Check if that PR is closed
+        pr_check = subprocess.run(
+            ["gh", "pr", "view", pr_number, "--json", "state", "--jq", ".state"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        
+        if pr_check.returncode == 0:
+            pr_status = pr_check.stdout.strip()
+            if pr_status == "CLOSED":
+                return True, f"Original PR #{pr_number} properly closed (decomposition protocol followed)"
+            elif pr_status == "MERGED":
+                # This is fine - it was merged, not decomposed
+                return True, f"Original PR #{pr_number} was merged (not decomposed)"
+            else:
+                return (
+                    False,
+                    f"PROTOCOL VIOLATION: Original PR #{pr_number} is still OPEN but child issues exist. Close the original PR per decomposition protocol.",
+                )
+        
+        return True, "Could not verify PR status (skipping)"
+        
+    except subprocess.TimeoutExpired:
+        return True, "Command timed out (skipping decomposition check)"
+    except Exception as e:
+        return True, f"Decomposition check error (skipping): {e}"
+
+
+def check_child_pr_linkage() -> tuple[bool, str]:
+    """Validate that child PRs properly reference their parent Epic/issue per PR Response Protocol.
+    
+    Checks:
+    1. If current branch has a PR and the issue has a parent (part-of), verify PR description references parent
+    2. Ensures child PRs follow the decomposition template
+    
+    Returns:
+        tuple[bool, str]: (is_valid, status_message)
+    """
+    if not check_tool_available("bd"):
+        return True, "beads not available (skipping linkage check)"
+    
+    if not check_tool_available("gh"):
+        return True, "gh not available (skipping linkage check)"
+    
+    try:
+        # Get the current active issue
+        active_issue = get_active_issue_id()
+        if not active_issue:
+            return True, "No active issue (linkage check not applicable)"
+        
+        # Check if this issue is a child (has parent)
+        result = subprocess.run(
+            ["bd", "show", active_issue],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        
+        if result.returncode != 0:
+            return True, "Could not query issue details (skipping)"
+        
+        output = result.stdout
+        
+        # Look for parent dependency
+        # Pattern: "part of <parent-id>" or "Depends on: <parent-id>"
+        parent_pattern = r"(?:part.?of|depends.?on|blocks?.?by)[\s:]+(\w+-[\w-]+)"
+        parent_matches = re.findall(parent_pattern, output, re.IGNORECASE)
+        
+        if not parent_matches:
+            return True, "No parent issue detected (not a child PR)"
+        
+        parent_id = parent_matches[0]
+        
+        # Now check if current branch has a PR
+        branch, is_feature = check_branch_info()
+        if not is_feature:
+            return True, "Not on feature branch (linkage check not applicable)"
+        
+        # Get PR for current branch
+        pr_check = subprocess.run(
+            ["gh", "pr", "view", "--json", "body", "--jq", ".body"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        
+        if pr_check.returncode != 0:
+            return True, "No PR found for current branch (linkage check not applicable)"
+        
+        pr_body = pr_check.stdout.lower()
+        
+        # Check if PR body references the parent Epic/issue
+        parent_mentioned = (
+            parent_id.lower() in pr_body or
+            "parent epic" in pr_body or
+            "part of epic" in pr_body
+        )
+        
+        if not parent_mentioned:
+            return (
+                False,
+                f"PROTOCOL VIOLATION: Child PR does not reference parent issue '{parent_id}'. Update PR description to link parent Epic/issue per decomposition protocol.",
+            )
+        
+        return True, f"Child PR properly references parent issue '{parent_id}'"
+        
+    except subprocess.TimeoutExpired:
+        return True, "Command timed out (skipping linkage check)"
+    except Exception as e:
+        return True, f"Linkage check error (skipping): {e}"
+
+
 def run_initialization(verbose: bool = False) -> bool:
     """Run Initialization validation."""
-    print(f"{Colors.BOLD}📋 INITIALIZATION CHECK{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("initialization", verbose)
+    if executed:
+        if blockers:
+            print(f"{Colors.RED}{Colors.BOLD}❌ INITIALIZATION BLOCKED (JSON){Colors.END}")
+            for blocker in blockers:
+                 print(f"  - {blocker}")
+            update_progress_ledger("Initialization", "failure", f"Blocked: {blockers}")
+            return False
+        
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ INITIALIZATION COMPLETE (JSON){Colors.END}")
+        update_progress_ledger("Initialization", "success", "Clean JSON initialization complete")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}📋 INITIALIZATION CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
 
@@ -1180,14 +1618,23 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
 
     # Check for existing code blockers (should not have uncommitted code changes)
     git_clean, git_msg = check_git_status(turbo=True)
-    print(f"└── Git Clean: {check_mark(git_clean)} {git_msg.split(chr(10))[0]}")
+    print(f"├── Git Clean: {check_mark(git_clean)} {git_msg.split(chr(10))[0]}")
+
+    # Check for SOP infrastructure changes (requires Full Mode)
+    sop_infra_escalation, sop_infra_msg = check_sop_infrastructure_changes()
+    sop_infra_icon = warning_mark() if sop_infra_escalation else check_mark(True)
+    print(f"└── SOP Infrastructure: {sop_infra_icon} {sop_infra_msg.split(chr(10))[0]}")
 
     print()
-    if not git_ok or not git_clean:
+    if not git_ok or not git_clean or sop_infra_escalation:
         print(f"{Colors.RED}{Colors.BOLD}❌ TURBO BLOCKED{Colors.END}")
         if not git_clean:
             print(
                 f"  {warning_mark()} Code changes detected. Escalate to Full SOP (--init)."
+            )
+        if sop_infra_escalation:
+            print(
+                f"  {warning_mark()} SOP infrastructure changes detected. Full Mode REQUIRED (--init)."
             )
         return False
 
@@ -1196,9 +1643,20 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     return True
 
 
+
 def run_execution(verbose: bool = False) -> bool:
     """Run Execution Phase status check."""
-    print(f"{Colors.BOLD}🚀 EXECUTION PHASE{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("execution", verbose)
+    if executed:
+        if blockers:
+            print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ EXECUTION SETUP INCOMPLETE (JSON){Colors.END}")
+            return False
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ EXECUTION ACTIVE (JSON){Colors.END}")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}🚀 EXECUTION PHASE (Legacy){Colors.END}")
     print("=" * 40)
     print()
     print("Execution: Active work phase - executing the task.")
@@ -1292,7 +1750,22 @@ def run_execution(verbose: bool = False) -> bool:
 
 def run_finalization(verbose: bool = False) -> bool:
     """Run Finalization validation."""
-    print(f"{Colors.BOLD}🛬 FINALIZATION CHECK{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("finalization", verbose)
+    if executed:
+        if blockers:
+            print(f"{Colors.RED}{Colors.BOLD}❌ FINALIZATION BLOCKED (JSON){Colors.END}")
+            for blocker in blockers:
+                 print(f"  - {blocker}")
+            update_progress_ledger("Finalization", "failure", f"Blocked: {blockers}")
+            return False
+        
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ FINALIZATION COMPLETE (JSON){Colors.END}")
+        update_progress_ledger("Finalization", "success", "Clean JSON finalization complete")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}🛬 FINALIZATION CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
     print(
@@ -1386,11 +1859,23 @@ def run_finalization(verbose: bool = False) -> bool:
 
     # Hook Integrity Check (NEW MANDATORY GATE)
     hook_ok, hook_msg = check_hook_integrity()
-    print(f"└── Hook Integrity: {check_mark(hook_ok)} {hook_msg}")
+    print(f"├── Hook Integrity: {check_mark(hook_ok)} {hook_msg}")
     if not hook_ok:
         blockers.append(
             f"Hook integrity failure: {hook_msg} - hooks may have been tampered with"
         )
+
+    # PR Decomposition Closure Check (PR Response Protocol)
+    decomp_ok, decomp_msg = check_pr_decomposition_closure()
+    print(f"├── PR Decomposition: {check_mark(decomp_ok)} {decomp_msg}")
+    if not decomp_ok:
+        blockers.append(f"PR Response Protocol violation: {decomp_msg}")
+
+    # Child PR Linkage Check (PR Response Protocol)
+    linkage_ok, linkage_msg = check_child_pr_linkage()
+    print(f"└── Child PR Linkage: {check_mark(linkage_ok)} {linkage_msg}")
+    if not linkage_ok:
+        blockers.append(f"PR Response Protocol violation: {linkage_msg}")
 
     print()
 
@@ -1455,7 +1940,20 @@ def run_turbo_finalization(verbose: bool = False) -> bool:
 
 def run_retrospective(verbose: bool = False) -> bool:
     """Run Retrospective validation."""
-    print(f"{Colors.BOLD}🎖️ RETROSPECTIVE CHECK{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("retrospective", verbose)
+    if executed:
+        if blockers:
+            print(f"{Colors.RED}{Colors.BOLD}❌ RETROSPECTIVE INCOMPLETE (JSON){Colors.END}")
+            return False
+        if warnings:
+            print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ RETROSPECTIVE INCOMPLETE (JSON){Colors.END}")
+            return False
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ RETROSPECTIVE COMPLETE (JSON){Colors.END}")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}🎖️ RETROSPECTIVE CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
     print("Retrospective: strategic learning and session closure.")
@@ -1559,7 +2057,17 @@ def run_retrospective(verbose: bool = False) -> bool:
 
 def run_clean_state(verbose: bool = False) -> bool:
     """Run Clean State validation (formerly Cleanup)."""
-    print(f"{Colors.BOLD}✨ CLEAN STATE CHECK{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("clean_state", verbose)
+    if executed:
+        if blockers or warnings:
+            print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ REPO NOT CLEAN (JSON){Colors.END}")
+            return False
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ REPO IS CLEAN (JSON){Colors.END}")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}✨ CLEAN STATE CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
     print("Final verification: repo should be clean after PR merge.")

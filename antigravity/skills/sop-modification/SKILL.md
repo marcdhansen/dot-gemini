@@ -11,11 +11,31 @@ description: Best practices for SOP enforcement, such as TDD and how to create t
 
 ## Scope
 
-This skill applied ONLY to modifications involving **mandatory gates**:
+This skill applies to two categories of SOP modifications:
+
+### 1. Mandatory Gate Changes (TDD Required)
+
+Modifications involving **mandatory gates**:
 
 - Quality gates (TDD compliance, atomic commits, clean git)
 - Phase transitions (Initialization → Planning → Execution → Finalization)
 - Compliance requirements (Beads issues, reflection capture, plan approval)
+
+**Requirements**: TDD-first workflow (Red → Green → Refactor)
+
+### 2. SOP Infrastructure Code Changes (Full SOP Required)
+
+Code changes to **SOP infrastructure**:
+
+- Orchestrator scripts (`~/.gemini/antigravity/skills/Orchestrator/scripts/`)
+- Skill scripts (`~/.gemini/antigravity/skills/*/scripts/`)
+- SKILL.md files
+- SOP documentation (`~/.agent/docs/SOP_COMPLIANCE_CHECKLIST.md`, `~/.agent/docs/sop/`)
+
+**Requirements**: Full SOP process (feature branch, PR, code review) + TDD if modifying gates
+
+> [!IMPORTANT]
+> **Automatic Escalation**: The Orchestrator automatically detects SOP infrastructure changes and blocks Turbo Mode, requiring Full Mode (`--init`).
 
 Changes to explanatory text, examples, or non-gate documentation do NOT require this skill.
 
