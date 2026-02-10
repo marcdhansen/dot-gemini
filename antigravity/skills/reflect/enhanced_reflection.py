@@ -138,6 +138,7 @@ class EnhancedReflection:
             "success_metrics": self._capture_success_metrics(),
             "technical_learnings": self._capture_learnings("Technical learnings"),
             "challenges_overcome": self._capture_learnings("Challenges overcome"),
+            "refactoring_candidates": self._capture_learnings("Refactoring candidates"),
             "protocol_issues": self._capture_protocol_issues(),
             "process_improvements": self._capture_learnings("Process improvements"),
             "quantitative_results": self._capture_quantitative_results(),
@@ -209,6 +210,7 @@ class EnhancedReflection:
                 "process_improvements",
                 ["Reflection system now supports non-interactive mode"],
             ),
+            "refactoring_candidates": self.fallback_data.get("refactoring_candidates", []),
             "quantitative_results": self.fallback_data.get("quantitative_results", {}),
             "handoff_quality": self.fallback_data.get(
                 "handoff_quality", self._evaluate_handoff_quality()
@@ -462,18 +464,32 @@ class EnhancedReflection:
         # Add new reflection
         reflections.append(reflection_data)
 
-        # Save reflections
+        # Save reflections history
         with open(self.reflections_file, "w") as f:
             json.dump(reflections, f, indent=2)
 
+        # 🆕 Save single session reflection artifact (.reflection_input.json)
+        # This matches the schema required by the Orchestrator for Finalization
+        reflection_artifact = reflection_data.copy()
+        if "mission_name" in reflection_artifact:
+            reflection_artifact["session_name"] = reflection_artifact.pop("mission_name")
+        
+        artifact_path = self.workspace_dir / ".reflection_input.json"
+        with open(artifact_path, "w") as f:
+            json.dump(reflection_artifact, f, indent=2)
+
         # Display summary
-        print(f"📝 Reflection saved: {reflection_data['mission_name']}")
+        name = reflection_data.get('mission_name', 'Unknown')
+        print(f"📝 Reflection saved: {name}")
+        print(f"📄 Session artifact created: {artifact_path.name}")
         print(
             f"📊 Learnings captured: {len(reflection_data['technical_learnings'])} technical, {len(reflection_data['process_improvements'])} process"
         )
+        if reflection_data.get("refactoring_candidates"):
+            print(f"🧹 Refactoring candidates: {len(reflection_data['refactoring_candidates'])}")
         if reflection_data["protocol_issues"]:
             print(f"📜 Protocol issues: {len(reflection_data['protocol_issues'])}")
-        print(f"💾 Total reflections: {len(reflections)}")
+        print(f"💾 Total reflections in history: {len(reflections)}")
 
 
 def main():

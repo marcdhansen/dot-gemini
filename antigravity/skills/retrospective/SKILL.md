@@ -36,6 +36,7 @@ graph LR
 Invoke `/reflect` to:
 
 - Capture learnings, preferences, and friction
+- **Refactoring Identification**: Identify code that should be refactored (e.g., monolithic scripts, high complexity, pattern violations)
 - Update SKILL.md files ("correct once, never again")
 - Answer strategic questions (cognitive load, design patterns)
 
@@ -84,7 +85,7 @@ During reflection, address:
 1. **Cognitive Load**: "Are there parts of SOP where the agent's cognitive load could be reduced by using scripts?"
 2. **Design Patterns**: "Identify design patterns and recommended refactoring strategies."
 3. **Multi-Agent**: "What improvements could enhance parallel agent workflows?"
-4. **SOP Simplification Effectiveness**: 
+4. **SOP Simplification Effectiveness**:
    - "Was SOP simplification proposed for this session? If so, was it approved?"
    - "If approved, did the simplified approach achieve goals efficiently?"
    - "Were there any quality issues with the simplified approach?"

@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -23,10 +24,107 @@ from pathlib import Path
 sys.path.append(str(Path.home() / ".agent/scripts"))
 sys.path.append(str(Path.home() / ".agent/ledgers"))
 
+# Import modular validators
 try:
-    from compliance_validators import validate_initialization
-except ImportError:
-    validate_initialization = None
+    from validators.common import Colors, check_mark, warning_mark, check_tool_available, check_tool_version
+    from validators.git_validator import check_workspace_integrity, check_git_status, check_sop_infrastructure_changes, check_branch_info, get_active_issue_id, validate_atomic_commits
+    from validators.plan_validator import check_planning_docs, check_beads_issue, check_sop_simplification, check_hook_integrity, check_plan_approval
+    from validators.code_validator import validate_tdd_compliance
+    from validators.finalization_validator import (
+        check_reflection_invoked, check_debriefing_invoked, check_code_review_status,
+        check_handoff_compliance, check_todo_completion, check_linked_repositories,
+        check_pr_review_issue_created, check_pr_exists, check_handoff_pr_link,
+        check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists
+    )
+except ImportError as e:
+    print(f"Warning: Could not import modular validators: {e}")
+    pass
+
+
+def load_json_checklist(phase_name: str) -> dict | None:
+    """Load SOP checklist from workspace JSON."""
+    paths = [
+        Path(".agent/rules/checklists") / f"{phase_name}.json",
+        Path(".agent/checklists") / f"{phase_name}.json",
+    ]
+    for path in paths:
+        if path.exists():
+            try:
+                with open(path, "r") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return None
+
+
+def run_phase_from_json(phase_name: str, verbose: bool = False) -> tuple[bool, list[str], list[str]]:
+    """Run a checklist phase defined in JSON."""
+    data = load_json_checklist(phase_name)
+    if not data or "phases" not in data or not data["phases"]:
+        return False, [], []
+
+    phase = data["phases"][0]
+    print(f"{Colors.BOLD}📋 {phase['name'].upper()} (JSON-Driven){Colors.END}")
+    print("=" * 40)
+    if phase.get("description"):
+        print(f"{phase['description']}")
+    print()
+
+    blockers = []
+    warnings = []
+
+    for check in phase.get("checks", []):
+        validator_name = check["validator"]
+        # Get function from global or imported scope
+        # First check globals, then check imported validator modules if needed
+        validator = globals().get(validator_name)
+        
+        if not validator:
+            print(f"├── {check['id']}: {Colors.RED}❌{Colors.END} Validator '{validator_name}' not found")
+            blockers.append(f"Missing validator: {validator_name}")
+            continue
+
+        try:
+            args = check.get("args", [])
+            processed_args = []
+            for arg in args:
+                try:
+                    processed_args.append(int(arg))
+                except (ValueError, TypeError):
+                    processed_args.append(arg)
+
+            result = validator(*processed_args)
+            if isinstance(result, tuple) and len(result) == 2:
+                if isinstance(result[1], bool):
+                    passed = result[1]
+                    msg = f"Branch: {result[0]}"
+                else:
+                    passed = result[0]
+                    msg = result[1]
+                
+                if isinstance(msg, list):
+                    if not msg:
+                        msg = "verified"
+                    else:
+                        msg = f"found items: {', '.join(map(str, msg))}"
+            else:
+                passed = bool(result)
+                msg = "Check passed" if passed else "Check failed"
+
+            icon = check_mark(passed)
+            print(f"├── {check['description']}: {icon} {msg}")
+            
+            if not passed:
+                if check["type"] == "BLOCKER":
+                    blockers.append(f"{check['description']}: {msg}")
+                else:
+                    warnings.append(f"{check['description']}: {msg}")
+        except Exception as e:
+            print(f"├── {check['description']}: {Colors.RED}❌{Colors.END} Error: {e}")
+            blockers.append(f"Validator error ({validator_name}): {e}")
+
+    print()
+    return True, blockers, warnings
 
 
 def update_progress_ledger(phase: str, status: str, result: str):
@@ -34,7 +132,6 @@ def update_progress_ledger(phase: str, status: str, result: str):
     manager = Path.home() / ".agent/ledgers/ledger-manager.py"
     if manager.exists():
         try:
-            # We don't always have a task_id here, use 'system' or 'harness'
             subprocess.run(
                 [
                     sys.executable,
@@ -54,976 +151,35 @@ def update_progress_ledger(phase: str, status: str, result: str):
             pass
 
 
-class Colors:
-    """ANSI color codes for terminal output."""
+try:
+    from compliance_validators import validate_initialization
+except ImportError:
+    validate_initialization = None
 
-    GREEN = "\033[92m"
-    RED = "\033[91m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    BOLD = "\033[1m"
-    END = "\033[0m"
 
 
-def check_mark(passed: bool) -> str:
-    """Return colored check or X mark."""
-    if passed:
-        return f"{Colors.GREEN}✅{Colors.END}"
-    return f"{Colors.RED}❌{Colors.END}"
 
 
-def warning_mark() -> str:
-    """Return warning symbol."""
-    return f"{Colors.YELLOW}⚠️{Colors.END}"
-
-
-def check_tool_available(tool: str) -> bool:
-    """Check if a command-line tool is available."""
-    try:
-        result = subprocess.run(
-            ["which", tool],
-            capture_output=True,
-            text=True,
-            timeout=2,
-        )
-        return result.returncode == 0
-    except Exception:
-        return False
-
-
-def parse_version(version_str: str) -> tuple[int, ...]:
-    """Parse version string into a tuple of integers."""
-    match = re.search(r"(\d+(?:\.\d+)+)", version_str)
-    if match:
-        return tuple(map(int, match.group(1).split(".")))
-    return ()
-
-
-def check_tool_version(
-    tool: str, min_version: str, version_flag: str = "--version"
-) -> tuple[bool, str]:
-    """Check if a tool's version meets the minimum requirement."""
-    if not check_tool_available(tool):
-        return False, f"Tool '{tool}' not installed"
-
-    try:
-        result = subprocess.run(
-            [tool, version_flag], capture_output=True, text=True, timeout=5
-        )
-        if result.returncode != 0:
-            # Some tools might use stderr for version info
-            output = result.stdout.strip() or result.stderr.strip()
-            if not output:
-                return False, f"Could not get version for '{tool}'"
-        else:
-            output = result.stdout.strip() or result.stderr.strip()
-
-        current_v = parse_version(output)
-        required_v = parse_version(min_version)
-
-        if not current_v:
-            return False, f"Could not parse version from: {output}"
-
-        if current_v < required_v:
-            return (
-                False,
-                f"Version for '{tool}' is too old: {output} (Required: {min_version})",
-            )
-
-        return True, f"{tool} version {'.'.join(map(str, current_v))} is OK"
-    except Exception as e:
-        return False, f"Error checking {tool} version: {e}"
-
-
-def check_workspace_integrity() -> tuple[bool, list[str]]:
-    """Verify workspace integrity by checking for mandatory directories and files."""
-    mandatory_paths = [
-        Path(".git"),
-        Path(".agent"),
-        Path(".beads"),
-    ]
-
-    missing = []
-    for path in mandatory_paths:
-        if not path.exists():
-            missing.append(str(path))
-
-    return len(missing) == 0, missing
-
-
-def check_git_status(turbo: bool = False) -> tuple[bool, str]:
-    """Check if git working directory is clean. Detects code changes for Turbo escalation."""
-    try:
-        result = subprocess.run(
-            ["git", "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode == 0:
-            changes = result.stdout.strip()
-            if not changes:
-                return True, "Working directory clean"
-
-            # Detect code changes (.py, .js, .ts, etc.)
-            code_extensions = {".py", ".sh", ".js", ".ts", ".go", ".c", ".cpp"}
-            code_changes = []
-            for line in result.stdout.split("\n"):
-                if len(line) > 3:
-                    file_path = line[3:]
-                    if any(file_path.endswith(ext) for ext in code_extensions):
-                        code_changes.append(file_path)
-
-            if turbo:
-                if code_changes:
-                    return (
-                        False,
-                        f"ESCALATION REQUIRED: Code changes detected in Turbo Mode: {', '.join(code_changes)}. Please switch to Full SOP.",
-                    )
-                else:
-                    return True, "Metadata changes only (Turbo safe)"
-
-            return False, f"Uncommitted changes:\n{changes}"
-        return False, "Git command failed"
-    except Exception as e:
-        return False, f"Git check failed: {e}"
-
-
-def check_branch_info() -> tuple[str, bool]:
-    """Get current branch and check if it's a feature branch."""
-    try:
-        result = subprocess.run(
-            ["git", "branch", "--show-current"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode == 0:
-            branch = result.stdout.strip()
-            is_feature = branch.startswith(("agent/", "feature/", "chore/"))
-            return branch, is_feature
-        return "unknown", False
-    except Exception:
-        return "unknown", False
-
-
-def check_planning_docs() -> tuple[bool, list[str]]:
-    """Check if planning documents exist and are readable."""
-    missing = []
-    paths_to_check = [
-        Path(".agent/rules/ROADMAP.md"),
-        Path(".agent/rules/ImplementationPlan.md"),
-    ]
-
-    for path in paths_to_check:
-        if not path.exists():
-            missing.append(str(path))
-
-    return len(missing) == 0, missing
-
-
-def check_beads_issue() -> tuple[bool, str]:
-    """Check if there's an active beads issue."""
-    if not check_tool_available("bd"):
-        return False, "beads (bd) not available"
-
-    try:
-        result = subprocess.run(
-            ["bd", "ready"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            # Extract first issue from output
-            lines = result.stdout.strip().split("\n")
-            if lines:
-                return True, f"Issues ready: {len(lines)}"
-        return False, "No active Beads issues found"  # Precise status
-    except subprocess.TimeoutExpired:
-        return False, "beads command timed out"
-    except Exception as e:
-        return False, f"beads check failed: {e}"
-
-
-def get_active_issue_id() -> str | None:
-    """Identify the active beads issue ID."""
-    # Try branch name first
-    branch, _ = check_branch_info()
-    if branch.startswith(("agent/", "feature/", "chore/")):
-        parts = branch.split("/")
-        if len(parts) > 1:
-            return parts[-1]
-
-    # Try bd ready
-    if check_tool_available("bd"):
-        try:
-            result = subprocess.run(
-                ["bd", "ready"], capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0:
-                lines = result.stdout.strip().split("\n")
-                # Skip header and empty lines, find first line with ID: Title pattern
-                for line in lines:
-                    line = line.strip()
-                    if not line or "Ready work" in line:
-                        continue
-                    # Match pattern like "1. [● P0] [task] issue-id: Title"
-                    match = re.search(r"([a-zA-Z0-9-]+):", line)
-                    if match:
-                        return match.group(1).strip()
-        except Exception:
-            pass
-    return None
-
-
-def validate_atomic_commits() -> tuple[bool, list[str]]:
-    """Validate atomic commit requirements per SOP git-workflow.
-
-    Checks:
-    1. Single commit ahead of base branch (usually main or origin/main)
-    2. No merge commits in branch history
-    3. Commit message includes Beads issue ID
-    4. Commit message follows conventional format
-
-    Returns:
-        (bool, list[str]): (is_valid, error_messages)
-    """
-    errors = []
-
-    try:
-        # Determine base branch for comparison (prefer origin/main, fallback to main)
-        base_branch = "origin/main"
-        res = subprocess.run(
-            ["git", "rev-parse", "--verify", base_branch],
-            capture_output=True,
-            text=True,
-        )
-        if res.returncode != 0:
-            base_branch = "main"
-            res = subprocess.run(
-                ["git", "rev-parse", "--verify", base_branch],
-                capture_output=True,
-                text=True,
-            )
-            if res.returncode != 0:
-                base_branch = "master"
-                res = subprocess.run(
-                    ["git", "rev-parse", "--verify", base_branch],
-                    capture_output=True,
-                    text=True,
-                )
-
-        if res.returncode != 0:
-            errors.append(
-                "Could not identify base branch (main/master/origin/main) for comparison."
-            )
-            return False, errors
-
-        # Check 1: Count commits ahead of base branch
-        result = subprocess.run(
-            ["git", "log", "--oneline", f"{base_branch}..HEAD"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode != 0:
-            errors.append(f"Could not compare with {base_branch}.")
-            return False, errors
-
-        commits = [line for line in result.stdout.strip().split("\n") if line]
-        commit_count = len(commits)
-
-        if commit_count == 0:
-            # If we are on the base branch itself, we should check if we have any unpushed commits
-            current_branch, _ = check_branch_info()
-            if current_branch in ["main", "master", "origin/main"]:
-                 # Working directly on main/master - check against upstream
-                 upstream = "@{u}"
-                 res = subprocess.run(["git", "rev-parse", "--verify", upstream], capture_output=True, text=True)
-                 if res.returncode == 0:
-                     result = subprocess.run(
-                        ["git", "log", "--oneline", f"{upstream}..HEAD"],
-                        capture_output=True,
-                        text=True,
-                        timeout=5,
-                    )
-                     commits = [line for line in result.stdout.strip().split("\n") if line]
-                     commit_count = len(commits)
-                     if commit_count == 0:
-                         return True, [] # No new work to validate
-
-        if commit_count > 1:
-            errors.append(
-                f"Multiple commits detected ({commit_count}). Squash required before merging to ensure atomic history."
-            )
-            errors.append(f"  Run: git rebase -i {base_branch}")
-
-        # Check 2: Detect merge commits
-        result = subprocess.run(
-            ["git", "log", "--merges", f"{base_branch}..HEAD", "--oneline"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            merge_commits = result.stdout.strip().split("\n")
-            errors.append(
-                f"Merge commits detected ({len(merge_commits)}). Merge commits are strictly forbidden by SOP."
-            )
-            errors.append(f"  Action: Rebase onto {base_branch} instead of merging it.")
-            errors.append(f"  Run: git rebase {base_branch}")
-        elif result.returncode != 0:
-            errors.append(f"Merge commit check failed for range {base_branch}..HEAD")
-
-        # Check 3 & 4: Validate commit message format (only if exactly 1 commit)
-        if commit_count == 1:
-            result = subprocess.run(
-                ["git", "log", "-1", "--pretty=%B"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if result.returncode == 0:
-                commit_msg = result.stdout.strip()
-
-                # Check for Beads issue ID [xxx-xxx]
-                issue_pattern = r"\[([a-zA-Z0-9-]+)\]"
-                if not re.search(issue_pattern, commit_msg):
-                    errors.append(
-                        "Commit message must include Beads issue ID in format [issue-id]"
-                    )
-                    errors.append(
-                        "  Correct Format Example: feat(auth): add validation [agent-harness-v0o]"
-                    )
-
-                # Check conventional commit format <type>(<scope>): <description>
-                conv_pattern = r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
-                if not re.match(conv_pattern, commit_msg.split("\n")[0]):
-                    errors.append("Commit message does not follow conventional commit format")
-                    errors.append("  Required: <type>(<scope>): <description> [issue-id]")
-
-        return len(errors) == 0, errors
-
-    except Exception as e:
-        errors.append(f"Atomic commit validation system error: {e}")
-        return False, errors
-
-
-def validate_tdd_compliance() -> tuple[bool, str]:
-    """Validate that code changes are preceded by or accompanied by test changes.
-
-    Enforces the 'Spec-Driven TDD' rule from tdd-workflow.md.
-    """
-    try:
-        result = subprocess.run(
-            ["git", "status", "--porcelain"], capture_output=True, text=True, timeout=5
-        )
-        if result.returncode != 0:
-            return False, "Failed to get git status"
-
-        lines = result.stdout.strip().split("\n")
-        if not lines or (len(lines) == 1 and not lines[0]):
-            return True, "No changes detected"
-
-        code_files = []
-        test_files = []
-
-        # Extensions that count as code
-        code_exts = {".py", ".js", ".ts", ".go", ".c", ".cpp", ".java"}
-
-        for line in lines:
-            if len(line) < 4:
-                continue
-            status = line[:2].strip()
-            file_path = line[3:].strip()
-
-            ext = Path(file_path).suffix
-            if ext in code_exts:
-                if "test" in file_path.lower() or file_path.startswith("tests/"):
-                    test_files.append(file_path)
-                else:
-                    code_files.append(file_path)
-
-        if not code_files and test_files:
-            return (
-                True,
-                f"Red Phase: Test stubs detected without implementation ({', '.join(test_files)})",
-            )
-
-        if code_files and not test_files:
-            return (
-                False,
-                f"TDD Violation: Implementation changes detected without corresponding tests: {', '.join(code_files)}",
-            )
-
-        return True, "TDD compliance verified (Balanced changes)"
-
-    except Exception as e:
-        return False, f"TDD validation error: {e}"
-
-
-def check_progress_log_exists() -> tuple[bool, str]:
-    """Check if progress log exists for the active issue."""
-    issue_id = get_active_issue_id()
-    if not issue_id:
-        return False, "Active issue ID not identified"
-
-    log_path = Path.home() / ".agent/progress-logs" / f"{issue_id}.md"
-    if log_path.exists():
-        return True, f"Progress log found: {log_path.name}"
-    return False, f"Progress log missing: {log_path.name}"
-
-
-def check_sop_simplification() -> tuple[bool, str]:
-    """Check for SOP simplification proposals and their validation status."""
-    # Look for simplification proposal files
-    proposal_patterns = [
-        "*.md",
-        ".agent/sop_simplification_*.md",
-        "sop_simplification_*.md",
-    ]
-
-    proposals = []
-    for pattern in proposal_patterns:
-        proposals.extend(Path(".").glob(pattern))
-        proposals.extend(Path(".agent").glob(pattern))
-
-    if not proposals:
-        return True, "No SOP simplification proposals found"
-
-    # Check if any proposals need validation or approval
-    pending_proposals = []
-    approved_proposals = []
-
-    for proposal in proposals:
-        if "sop_simplification_" in proposal.name:
-            content = proposal.read_text()
-
-            # Check if proposal has been validated
-            if "## Approval Section" in content:
-                # Look for approval decision
-                if "Approve Simplified" in content:
-                    approved_proposals.append(proposal.name)
-                elif "Approve Standard" in content or "Reject" in content:
-                    # Decision made, no action needed
-                    continue
-                else:
-                    pending_proposals.append(proposal.name)
-            else:
-                pending_proposals.append(proposal.name)
-
-    if pending_proposals:
-        return (
-            False,
-            f"Pending SOP simplification proposals: {', '.join(pending_proposals)}",
-        )
-
-    if approved_proposals:
-        return True, f"Approved simplified SOP: {', '.join(approved_proposals)}"
-
-    return True, "SOP simplification proposals processed"
-
-
-def check_hook_integrity() -> tuple[bool, str]:
-    """Check if git hooks are intact and not tampered with. Supports pre-commit and beads."""
-    # Define standard hook sets
-    standard_hooks = {
-        "pre-commit-framework": {
-            ".git/hooks/pre-commit": [
-                "#!/usr/bin/env bash",
-                "# File generated by pre-commit:",
-                'pre_commit "${ARGS[@]}"',
-            ],
-            ".git/hooks/pre-push": [
-                "#!/usr/bin/env bash",
-                "# File generated by pre-commit:",
-                'pre_commit "${ARGS[@]}"',
-            ],
-        },
-        "beads": {
-            ".git/hooks/pre-commit": [
-                "bd (beads) pre-commit hook",
-                "bd sync --flush-only",
-            ],
-            ".git/hooks/post-merge": [
-                "bd (beads) post-merge hook",
-                "bd import",
-            ]
-        }
-    }
-
-    # Detect which standard is in use
-    detected_standard = None
-    if Path(".pre-commit-config.yaml").exists():
-        detected_standard = "pre-commit-framework"
-    elif Path(".beads").exists():
-        detected_standard = "beads"
-
-    if not detected_standard:
-        # Fallback: check if any actual hook matches a standard
-        for name, hook_set in standard_hooks.items():
-            for path, patterns in hook_set.items():
-                hook_file = Path(path)
-                if hook_file.exists() and hook_file.is_file():
-                    content = hook_file.read_text()
-                    if all(pattern in content for pattern in patterns):
-                        detected_standard = name
-                        break
-            if detected_standard:
-                break
-
-    if not detected_standard:
-        return True, "No standard hook framework detected (Integrity check skipped)"
-
-    # Validate against the detected standard
-    hook_set = standard_hooks[detected_standard]
-    missing_hooks = []
-    tampered_hooks = []
-
-    for hook_path, expected_patterns in hook_set.items():
-        hook_file = Path(hook_path)
-
-        if not hook_file.exists():
-            missing_hooks.append(hook_path)
-            continue
-
-        if not hook_file.is_file() or not os.access(hook_file, os.X_OK):
-            tampered_hooks.append(f"{hook_path} (not executable or not a file)")
-            continue
-
-        # Check for expected content patterns
-        content = hook_file.read_text()
-        for pattern in expected_patterns:
-            if pattern not in content:
-                tampered_hooks.append(
-                    f"{hook_path} (missing expected pattern: {pattern[:30]}...)"
-                )
-                break
-
-    if missing_hooks or tampered_hooks:
-        issues = []
-        if missing_hooks:
-            issues.append(f"Missing hooks: {', '.join(missing_hooks)}")
-        if tampered_hooks:
-            issues.append(f"Tampered hooks: {', '.join(tampered_hooks)}")
-        return False, f"Hook integrity failure ({detected_standard}): {'; '.join(issues)}"
-
-    return True, f"All {detected_standard} hooks intact"
-
-
-def check_plan_approval(max_hours: int = 4) -> tuple[bool, str]:
-    """Check if plan approval exists and is fresh."""
-    # Look for task.md with approval marker
-    task_paths = [
-        Path(".agent/task.md"),
-        Path("task.md"),
-    ]
-
-    # Also check brain directory
-    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    if brain_dir.exists():
-        for session_dir in sorted(brain_dir.iterdir(), reverse=True)[:3]:
-            if session_dir.is_dir():
-                task_paths.append(session_dir / "task.md")
-
-    for task_path in task_paths:
-        if task_path.exists():
-            try:
-                content = task_path.read_text()
-                # Must have Approval heading AND an checked box following it
-                if "## Approval" in content and "[x]" in content[content.find("## Approval"):].lower():
-                    # Check file modification time
-                    mtime = datetime.fromtimestamp(task_path.stat().st_mtime)
-                    age = datetime.now() - mtime
-
-                    if age < timedelta(hours=max_hours):
-                        hours_ago = age.total_seconds() / 3600
-                        return True, f"Plan approved {hours_ago:.1f} hours ago"
-                    else:
-                        hours_ago = age.total_seconds() / 3600
-                        return (
-                            False,
-                            f"Plan approval is {hours_ago:.1f} hours old (stale)",
-                        )
-            except Exception:
-                pass
-
-    return False, "No plan approval found"
-
-
-def check_reflection_invoked() -> tuple[bool, str]:
-    """Check if reflection was recently invoked."""
-    # Check for recent reflection files
-    reflection_paths = [
-        Path(".agent/reflections.json"),
-        Path("reflections.json"),
-    ]
-
-    for path in reflection_paths:
-        if path.exists():
-            try:
-                mtime = datetime.fromtimestamp(path.stat().st_mtime)
-                age = datetime.now() - mtime
-                if age < timedelta(hours=2):
-                    return (
-                        True,
-                        f"Reflection captured {age.total_seconds() / 60:.0f} minutes ago",
-                    )
-            except Exception:
-                pass
-
-    return False, "No recent reflection found"
-
-
-def check_debriefing_invoked() -> tuple[bool, str]:
-    """Check if debriefing was recently invoked."""
-    # Look for debrief files in brain directory
-    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    if brain_dir.exists():
-        session_dirs = sorted(
-            [d for d in brain_dir.iterdir() if d.is_dir()],
-            key=lambda x: x.stat().st_mtime,
-            reverse=True,
-        )[:3]
-
-        for session_dir in session_dirs:
-            debrief_path = session_dir / "debrief.md"
-            if debrief_path.exists():
-                try:
-                    mtime = datetime.fromtimestamp(debrief_path.stat().st_mtime)
-                    age = datetime.now() - mtime
-                    if age < timedelta(hours=2):
-                        return (
-                            True,
-                            f"Debrief generated {age.total_seconds() / 60:.0f} minutes ago",
-                        )
-                except Exception:
-                    pass
-
-    return False, "No recent debrief found"
-
-
-def check_code_review_status() -> tuple[bool, str]:
-    """Check if code review skill was recently invoked and passed."""
-    code_review_script = (
-        Path.home() / ".gemini/antigravity/skills/code-review/scripts/code_review.py"
-    )
-    if not code_review_script.exists():
-        return False, "Code Review Skill not installed"
-
-    try:
-        # Check if the code review was successful by running it in non-interactive mode
-        # If it returns 0, it means it would pass (or has no changes to review)
-        result = subprocess.run(
-            [sys.executable, str(code_review_script)],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            env={**os.environ, "AUTOMATED_MODE": "1"},
-        )
-        if result.returncode == 0:
-            return True, "Code Review passed (Automated check)"
-        else:
-            return False, "Code Review failed or requires manual intervention"
-    except Exception as e:
-        return False, f"Code Review check error: {e}"
-
-
-def check_handoff_compliance() -> tuple[bool, str]:
-    """Check if hand-off compliance verification passes for multi-phase implementations."""
-    # Look for hand-off directory and verification script
-    handoff_dir = Path(".agent/handoffs")
-    verification_script = Path(".agent/scripts/verify_handoff_compliance.sh")
-
-    if not handoff_dir.exists():
-        return True, "No hand-off directory (not a multi-phase implementation)"
-
-    if not verification_script.exists():
-        return False, "Hand-off verification script missing"
-
-    # Check if there are any hand-off documents to verify
-    handoff_files = list(handoff_dir.glob("**/phase-*-handoff.md"))
-    if not handoff_files:
-        return True, "No hand-off documents found (not a multi-phase implementation)"
-
-    # Run verification script on all hand-offs
-    try:
-        result = subprocess.run(
-            [str(verification_script), "--report"],
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-
-        if result.returncode == 0:
-            return True, "All hand-off documents pass verification"
-        else:
-            return False, f"Hand-off verification failed: {result.stderr.strip()}"
-
-    except subprocess.TimeoutExpired:
-        return False, "Hand-off verification timed out"
-    except Exception as e:
-        return False, f"Hand-off verification error: {str(e)}"
-
-
-def check_todo_completion() -> tuple[bool, str]:
-    """Check if all tasks in task.md are completed (oh-my-opencode pattern)."""
-    # Use the todo-enforcer script if available
-    enforcer_script = Path.home() / ".agent/scripts/todo-enforcer.py"
-    if enforcer_script.exists():
-        try:
-            result = subprocess.run(
-                [sys.executable, str(enforcer_script)],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if result.returncode == 0:
-                return True, "All tasks completed (Sisyphus is happy)"
-            else:
-                # Extract the failure message
-                msg = (
-                    result.stdout.strip().split("\n")[-1]
-                    if result.stdout
-                    else "Unfinished tasks detected"
-                )
-                return False, msg
-        except Exception as e:
-            return False, f"Todo enforcer error: {e}"
-
-    return True, "Todo enforcer script not found (Skipping)"
-
-
-def check_linked_repositories() -> tuple[bool, list[str]]:
-    """Validate that linked repositories follow SOP. Auto-detects changes in global dirs."""
-    errors = []
-
-    # 1. auto-detect global repositories
-    global_repos = [
-        Path.home() / ".gemini",
-        Path.home() / ".agent",
-    ]
-
-    # 2. Extract from task.md if present
-    task_paths = [Path(".agent/task.md"), Path("task.md")]
-    for task_path in task_paths:
-        if task_path.exists():
-            try:
-                content = task_path.read_text()
-                # Simple regex search for - path: /path/to/repo
-                paths = re.findall(r"-\s+path:\s+([^\n\s]+)", content)
-                for p in paths:
-                    try:
-                        repo_path = Path(p).expanduser()
-                        if repo_path.exists() and repo_path.is_dir():
-                            if (repo_path / ".git").exists():
-                                global_repos.append(repo_path)
-                    except Exception:
-                        continue
-            except Exception:
-                pass
-
-    checked_repos = set()
-    for repo in global_repos:
-        try:
-            repo_abs = str(repo.resolve())
-            if repo_abs in checked_repos:
-                continue
-            checked_repos.add(repo_abs)
-
-            # Check for uncommitted changes
-            # Skip if repo is same as current workspace
-            if repo_abs == str(Path(".").resolve()):
-                continue
-
-            res = subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=repo_abs,
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if res.returncode == 0:
-                status = res.stdout.strip()
-                if status:
-                    # Repo has changes, check branch and PR
-                    branch_res = subprocess.run(
-                        ["git", "branch", "--show-current"],
-                        cwd=repo_abs,
-                        capture_output=True,
-                        text=True,
-                        timeout=2,
-                    )
-                    branch = (
-                        branch_res.stdout.strip()
-                        if branch_res.returncode == 0
-                        else "unknown"
-                    )
-
-                    if branch in ["main", "master"]:
-                        errors.append(
-                            f"Linked repo {repo.name} has changes on protected branch '{branch}'. Please use a feature branch."
-                        )
-
-                    if branch != "unknown":
-                        # Check for PR if gh is available
-                        if check_tool_available("gh"):
-                            pr_res = subprocess.run(
-                                [
-                                    "gh",
-                                    "pr",
-                                    "list",
-                                    "--author",
-                                    "@me",
-                                    "--head",
-                                    branch,
-                                ],
-                                cwd=repo_abs,
-                                capture_output=True,
-                                text=True,
-                                timeout=5,
-                            )
-                            if pr_res.returncode == 0 and not pr_res.stdout.strip():
-                                errors.append(
-                                    f"No PR found for linked repo {repo.name} (branch: {branch})"
-                                )
-        except Exception:
-            pass
-
-    return len(errors) == 0, errors
-
-
-def check_pr_review_issue_created() -> tuple[bool, str]:
-    """Check if a P0 PR review issue exists for the current branch.
-<<<<<<< HEAD
-
-    This is MANDATORY for Full Mode finalization. The PR merge is blocked
-    until the review issue is closed by another agent.
-
-    Returns:
-        tuple[bool, str]: (is_valid, status_message)
-    """
-    if not check_tool_available("bd"):
-        return False, "beads (bd) not available"
-    # Get current branch name
-    branch, is_feature = check_branch_info()
-    if not is_feature:
-        # On main/master, no PR review needed
-        return True, "Not on feature branch (PR review not required)"
-    try:
-        # Query beads for P0 issues with 'pr-review' in title or tag
-        # Also check for issues mentioning the current branch
-        result = subprocess.run(
-            ["bd", "list", "--priority", "P0"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-
-        if result.returncode != 0:
-            return False, "Failed to query beads for PR review issues"
-
-        output = result.stdout.strip()
-        if not output:
-            return (
-                False,
-                f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'",
-            )
-        # Check if any issue mentions PR review or current branch
-        lines = output.split("\n")
-        for line in lines:
-            line_lower = line.lower()
-            # Match patterns: "pr review", "pr-review", or the branch name
-            if "pr review" in line_lower or "pr-review" in line_lower:
-                # Extract issue ID if possible
-                parts = line.split(":")
-                if parts:
-                    issue_id = parts[0].strip()
-                    return True, f"PR review issue found: {issue_id}"
-            # Also match by branch name in the issue
-            branch_slug = branch.split("/")[-1] if "/" in branch else branch
-            if branch_slug.lower() in line_lower:
-                parts = line.split(":")
-                if parts:
-                    issue_id = parts[0].strip()
-                    return True, f"PR review issue found (branch match): {issue_id}"
-
-        return (
-            False,
-            f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'",
-        )
-    except subprocess.TimeoutExpired:
-        return False, "beads command timed out"
-    except Exception as e:
-        return False, f"PR review check failed: {e}"
-
-
-def check_pr_exists() -> tuple[bool, str]:
-    """Check if a Pull Request exists for the current branch using gh CLI."""
-    branch, is_feature = check_branch_info()
-    if not is_feature:
-        return True, "No PR required for non-feature branch"
-
-    if not check_tool_available("gh"):
-        return False, "gh (GitHub CLI) not available. PR cannot be verified."
-
-    try:
-        # Check if PR exists for current head branch
-        result = subprocess.run(
-            ["gh", "pr", "list", "--head", branch, "--json", "url", "--jq", ".[0].url"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-
-        if result.returncode == 0:
-            pr_url = result.stdout.strip()
-            if pr_url:
-                return True, f"PR found: {pr_url}"
-            else:
-                return (
-                    False,
-                    f"No PR found for branch '{branch}'. Create one with: gh pr create --fill",
-                )
-        return False, f"gh command failed: {result.stderr.strip()}"
-    except subprocess.TimeoutExpired:
-        return False, "gh command timed out"
-    except Exception as e:
-        return False, f"PR check failed: {e}"
-
-
-def check_handoff_pr_link() -> tuple[bool, str]:
-    """Check if the session handoff (debrief.md) contains a GitHub PR link."""
-    # Look for debrief files in brain directory
-    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    if not brain_dir.exists():
-        return False, "Brain directory not found"
-
-    session_dirs = sorted(
-        [d for d in brain_dir.iterdir() if d.is_dir()],
-        key=lambda x: x.stat().st_mtime,
-        reverse=True,
-    )[:3]
-
-    pr_pattern = r"https://github\.com/[^/]+/[^/]+/pull/\d+"
-
-    for session_dir in session_dirs:
-        debrief_path = session_dir / "debrief.md"
-        if debrief_path.exists():
-            try:
-                content = debrief_path.read_text()
-                # Check for PR link and specifically the "PR Link" text
-                if "PR Link" in content or "pull request" in content.lower():
-                    if re.search(pr_pattern, content):
-                        return True, f"PR link found in debrief: {debrief_path.name}"
-            except Exception:
-                pass
-
-    return False, "No GitHub PR link found in recent debrief.md"
 
 
 def run_initialization(verbose: bool = False) -> bool:
     """Run Initialization validation."""
-    print(f"{Colors.BOLD}📋 INITIALIZATION CHECK{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("initialization", verbose)
+    if executed:
+        if blockers:
+            print(f"{Colors.RED}{Colors.BOLD}❌ INITIALIZATION BLOCKED (JSON){Colors.END}")
+            for blocker in blockers:
+                 print(f"  - {blocker}")
+            update_progress_ledger("Initialization", "failure", f"Blocked: {blockers}")
+            return False
+        
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ INITIALIZATION COMPLETE (JSON){Colors.END}")
+        update_progress_ledger("Initialization", "success", "Clean JSON initialization complete")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}📋 INITIALIZATION CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
 
@@ -1180,14 +336,23 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
 
     # Check for existing code blockers (should not have uncommitted code changes)
     git_clean, git_msg = check_git_status(turbo=True)
-    print(f"└── Git Clean: {check_mark(git_clean)} {git_msg.split(chr(10))[0]}")
+    print(f"├── Git Clean: {check_mark(git_clean)} {git_msg.split(chr(10))[0]}")
+
+    # Check for SOP infrastructure changes (requires Full Mode)
+    sop_infra_escalation, sop_infra_msg = check_sop_infrastructure_changes()
+    sop_infra_icon = warning_mark() if sop_infra_escalation else check_mark(True)
+    print(f"└── SOP Infrastructure: {sop_infra_icon} {sop_infra_msg.split(chr(10))[0]}")
 
     print()
-    if not git_ok or not git_clean:
+    if not git_ok or not git_clean or sop_infra_escalation:
         print(f"{Colors.RED}{Colors.BOLD}❌ TURBO BLOCKED{Colors.END}")
         if not git_clean:
             print(
                 f"  {warning_mark()} Code changes detected. Escalate to Full SOP (--init)."
+            )
+        if sop_infra_escalation:
+            print(
+                f"  {warning_mark()} SOP infrastructure changes detected. Full Mode REQUIRED (--init)."
             )
         return False
 
@@ -1196,9 +361,20 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     return True
 
 
+
 def run_execution(verbose: bool = False) -> bool:
     """Run Execution Phase status check."""
-    print(f"{Colors.BOLD}🚀 EXECUTION PHASE{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("execution", verbose)
+    if executed:
+        if blockers:
+            print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ EXECUTION SETUP INCOMPLETE (JSON){Colors.END}")
+            return False
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ EXECUTION ACTIVE (JSON){Colors.END}")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}🚀 EXECUTION PHASE (Legacy){Colors.END}")
     print("=" * 40)
     print()
     print("Execution: Active work phase - executing the task.")
@@ -1292,7 +468,22 @@ def run_execution(verbose: bool = False) -> bool:
 
 def run_finalization(verbose: bool = False) -> bool:
     """Run Finalization validation."""
-    print(f"{Colors.BOLD}🛬 FINALIZATION CHECK{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("finalization", verbose)
+    if executed:
+        if blockers:
+            print(f"{Colors.RED}{Colors.BOLD}❌ FINALIZATION BLOCKED (JSON){Colors.END}")
+            for blocker in blockers:
+                 print(f"  - {blocker}")
+            update_progress_ledger("Finalization", "failure", f"Blocked: {blockers}")
+            return False
+        
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ FINALIZATION COMPLETE (JSON){Colors.END}")
+        update_progress_ledger("Finalization", "success", "Clean JSON finalization complete")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}🛬 FINALIZATION CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
     print(
@@ -1386,11 +577,23 @@ def run_finalization(verbose: bool = False) -> bool:
 
     # Hook Integrity Check (NEW MANDATORY GATE)
     hook_ok, hook_msg = check_hook_integrity()
-    print(f"└── Hook Integrity: {check_mark(hook_ok)} {hook_msg}")
+    print(f"├── Hook Integrity: {check_mark(hook_ok)} {hook_msg}")
     if not hook_ok:
         blockers.append(
             f"Hook integrity failure: {hook_msg} - hooks may have been tampered with"
         )
+
+    # PR Decomposition Closure Check (PR Response Protocol)
+    decomp_ok, decomp_msg = check_pr_decomposition_closure()
+    print(f"├── PR Decomposition: {check_mark(decomp_ok)} {decomp_msg}")
+    if not decomp_ok:
+        blockers.append(f"PR Response Protocol violation: {decomp_msg}")
+
+    # Child PR Linkage Check (PR Response Protocol)
+    linkage_ok, linkage_msg = check_child_pr_linkage()
+    print(f"└── Child PR Linkage: {check_mark(linkage_ok)} {linkage_msg}")
+    if not linkage_ok:
+        blockers.append(f"PR Response Protocol violation: {linkage_msg}")
 
     print()
 
@@ -1455,7 +658,20 @@ def run_turbo_finalization(verbose: bool = False) -> bool:
 
 def run_retrospective(verbose: bool = False) -> bool:
     """Run Retrospective validation."""
-    print(f"{Colors.BOLD}🎖️ RETROSPECTIVE CHECK{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("retrospective", verbose)
+    if executed:
+        if blockers:
+            print(f"{Colors.RED}{Colors.BOLD}❌ RETROSPECTIVE INCOMPLETE (JSON){Colors.END}")
+            return False
+        if warnings:
+            print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ RETROSPECTIVE INCOMPLETE (JSON){Colors.END}")
+            return False
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ RETROSPECTIVE COMPLETE (JSON){Colors.END}")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}🎖️ RETROSPECTIVE CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
     print("Retrospective: strategic learning and session closure.")
@@ -1559,7 +775,17 @@ def run_retrospective(verbose: bool = False) -> bool:
 
 def run_clean_state(verbose: bool = False) -> bool:
     """Run Clean State validation (formerly Cleanup)."""
-    print(f"{Colors.BOLD}✨ CLEAN STATE CHECK{Colors.END}")
+    # Try JSON-driven approach first
+    executed, blockers, warnings = run_phase_from_json("clean_state", verbose)
+    if executed:
+        if blockers or warnings:
+            print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ REPO NOT CLEAN (JSON){Colors.END}")
+            return False
+        print(f"{Colors.GREEN}{Colors.BOLD}✅ REPO IS CLEAN (JSON){Colors.END}")
+        return True
+
+    # Fallback to legacy hardcoded logic
+    print(f"{Colors.BOLD}✨ CLEAN STATE CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
     print("Final verification: repo should be clean after PR merge.")

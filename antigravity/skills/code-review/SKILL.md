@@ -72,6 +72,46 @@ When assigned a P0 PR review issue:
 | **APPROVE** | Close the issue → Unblocks PR merge |
 | **REQUEST_CHANGES** | Add comment with required changes → Keep issue open |
 
+### Reviewer: Requesting Decomposition
+
+When a PR covers multiple independent concerns, request decomposition using this structured format:
+
+```markdown
+## 🔄 REQUEST_CHANGES: Decomposition Required
+
+This PR covers multiple independent concerns. Please decompose into focused child PRs per the [PR Response Protocol](~/.agent/docs/sop/pr-response-protocol.md).
+
+**Identified Concerns**:
+1. <Concern 1 description>
+2. <Concern 2 description>  
+3. <Concern 3 description>
+
+**Recommended Decomposition**:
+- Child PR 1: <scope>
+- Child PR 2: <scope>
+- Child PR 3: <scope>
+
+**Next Steps**:
+- [ ] Close this PR
+- [ ] Create Epic/Parent issue  
+- [ ] Create child issues for each concern
+- [ ] Create focused child PRs (<200 lines each)
+```
+
+**Thrashing Detection**: If a PR has already been rejected once, strongly consider requesting decomposition to prevent thrashing. After ≥2 rejections, decomposition is **MANDATORY** per the protocol.
+
+### Implementing Agent: After REQUEST_CHANGES
+
+If your PR receives `REQUEST_CHANGES`, you MUST follow the [PR Response Protocol](~/.agent/docs/sop/pr-response-protocol.md).
+
+**Quick Reference**:
+
+- **Minor fixes** → Fix inline, push fixup commits, re-request review
+- **Major rework (single concern)** → Assess scope, rework if focused, else decompose
+- **Decomposition requested or ≥2 rejections** → **MANDATORY decomposition** (close PR, create Epic/child issues/PRs)
+
+**Full Protocol**: [PR Response Protocol](~/.agent/docs/sop/pr-response-protocol.md)
+
 ### 🚀 Merging Protocol
 
 After approving a PR, always use the **"Squash and merge"** option on GitHub to maintain a clean atomic history.
