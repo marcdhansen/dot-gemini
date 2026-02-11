@@ -27,14 +27,15 @@ sys.path.append(str(Path.home() / ".agent/ledgers"))
 # Import modular validators
 try:
     from validators.common import Colors, check_mark, warning_mark, check_tool_available, check_tool_version
-    from validators.git_validator import check_workspace_integrity, check_git_status, check_sop_infrastructure_changes, check_branch_info, get_active_issue_id, validate_atomic_commits
+    from validators.git_validator import check_workspace_integrity, check_git_status, check_sop_infrastructure_changes, check_branch_info, get_active_issue_id, validate_atomic_commits, prune_local_branches, check_branch_issue_coupling
     from validators.plan_validator import check_planning_docs, check_beads_issue, check_sop_simplification, check_hook_integrity, check_plan_approval
     from validators.code_validator import validate_tdd_compliance
     from validators.finalization_validator import (
         check_reflection_invoked, check_debriefing_invoked, check_code_review_status,
         check_handoff_compliance, check_todo_completion, check_linked_repositories,
         check_pr_review_issue_created, check_pr_exists, check_handoff_pr_link,
-        check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists
+        check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists,
+        check_handoff_pr_verification, check_beads_pr_sync, check_workspace_cleanup
     )
 except ImportError as e:
     print(f"Warning: Could not import modular validators: {e}")
@@ -244,6 +245,12 @@ def run_initialization(verbose: bool = False) -> bool:
     issue_icon = check_mark(issues_ok) if issues_ok else f"{Colors.BLUE}ℹ️{Colors.END}"
     print(f"├── Issues: {issue_icon} {issues_msg} (Optional for planning)")
     # No warning/blocker for missing issues during initialization
+    
+    # Branch-Issue Coupling Check
+    coupling_ok, coupling_msg = check_branch_issue_coupling()
+    print(f"├── Branch-Issue Coupling: {check_mark(coupling_ok)} {coupling_msg}")
+    if not coupling_ok:
+        blockers.append(coupling_msg)
 
     # SOP Modification/Simplification Check
     simplification_ok, simplification_msg = check_sop_simplification()
@@ -591,9 +598,27 @@ def run_finalization(verbose: bool = False) -> bool:
 
     # Child PR Linkage Check (PR Response Protocol)
     linkage_ok, linkage_msg = check_child_pr_linkage()
-    print(f"└── Child PR Linkage: {check_mark(linkage_ok)} {linkage_msg}")
+    print(f"├── Child PR Linkage: {check_mark(linkage_ok)} {linkage_msg}")
     if not linkage_ok:
         blockers.append(f"PR Response Protocol violation: {linkage_msg}")
+
+    # Handoff PR Verification (Orphaned PR prevention)
+    handoff_pr_v_ok, handoff_pr_v_msg = check_handoff_pr_verification()
+    print(f"├── Handoff PR Verification: {check_mark(handoff_pr_v_ok)} {handoff_pr_v_msg}")
+    if not handoff_pr_v_ok:
+        blockers.append(f"Handoff PR verification failure: {handoff_pr_v_msg}")
+
+    # Beads-PR Synchronization Check
+    beads_pr_ok, beads_pr_msg = check_beads_pr_sync()
+    print(f"├── Beads-PR Sync: {check_mark(beads_pr_ok)} {beads_pr_msg}")
+    if not beads_pr_ok:
+        blockers.append(f"Beads-PR sync failure: {beads_pr_msg}")
+
+    # Workspace Cleanup Check (Temporary artifact drift detection)
+    cleanup_ok, cleanup_msg = check_workspace_cleanup()
+    print(f"└── Workspace Cleanup: {check_mark(cleanup_ok)} {cleanup_msg}")
+    if not cleanup_ok:
+        blockers.append(f"Workspace cleanup failure: {cleanup_msg}")
 
     print()
 
@@ -636,8 +661,8 @@ def run_turbo_finalization(verbose: bool = False) -> bool:
     print("=" * 40)
     print()
 
-    # Git Status Check (Escalation Detection)
-    git_ok, git_msg = check_git_status(turbo=True)
+    # Git Status Check (Strict: No uncommitted changes allowed in Finalization)
+    git_ok, git_msg = check_git_status(turbo=False)
     print(f"├── Git Status: {check_mark(git_ok)} {git_msg.split(chr(10))[0]}")
 
     # Beads Sync check (Optional but recommended)
@@ -684,13 +709,13 @@ def run_retrospective(verbose: bool = False) -> bool:
     reflect_ok, reflect_msg = check_reflection_invoked()
     print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
-        warnings.append("Reflection not captured - invoke /reflect")
+        blockers.append("Reflection not captured - invoke /reflect (Mandatory)")
 
     # Debriefing Check
     debrief_ok, debrief_msg = check_debriefing_invoked()
     print(f"├── Debrief File: {check_mark(debrief_ok)} {debrief_msg}")
     if not debrief_ok:
-        warnings.append("Debrief file not generated - run mission_debriefing.py")
+        blockers.append("Debrief file not generated - run mission_debriefing.py (Mandatory)")
 
     # Plan Approval Cleared Check
     approval_ok, approval_msg = check_plan_approval()
@@ -701,7 +726,7 @@ def run_retrospective(verbose: bool = False) -> bool:
         print("Plan approval cleared or stale")
     else:
         print(f"Plan still active: {approval_msg}")
-        warnings.append("Clear the ## Approval marker in task.md")
+        blockers.append("Clear the ## Approval marker in task.md (Mandatory)")
 
     # Progress Log Reflector Synthesis Check
     log_ok, log_msg = check_progress_log_exists()
@@ -730,7 +755,7 @@ def run_retrospective(verbose: bool = False) -> bool:
 
     print(f"├── Reflector: {check_mark(reflector_ok)} {reflector_msg}")
     if not reflector_ok:
-        warnings.append(reflector_msg)
+        blockers.append(f"Retrospective incomplete: {reflector_msg}")
 
     # PR Link in Handoff Check
     handoff_pr_ok, handoff_pr_msg = check_handoff_pr_link()
@@ -790,6 +815,12 @@ def run_clean_state(verbose: bool = False) -> bool:
     print()
     print("Final verification: repo should be clean after PR merge.")
     print()
+
+    # Automated Pruning
+    prune_ok, prune_msg = prune_local_branches()
+    print(f"├── Branch Pruning: {check_mark(prune_ok)} {prune_msg}")
+    if not prune_ok:
+        issues.append(prune_msg)
 
     issues = []
 

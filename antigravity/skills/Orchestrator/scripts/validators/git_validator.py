@@ -182,7 +182,7 @@ def get_active_issue_id() -> str | None:
                     if not line or "Ready work" in line:
                         continue
                     # Match pattern like "1. [● P0] [task] issue-id: Title"
-                    match = re.search(r"([a-zA-Z0-9-]+):", line)
+                    match = re.search(r"([a-zA-Z0-9-.]+):", line)
                     if match:
                         return match.group(1).strip()
         except Exception:
@@ -301,3 +301,126 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
     except Exception as e:
         errors.append(f"Atomic commit validation system error: {e}")
         return False, errors
+
+
+def prune_local_branches() -> tuple[bool, str]:
+    """Prune local branches that have been merged into the base branch (main/master)."""
+    try:
+        # Determine base branch
+        base_branch = "origin/main"
+        res = subprocess.run(
+            ["git", "rev-parse", "--verify", base_branch],
+            capture_output=True,
+            text=True,
+        )
+        if res.returncode != 0:
+            base_branch = "main"
+            res = subprocess.run(
+                ["git", "rev-parse", "--verify", base_branch],
+                capture_output=True,
+                text=True,
+            )
+            if res.returncode != 0:
+                base_branch = "master"
+        
+        # Fetch to update remote refs
+        subprocess.run(["git", "fetch", "--prune"], capture_output=True, timeout=10)
+        
+        # Get branches merged into base_branch
+        result = subprocess.run(
+            ["git", "branch", "--merged", base_branch],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        
+        if result.returncode != 0:
+            return False, f"Failed to list merged branches against {base_branch}"
+            
+        branches = [line.strip() for line in result.stdout.split("\n") if line.strip()]
+        to_delete = []
+        for b in branches:
+            # Clean branch name (remove asterisk for current branch)
+            b_clean = b.replace("*", "").strip()
+            if b_clean in ["main", "master", "develop", base_branch, "origin/main", "origin/master"]:
+                continue
+            # Only prune feature-like branches
+            if b_clean.startswith(("agent/", "feature/", "chore/", "bugfix/", "hotfix/")):
+                to_delete.append(b_clean)
+        
+        if not to_delete:
+            return True, "No merged branches to prune"
+            
+        deleted = []
+        failed = []
+        for b in to_delete:
+            # Use -d for safe deletion (already merged check)
+            res = subprocess.run(["git", "branch", "-d", b], capture_output=True, text=True)
+            if res.returncode == 0:
+                deleted.append(b)
+            else:
+                failed.append(b)
+                
+        msg = ""
+        if deleted:
+            msg += f"Pruned merged branches: {', '.join(deleted)}. "
+        if failed:
+            msg += f"Failed to prune (may have unmerged changes): {', '.join(failed)}."
+            return False, msg.strip()
+            
+        return True, msg.strip()
+        
+    except Exception as e:
+        return False, f"Pruning error: {e}"
+
+
+def check_branch_issue_coupling() -> tuple[bool, str]:
+    """Verify that the current branch ID matches a 'started' Beads issue."""
+    branch, is_feature = check_branch_info()
+    if not is_feature:
+        return True, f"Not on a feature branch ({branch}), coupling check skipped"
+
+    # Extract ID from branch (e.g., agent/label-harness-34f -> label-harness-34f)
+    parts = branch.split("/")
+    branch_id = parts[-1]
+
+    if not check_tool_available("bd"):
+        return True, "Beads CLI not available, coupling check skipped"
+
+    try:
+        # Check if the branch_id issue is actually 'started'
+        # We look for label 'status:started' as seen in issues.jsonl
+        result = subprocess.run(
+            ["bd", "show", branch_id, "--json"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            return False, f"Branch refers to unknown Beads issue: {branch_id}"
+
+        import json
+        data = json.loads(result.stdout)
+        # Handle both single object and list of objects
+        if isinstance(data, list):
+            if not data:
+                return False, f"Branch refers to unknown Beads issue: {branch_id}"
+            issue_data = data[0]
+        else:
+            issue_data = data
+            
+        labels = issue_data.get("labels", [])
+        
+        if "status:started" in labels or "started:true" in labels:
+            return True, f"Branch '{branch}' correctly coupled with started issue '{branch_id}'"
+        
+        # If it's NOT started, we have a violation
+        return (
+            False,
+            f"PROTOCOL VIOLATION: Branch issue '{branch_id}' is NOT in 'started' state. "
+            f"Current labels: {', '.join(labels)}. "
+            f"Run 'bd set-state {branch_id} status=started' first."
+        )
+
+    except Exception as e:
+        return False, f"Coupling check error: {e}"
