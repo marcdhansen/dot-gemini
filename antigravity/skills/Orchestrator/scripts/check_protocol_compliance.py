@@ -34,7 +34,8 @@ try:
         check_reflection_invoked, check_debriefing_invoked, check_code_review_status,
         check_handoff_compliance, check_todo_completion, check_linked_repositories,
         check_pr_review_issue_created, check_pr_exists, check_handoff_pr_link,
-        check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists
+        check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists,
+        check_handoff_pr_verification, check_beads_pr_sync, check_workspace_cleanup
     )
 except ImportError as e:
     print(f"Warning: Could not import modular validators: {e}")
@@ -591,9 +592,27 @@ def run_finalization(verbose: bool = False) -> bool:
 
     # Child PR Linkage Check (PR Response Protocol)
     linkage_ok, linkage_msg = check_child_pr_linkage()
-    print(f"└── Child PR Linkage: {check_mark(linkage_ok)} {linkage_msg}")
+    print(f"├── Child PR Linkage: {check_mark(linkage_ok)} {linkage_msg}")
     if not linkage_ok:
         blockers.append(f"PR Response Protocol violation: {linkage_msg}")
+
+    # Handoff PR Verification (Orphaned PR prevention)
+    handoff_pr_v_ok, handoff_pr_v_msg = check_handoff_pr_verification()
+    print(f"├── Handoff PR Verification: {check_mark(handoff_pr_v_ok)} {handoff_pr_v_msg}")
+    if not handoff_pr_v_ok:
+        blockers.append(f"Handoff PR verification failure: {handoff_pr_v_msg}")
+
+    # Beads-PR Synchronization Check
+    beads_pr_ok, beads_pr_msg = check_beads_pr_sync()
+    print(f"├── Beads-PR Sync: {check_mark(beads_pr_ok)} {beads_pr_msg}")
+    if not beads_pr_ok:
+        blockers.append(f"Beads-PR sync failure: {beads_pr_msg}")
+
+    # Workspace Cleanup Check (Temporary artifact drift detection)
+    cleanup_ok, cleanup_msg = check_workspace_cleanup()
+    print(f"└── Workspace Cleanup: {check_mark(cleanup_ok)} {cleanup_msg}")
+    if not cleanup_ok:
+        blockers.append(f"Workspace cleanup failure: {cleanup_msg}")
 
     print()
 
