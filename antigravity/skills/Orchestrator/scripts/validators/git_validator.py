@@ -1,6 +1,7 @@
 import subprocess
 import re
 from pathlib import Path
+from typing import Optional, Union
 from .common import check_tool_available
 
 def check_workspace_integrity(*args) -> tuple[bool, list[str]]:
@@ -142,8 +143,10 @@ def check_sop_infrastructure_changes() -> tuple[bool, str]:
         return False, f"SOP infrastructure check error (skipping): {e}"
 
 
-def check_branch_info(*args) -> tuple[str, bool]:
-    """Get current branch and check if it's a feature branch."""
+def check_branch_info(*args) -> tuple[Union[str, bool], bool]:
+    """Get current branch and check if it's a feature branch.
+    If args are provided, checks if the current branch matches the first arg.
+    """
     try:
         result = subprocess.run(
             ["git", "branch", "--show-current"],
@@ -152,6 +155,11 @@ def check_branch_info(*args) -> tuple[str, bool]:
         )
         if result.returncode == 0:
             branch = result.stdout.strip()
+            # If an argument is provided, check for equality (for main/master check)
+            if args and args[0]:
+                target = args[0]
+                return branch, branch == target
+            
             is_feature = branch.startswith(("agent/", "feature/", "chore/"))
             return branch, is_feature
         return "unknown", False
@@ -159,34 +167,37 @@ def check_branch_info(*args) -> tuple[str, bool]:
         return "unknown", False
 
 
-def get_active_issue_id() -> str | None:
-    """Identify the active beads issue ID."""
-    # Try branch name first
-    branch, _ = check_branch_info()
-    if branch.startswith(("agent/", "feature/", "chore/")):
+def get_active_issue_id() -> Optional[str]:
+    """Identify the active beads issue ID strictly from branch name if on feature branch."""
+    branch, is_feature = check_branch_info()
+    
+    # Strictly derive from branch name for feature branches
+    if is_feature:
         parts = branch.split("/")
         if len(parts) > 1:
             return parts[-1]
+        return branch
 
-    # Try bd ready
-    if check_tool_available("bd"):
-        try:
-            result = subprocess.run(
-                ["bd", "ready"], capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0:
-                lines = result.stdout.strip().split("\n")
-                # Skip header and empty lines, find first line with ID: Title pattern
-                for line in lines:
-                    line = line.strip()
-                    if not line or "Ready work" in line:
-                        continue
-                    # Match pattern like "1. [● P0] [task] issue-id: Title"
-                    match = re.search(r"([a-zA-Z0-9-.]+):", line)
-                    if match:
-                        return match.group(1).strip()
-        except Exception:
-            pass
+    # Fallback to bd ready ONLY if on protected base branches (main/master/develop)
+    # This allows 'bd ready' to provide context for initial planning
+    protected_branches = ["main", "master", "develop", "origin/main", "origin/master"]
+    if branch in protected_branches:
+        if check_tool_available("bd"):
+            try:
+                result = subprocess.run(
+                    ["bd", "ready"], capture_output=True, text=True, timeout=5
+                )
+                if result.returncode == 0:
+                    lines = result.stdout.strip().split("\n")
+                    for line in lines:
+                        line = line.strip()
+                        if not line or "Ready work" in line:
+                            continue
+                        match = re.search(r"([a-zA-Z0-9-.]+):", line)
+                        if match:
+                            return match.group(1).strip()
+            except Exception:
+                pass
     return None
 
 
@@ -303,7 +314,7 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
         return False, errors
 
 
-def prune_local_branches() -> tuple[bool, str]:
+def prune_local_branches(dry_run: bool = False) -> tuple[bool, str]:
     """Prune local branches that have been merged into the base branch (main/master)."""
     try:
         # Determine base branch
@@ -351,6 +362,9 @@ def prune_local_branches() -> tuple[bool, str]:
         if not to_delete:
             return True, "No merged branches to prune"
             
+        if dry_run:
+            return False, f"Stale branches detected: {', '.join(to_delete)}. Run --clean or 'git branch -d' to remove."
+
         deleted = []
         failed = []
         for b in to_delete:
@@ -375,21 +389,28 @@ def prune_local_branches() -> tuple[bool, str]:
 
 
 def check_branch_issue_coupling() -> tuple[bool, str]:
-    """Verify that the current branch ID matches a 'started' Beads issue."""
+    """Verify that the current branch ID matches a 'started' Beads issue and follows naming conventions."""
     branch, is_feature = check_branch_info()
+    
+    # Protected base branches allowed for initial setup/planning
+    protected_branches = ["main", "master", "develop", "origin/main", "origin/master"]
+    
     if not is_feature:
-        return True, f"Not on a feature branch ({branch}), coupling check skipped"
+        if branch in protected_branches:
+            return True, f"On protected base branch '{branch}'. Use for discovery/planning only."
+        else:
+            return False, f"PROTOCOL VIOLATION: Branch '{branch}' does not follow naming convention ('agent/issue-id')."
 
     # Extract ID from branch (e.g., agent/label-harness-34f -> label-harness-34f)
-    parts = branch.split("/")
-    branch_id = parts[-1]
+    branch_id = get_active_issue_id()
+    if not branch_id:
+        return False, f"Could not identify Beads issue ID from branch '{branch}'"
 
     if not check_tool_available("bd"):
         return True, "Beads CLI not available, coupling check skipped"
 
     try:
         # Check if the branch_id issue is actually 'started'
-        # We look for label 'status:started' as seen in issues.jsonl
         result = subprocess.run(
             ["bd", "show", branch_id, "--json"],
             capture_output=True,
@@ -401,13 +422,10 @@ def check_branch_issue_coupling() -> tuple[bool, str]:
 
         import json
         data = json.loads(result.stdout)
-        # Handle both single object and list of objects
-        if isinstance(data, list):
-            if not data:
-                return False, f"Branch refers to unknown Beads issue: {branch_id}"
-            issue_data = data[0]
-        else:
-            issue_data = data
+        issue_data = data[0] if isinstance(data, list) else data
+        
+        if not issue_data:
+            return False, f"Issue {branch_id} data not found"
             
         labels = issue_data.get("labels", [])
         

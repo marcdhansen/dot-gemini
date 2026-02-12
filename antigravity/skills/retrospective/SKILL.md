@@ -45,7 +45,7 @@ Invoke `/reflect` to:
 Provide summary of:
 
 - Work completed and deliverables
-- Beads issues created/closed
+- Beads issues identifier (primary and created/closed)
 - Skills used
 - Recommended next steps
 
@@ -73,6 +73,13 @@ Verifies:
 - ✅ Reflection captured
 - ✅ Debrief file generated
 - ✅ Plan approval cleared
+
+### 6. Protocol Compliance Reporting (MANDATORY)
+
+Add the compliance verification result from the Orchestrator to your final session summary.
+
+- Command: `python ~/.gemini/antigravity/skills/Orchestrator/scripts/check_protocol_compliance.py --finalize`
+- Statement: **Protocol Compliance: 100% verified via Orchestrator.**
 
 ## Output
 

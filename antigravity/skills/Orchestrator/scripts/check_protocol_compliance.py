@@ -17,6 +17,7 @@ import os
 import re
 import subprocess
 import sys
+from typing import Optional
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -33,16 +34,17 @@ try:
     from validators.finalization_validator import (
         check_reflection_invoked, check_debriefing_invoked, check_code_review_status,
         check_handoff_compliance, check_todo_completion, check_linked_repositories,
-        check_pr_review_issue_created, check_pr_exists, check_handoff_pr_link,
+        check_pr_review_issue_created, check_pr_exists, check_handoff_pr_link, check_handoff_beads_id,
         check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists,
-        check_handoff_pr_verification, check_beads_pr_sync, check_workspace_cleanup
+        check_handoff_pr_verification, check_beads_pr_sync, check_workspace_cleanup,
+        check_wrapup_indicator_symmetry, check_wrapup_exclusivity
     )
 except ImportError as e:
     print(f"Warning: Could not import modular validators: {e}")
     pass
 
 
-def load_json_checklist(phase_name: str) -> dict | None:
+def load_json_checklist(phase_name: str) -> Optional[dict]:
     """Load SOP checklist from workspace JSON."""
     paths = [
         Path(".agent/rules/checklists") / f"{phase_name}.json",
@@ -348,10 +350,14 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     # Check for SOP infrastructure changes (requires Full Mode)
     sop_infra_escalation, sop_infra_msg = check_sop_infrastructure_changes()
     sop_infra_icon = warning_mark() if sop_infra_escalation else check_mark(True)
-    print(f"└── SOP Infrastructure: {sop_infra_icon} {sop_infra_msg.split(chr(10))[0]}")
+    print(f"├── SOP Infrastructure: {sop_infra_icon} {sop_infra_msg.split(chr(10))[0]}")
+
+    # Branch-Issue Coupling Check (Harden Turbo Mode)
+    coupling_ok, coupling_msg = check_branch_issue_coupling()
+    print(f"└── Branch-Issue Coupling: {check_mark(coupling_ok)} {coupling_msg}")
 
     print()
-    if not git_ok or not git_clean or sop_infra_escalation:
+    if not git_ok or not git_clean or sop_infra_escalation or not coupling_ok:
         print(f"{Colors.RED}{Colors.BOLD}❌ TURBO BLOCKED{Colors.END}")
         if not git_clean:
             print(
@@ -360,6 +366,10 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
         if sop_infra_escalation:
             print(
                 f"  {warning_mark()} SOP infrastructure changes detected. Full Mode REQUIRED (--init)."
+            )
+        if not coupling_ok:
+            print(
+                f"  {warning_mark()} Branch-Issue Coupling failure: {coupling_msg}"
             )
         return False
 
@@ -613,6 +623,12 @@ def run_finalization(verbose: bool = False) -> bool:
     print(f"├── Beads-PR Sync: {check_mark(beads_pr_ok)} {beads_pr_msg}")
     if not beads_pr_ok:
         blockers.append(f"Beads-PR sync failure: {beads_pr_msg}")
+
+    # Local Branch Cleanup Check (Stale branch detection)
+    stale_branches_ok, stale_msg = prune_local_branches(dry_run=True)
+    print(f"├── Stale Branches: {check_mark(stale_branches_ok)} {stale_msg}")
+    if not stale_branches_ok:
+        blockers.append(stale_msg)
 
     # Workspace Cleanup Check (Temporary artifact drift detection)
     cleanup_ok, cleanup_msg = check_workspace_cleanup()

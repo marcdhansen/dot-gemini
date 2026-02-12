@@ -23,7 +23,7 @@ Performs comprehensive Finalization checks to ensure:
 - Quality gates have been passed
 - Issue status is properly updated
 - Session closure is complete
-- Next session has proper context
+- Next session has proper context (including mandatory Beads Issue ID)
 
 ## Implementation
 
@@ -155,7 +155,7 @@ python script.py --option value
 1. **Future Agent Context**: Clear understanding of what was implemented
 2. **Documentation Links**: Direct paths to relevant documentation
 3. **Integration Guidance**: How to use and connect components
-4. **Quick Start**: Immediate usage instructions
+4. **Quick Start**: Immediate usage instructions (must include Beads Issue ID)
 5. **Production Readiness**: Deployment and operational considerations
 
 **Result**: Future agents can quickly understand and build upon previous work without digging through codebase
