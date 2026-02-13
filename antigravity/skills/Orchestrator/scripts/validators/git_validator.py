@@ -160,7 +160,8 @@ def check_branch_info(*args) -> tuple[Union[str, bool], bool]:
                 target = args[0]
                 return branch, branch == target
             
-            is_feature = branch.startswith(("agent/", "feature/", "chore/"))
+            # Enforce agent-harness prefix for feature branches
+            is_feature = branch.startswith("agent-harness/")
             return branch, is_feature
         return "unknown", False
     except Exception:
@@ -172,10 +173,19 @@ def get_active_issue_id() -> Optional[str]:
     branch, is_feature = check_branch_info()
     
     # Strictly derive from branch name for feature branches
+    # Strictly derive from branch name for feature branches
     if is_feature:
+        # Expected format: agent-harness/<issue-id>-<brief-desc>
+        # Example: agent-harness/agent-harness-va4-fix-logic
         parts = branch.split("/")
         if len(parts) > 1:
-            return parts[-1]
+            slug = parts[-1]
+            # Match project-id-id (e.g., agent-harness-abc) at the start of the slug
+            match = re.search(r"^(agent-harness-[a-z0-9]{3}|[0-9]+)", slug)
+            if match:
+                return match.group(1)
+            # Fallback if slug is just the ID
+            return slug
         return branch
 
     # Fallback to bd ready ONLY if on protected base branches (main/master/develop)
@@ -399,7 +409,7 @@ def check_branch_issue_coupling() -> tuple[bool, str]:
         if branch in protected_branches:
             return True, f"On protected base branch '{branch}'. Use for discovery/planning only."
         else:
-            return False, f"PROTOCOL VIOLATION: Branch '{branch}' does not follow naming convention ('agent/issue-id')."
+            return False, f"PROTOCOL VIOLATION: Branch '{branch}' does not follow naming convention ('agent-harness/<issue-id>-<desc>')."
 
     # Extract ID from branch (e.g., agent/label-harness-34f -> label-harness-34f)
     branch_id = get_active_issue_id()

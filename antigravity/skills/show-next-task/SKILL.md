@@ -64,6 +64,11 @@ The skill delivers:
 
 ## Decision Logic
 
+**P0 PR Review Available**: Absolute top priority. Unblocking teammates is critical for project velocity.
+
+- Recommendation: Review open PRs for P0 issues first.
+- Reasoning: Blocks teammate progress and project merging.
+
 **P0 Available**: Immediate attention required
 
 - Recommendation: Start with P0 tasks first
@@ -92,7 +97,7 @@ This skill integrates with:
 
 ## Example Output
 
-```
+```text
 🎯 ALL Available Tasks in the LightRAG Project
 =========================================================
 📊 Task Priority Breakdown: P0: 1, P1: 2, P2: 7

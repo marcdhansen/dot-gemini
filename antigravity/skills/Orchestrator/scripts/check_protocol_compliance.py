@@ -34,7 +34,7 @@ try:
     from validators.finalization_validator import (
         check_reflection_invoked, check_debriefing_invoked, check_code_review_status,
         check_handoff_compliance, check_todo_completion, check_linked_repositories,
-        check_pr_review_issue_created, check_pr_exists, check_handoff_pr_link, check_handoff_beads_id,
+        check_no_separate_review_issues, check_pr_exists, check_handoff_pr_link, check_handoff_beads_id,
         check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists,
         check_handoff_pr_verification, check_beads_pr_sync, check_workspace_cleanup,
         check_wrapup_indicator_symmetry, check_wrapup_exclusivity
@@ -574,11 +574,11 @@ def run_finalization(verbose: bool = False) -> bool:
     if not review_ok:
         blockers.append(f"Code Review failure: {review_msg} - run /code-review")
 
-    # PR Review Issue Check (MANDATORY for Full Mode - blocks PR merge)
-    pr_review_ok, pr_review_msg = check_pr_review_issue_created()
-    print(f"├── PR Review Issue: {check_mark(pr_review_ok)} {pr_review_msg}")
+    # Prohibition of Separate Review Issues
+    pr_review_ok, pr_review_msg = check_no_separate_review_issues()
+    print(f"├── No Separate Review Issues: {check_mark(pr_review_ok)} {pr_review_msg}")
     if not pr_review_ok:
-        blockers.append(f"PR Review Issue required: {pr_review_msg}")
+        blockers.append(pr_review_msg)
 
     # PR Existence Check (MANDATORY for code changes)
     pr_ok, pr_msg = check_pr_exists()
@@ -832,13 +832,12 @@ def run_clean_state(verbose: bool = False) -> bool:
     print("Final verification: repo should be clean after PR merge.")
     print()
 
+    issues = []
     # Automated Pruning
     prune_ok, prune_msg = prune_local_branches()
     print(f"├── Branch Pruning: {check_mark(prune_ok)} {prune_msg}")
     if not prune_ok:
         issues.append(prune_msg)
-
-    issues = []
 
     # Branch Check
     branch, is_feature = check_branch_info()
