@@ -28,16 +28,29 @@ sys.path.append(str(Path.home() / ".agent/ledgers"))
 # Import modular validators
 try:
     from validators.common import Colors, check_mark, warning_mark, check_tool_available, check_tool_version
-    from validators.git_validator import check_workspace_integrity, check_git_status, check_sop_infrastructure_changes, check_branch_info, get_active_issue_id, validate_atomic_commits, prune_local_branches, check_branch_issue_coupling
+    from validators.git_validator import (
+        check_workspace_integrity,
+        check_git_status,
+        check_rebase_status,
+        check_sop_infrastructure_changes,
+        check_branch_info,
+        get_active_issue_id,
+        validate_atomic_commits,
+        prune_local_branches,
+        check_closed_issue_branches,
+        check_branch_issue_coupling,
+    )
     from validators.plan_validator import check_planning_docs, check_beads_issue, check_sop_simplification, check_hook_integrity, check_plan_approval
     from validators.code_validator import validate_tdd_compliance
+    from validators.session_validator import check_harness_session
     from validators.finalization_validator import (
         check_reflection_invoked, check_debriefing_invoked, check_code_review_status,
         check_handoff_compliance, check_todo_completion, check_linked_repositories,
         check_no_separate_review_issues, check_pr_exists, check_handoff_pr_link, check_handoff_beads_id,
         check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists,
         check_handoff_pr_verification, check_beads_pr_sync, check_workspace_cleanup,
-        check_wrapup_indicator_symmetry, check_wrapup_exclusivity, check_issue_closure_gate
+        check_wrapup_indicator_symmetry, check_wrapup_exclusivity, check_issue_closure_gate,
+        inject_debrief_to_beads
     )
 except ImportError as e:
     print(f"Warning: Could not import modular validators: {e}")
@@ -46,7 +59,9 @@ except ImportError as e:
 
 def load_json_checklist(phase_name: str) -> Optional[dict]:
     """Load SOP checklist from workspace JSON."""
+    config_path = Path.cwd() / ".agent" / "rules" / "checklists" / f"{phase_name}.json"
     paths = [
+        config_path,
         Path(".agent/rules/checklists") / f"{phase_name}.json",
         Path(".agent/checklists") / f"{phase_name}.json",
     ]
@@ -179,6 +194,33 @@ def run_initialization(verbose: bool = False) -> bool:
         
         print(f"{Colors.GREEN}{Colors.BOLD}✅ INITIALIZATION COMPLETE (JSON){Colors.END}")
         update_progress_ledger("Initialization", "success", "Clean JSON initialization complete")
+        
+        # Initialize session tracking
+        from validators.git_validator import get_active_issue_id
+        from validators.session_validator import check_harness_session
+        
+        active_id = get_active_issue_id()
+        if active_id:
+            try:
+                # We need to reach back into the project to find the SessionTracker
+                # or just implement a minimal session lock here.
+                # Since SessionTracker is in the project, we'll use a project-local implementation.
+                session_dir = Path.cwd() / ".agent" / "sessions"
+                session_dir.mkdir(parents=True, exist_ok=True)
+                session_file = session_dir / "session.lock"
+                
+                session_data = {
+                    "id": f"sess_{int(datetime.now().timestamp())}",
+                    "mode": "full", # Defaulting to full for orchestrator init
+                    "issue_id": active_id,
+                    "started_at": datetime.now().timestamp(),
+                    "status": "active"
+                }
+                session_file.write_text(json.dumps(session_data))
+                print(f"├── Session Tracking: ✅ Initialized {session_data['id']}")
+            except Exception as e:
+                print(f"├── Session Tracking: ⚠️ Failed to initialize: {e}")
+        
         return True
 
     # Fallback to legacy hardcoded logic
@@ -232,6 +274,31 @@ def run_initialization(verbose: bool = False) -> bool:
     else:
         print(f"Missing mandatory components: {missing_paths}")
         blockers.append(f"Workspace integrity failure: Missing {missing_paths}")
+
+    # Rebase Status Check
+    rebase_ok, rebase_msg = check_rebase_status()
+    print(f"├── Rebase Status: {check_mark(rebase_ok)} {rebase_msg}")
+    if not rebase_ok:
+        blockers.append(rebase_msg)
+
+    # Git Status Check
+    git_ok, git_msg = check_git_status()
+    print(f"├── Git Clean: {check_mark(git_ok)} {git_msg.split(chr(10))[0]}")
+    if not git_ok:
+        # Warning only for init
+        warnings.append(f"Uncommitted changes: {git_msg}")
+
+    # Stale Branches Check
+    closed_ok, closed_msg = check_closed_issue_branches()
+    prune_ok, prune_msg = prune_local_branches(dry_run=True)
+    if not closed_ok or not prune_ok:
+        print(f"├── Stale Branches: {warning_mark()} Stale branches detected")
+        if not closed_ok:
+            warnings.append(closed_msg)
+        if not prune_ok:
+            warnings.append(prune_msg)
+    else:
+        print(f"├── Stale Branches: {check_mark(True)} No stale branches detected")
 
     # Context Check
     docs_ok, missing_docs = check_planning_docs()
@@ -339,6 +406,9 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     print("Guidelines: No code changes, no full planning required.")
     print()
 
+    blockers = []
+    warnings = []
+
     # Tool Check (Only Git is strictly required for Turbo)
     git_ok = check_tool_available("git")
     print(f"├── Git: {check_mark(git_ok)}")
@@ -346,6 +416,26 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     # Check for existing code blockers (should not have uncommitted code changes)
     git_clean, git_msg = check_git_status(turbo=True)
     print(f"├── Git Clean: {check_mark(git_clean)} {git_msg.split(chr(10))[0]}")
+    if not git_clean:
+         blockers.append(git_msg)
+
+    # Rebase Status Check
+    rebase_ok, rebase_msg = check_rebase_status()
+    print(f"├── Rebase Status: {check_mark(rebase_ok)} {rebase_msg}")
+    if not rebase_ok:
+        blockers.append(rebase_msg)
+
+    # Stale Branches Check
+    closed_ok, closed_msg = check_closed_issue_branches()
+    prune_ok, prune_msg = prune_local_branches(dry_run=True)
+    if not closed_ok or not prune_ok:
+        print(f"├── Stale Branches: {warning_mark()} Stale branches detected")
+        if not closed_ok:
+            warnings.append(closed_msg)
+        if not prune_ok:
+            warnings.append(prune_msg)
+    else:
+        print(f"├── Stale Branches: {check_mark(True)} No stale branches detected")
 
     # Check for SOP infrastructure changes (requires Full Mode)
     sop_infra_escalation, sop_infra_msg = check_sop_infrastructure_changes()

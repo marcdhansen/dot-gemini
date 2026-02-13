@@ -79,6 +79,14 @@ def check_git_status(turbo: bool = False) -> tuple[bool, str]:
         return False, f"Git check failed: {e}"
 
 
+def check_rebase_status() -> tuple[bool, str]:
+    """Detect hanging rebase or merge states."""
+    git_dir = Path(".git")
+    if (git_dir / "rebase-merge").exists() or (git_dir / "rebase-apply").exists() or (git_dir / "MERGE_HEAD").exists():
+        return False, "Hanging rebase/merge detected. Use 'git rebase --continue/--abort' or 'git merge --abort'."
+    return True, "No hanging rebase/merge detected"
+
+
 def check_sop_infrastructure_changes() -> tuple[bool, str]:
     """Check if changes involve SOP infrastructure (Orchestrator, skills, SOP docs).
     
@@ -308,12 +316,12 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
             )
             if result.returncode == 0:
                 commit_msg = result.stdout.strip()
-                issue_pattern = r"\[([a-zA-Z0-9-]+)\]"
+                issue_pattern = r"\[([a-zA-Z0-9-\.]+)\]"
                 if not re.search(issue_pattern, commit_msg):
                     errors.append(
                         "Commit message must include Beads issue ID in format [issue-id]"
                     )
-                conv_pattern = r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
+                conv_pattern = r"^(\[[^\]]+\] )?(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
                 if not re.match(conv_pattern, commit_msg.split("\n")[0]):
                     errors.append("Commit message does not follow conventional commit format")
 
@@ -396,6 +404,66 @@ def prune_local_branches(dry_run: bool = False) -> tuple[bool, str]:
         
     except Exception as e:
         return False, f"Pruning error: {e}"
+
+
+def check_closed_issue_branches() -> tuple[bool, str]:
+    """Identify local branches that correspond to closed Beads issues."""
+    if not check_tool_available("bd"):
+        return True, "Beads CLI not available (skipping closed issue branch check)"
+
+    try:
+        # Get all local feature branches
+        result = subprocess.run(
+            ["git", "branch", "--format=%(refname:short)"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            return False, "Failed to list local branches"
+        
+        local_branches = result.stdout.strip().split("\n")
+        feature_branches = [b for b in local_branches if b.startswith("agent-harness/")]
+        
+        if not feature_branches:
+            return True, "No local feature branches found"
+
+        # Get all closed issues from Beads in JSON format
+        bd_result = subprocess.run(
+            ["bd", "list", "--status", "closed", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if bd_result.returncode != 0:
+            return True, "Failed to query closed issues from Beads (skipping)"
+        
+        try:
+            import json
+            closed_data = json.loads(bd_result.stdout)
+            closed_ids = {issue["id"] for issue in closed_data}
+        except Exception:
+            return True, "Failed to parse Beads JSON output (skipping)"
+
+        stale_branches = []
+        for branch in feature_branches:
+            # Extract ID from branch name
+            parts = branch.split("/")
+            if len(parts) > 1:
+                slug = parts[-1]
+                match = re.search(r"^(agent-harness-[a-z0-9]{3}|[0-9]+)", slug)
+                issue_id = match.group(1) if match else slug
+                
+                if issue_id in closed_ids:
+                    stale_branches.append(branch)
+        
+        if stale_branches:
+            return False, f"Stale branches for closed issues detected: {', '.join(stale_branches)}. Please prune them."
+        
+        return True, "No stale branches for closed issues found"
+
+    except Exception as e:
+        return True, f"Closed issue branch check error: {e}"
 
 
 def check_branch_issue_coupling() -> tuple[bool, str]:
