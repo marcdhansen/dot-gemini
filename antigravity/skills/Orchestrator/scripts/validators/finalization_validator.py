@@ -747,6 +747,80 @@ def check_beads_pr_sync() -> tuple[bool, str]:
         return False, f"Beads-PR synchronization check error: {e}"
 
 
+def check_issue_closure_gate() -> tuple[bool, str]:
+    """Verify that Beads issues remain open (in_review/started) until PRs are merged."""
+    if not check_tool_available("gh") or not check_tool_available("bd"):
+        return True, "gh or bd not available (skipping closure gate)"
+
+    issue_id = get_active_issue_id()
+    if not issue_id:
+        return True, "No active issue identified"
+
+    try:
+        # 1. Get Beads issue status
+        beads_res = subprocess.run(
+            ["bd", "show", issue_id, "--json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if beads_res.returncode != 0:
+            return False, f"Failed to query Beads issue '{issue_id}'"
+
+        issue_data_list = json.loads(beads_res.stdout)
+        if not issue_data_list:
+            return False, f"Issue '{issue_id}' not found in Beads"
+
+        issue_status = issue_data_list[0].get("status", "").lower()
+        issue_labels = issue_data_list[0].get("labels", [])
+        is_in_review = issue_status == "in_review" or "in_review" in [l.lower() for l in issue_labels]
+
+        # 2. Get associated PRs (searching by issue_id)
+        gh_res = subprocess.run(
+            [
+                "gh",
+                "pr",
+                "list",
+                "--search",
+                issue_id,
+                "--state",
+                "all",
+                "--json",
+                "state,number",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+
+        if gh_res.returncode != 0:
+            return True, "Could not verify PR state via gh (skipping)"
+
+        prs = json.loads(gh_res.stdout)
+
+        # 3. Apply rules
+        open_prs = [pr for pr in prs if pr["state"] == "OPEN"]
+
+        if open_prs:
+            if issue_status == "closed":
+                return (
+                    False,
+                    f"PROTOCOL VIOLATION: Issue '{issue_id}' is CLOSED but PR #{open_prs[0]['number']} is still OPEN. "
+                    f"Issues must remain open (status/label: 'in_review') until their PR is merged.",
+                )
+            if not is_in_review:
+                return (
+                    False,
+                    f"PROTOCOL VIOLATION: PR #{open_prs[0]['number']} is OPEN. "
+                    f"Please update issue '{issue_id}' status or labels to 'in_review' (bd update {issue_id} --add-label in_review).",
+                )
+
+        return True, "Issue closure state aligned with PR status"
+
+    except Exception as e:
+        return False, f"Closure gate check error: {e}"
+
+
 def check_workspace_cleanup() -> tuple[bool, str]:
     """Verify that the workspace is free of temporary session artifacts drift."""
     try:
