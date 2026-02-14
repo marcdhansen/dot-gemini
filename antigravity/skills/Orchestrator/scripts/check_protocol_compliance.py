@@ -50,7 +50,7 @@ try:
         check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists,
         check_handoff_pr_verification, check_beads_pr_sync, check_workspace_cleanup,
         check_wrapup_indicator_symmetry, check_wrapup_exclusivity, check_issue_closure_gate,
-        inject_debrief_to_beads
+        inject_debrief_to_beads, check_protocol_compliance_reporting
     )
 except ImportError as e:
     print(f"Warning: Could not import modular validators: {e}")

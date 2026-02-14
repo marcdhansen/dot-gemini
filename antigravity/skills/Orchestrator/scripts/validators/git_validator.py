@@ -168,8 +168,8 @@ def check_branch_info(*args) -> tuple[Union[str, bool], bool]:
                 target = args[0]
                 return branch, branch == target
             
-            # Enforce agent-harness prefix for feature branches
-            is_feature = branch.startswith("agent-harness/")
+            # Enforce feature branch naming conventions
+            is_feature = branch.startswith(("agent-harness/", "agent/", "feature/", "chore/"))
             return branch, is_feature
         return "unknown", False
     except Exception:

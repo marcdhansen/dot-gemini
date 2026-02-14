@@ -713,8 +713,8 @@ else
 fi
 
 echo
-echo "🎉 Finalization Workflow Complete!"
-echo "========================="
+echo "🏁 Finalization Workflow Complete! 🏁"
+echo "======================================"
 echo "✅ All checks passed"
 echo "✅ Changes committed and pushed"
 echo "✅ Session cleaned up"

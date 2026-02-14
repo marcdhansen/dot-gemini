@@ -74,8 +74,11 @@ def check_beads_issue(*args) -> tuple[bool, str]:
                 for issue in issues:
                     if issue['id'] == active_id:
                         labels = issue.get('labels', [])
-                        if "status:started" in labels or "started:true" in labels:
-                            return True, f"Active issue {active_id} is started on branch '{branch}'"
+                        is_started = any(l in labels for l in ["status:started", "started:true"])
+                        is_in_progress = issue.get('status') == 'in_progress'
+                        
+                        if is_started or is_in_progress:
+                            return True, f"Active issue {active_id} is {issue.get('status')} on branch '{branch}'"
                         else:
                             return False, f"Issue {active_id} is found but NOT started. Run: bd set-state {active_id} started=true"
                 return False, f"Active issue {active_id} (derived from branch '{branch}') not found in Beads database"
@@ -161,11 +164,12 @@ def check_hook_integrity() -> tuple[bool, str]:
         "beads": {
             ".git/hooks/pre-commit": [
                 "bd (beads) pre-commit hook",
-                "bd sync --flush-only",
+                # Support both legacy and shim patterns
+                ["bd sync --flush-only", "bd hooks run pre-commit"],
             ],
             ".git/hooks/post-merge": [
                 "bd (beads) post-merge hook",
-                "bd import",
+                ["bd import", "bd hooks run post-merge"],
             ]
         }
     }
@@ -207,7 +211,13 @@ def check_hook_integrity() -> tuple[bool, str]:
 
         content = hook_file.read_text()
         for pattern in expected_patterns:
-            if pattern not in content:
+            if isinstance(pattern, list):
+                if not any(p in content for p in pattern):
+                    tampered_hooks.append(
+                        f"{hook_path} (missing one of expected patterns: {', '.join([p[:20] for p in pattern])}...)"
+                    )
+                    break
+            elif pattern not in content:
                 tampered_hooks.append(
                     f"{hook_path} (missing expected pattern: {pattern[:30]}...)"
                 )

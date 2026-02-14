@@ -64,6 +64,8 @@ def check_reflection_invoked() -> tuple[bool, str]:
 
 def check_debriefing_invoked() -> tuple[bool, str]:
     """Check if debriefing was recently invoked."""
+    debrief_paths = [Path("debrief.md")]
+
     brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
     if brain_dir.exists():
         session_dirs = sorted(
@@ -73,28 +75,32 @@ def check_debriefing_invoked() -> tuple[bool, str]:
         )[:3]
 
         for session_dir in session_dirs:
-            debrief_path = session_dir / "debrief.md"
-            if debrief_path.exists():
-                try:
-                    mtime = datetime.fromtimestamp(debrief_path.stat().st_mtime)
-                    age = datetime.now() - mtime
-                    if age < timedelta(hours=2):
-                        return (
-                            True,
-                            f"Debrief generated {age.total_seconds() / 60:.0f} minutes ago",
-                        )
-                except Exception:
-                    pass
+            debrief_paths.append(session_dir / "debrief.md")
 
-    return False, "No recent debrief found"
+    for p in debrief_paths:
+        if p.exists():
+            try:
+                mtime = datetime.fromtimestamp(p.stat().st_mtime)
+                age = datetime.now() - mtime
+                if age < timedelta(hours=2):
+                    return (
+                        True,
+                        f"Debrief found {age.total_seconds() / 60:.0f} minutes ago: {p}",
+                    )
+            except Exception:
+                pass
+
+    return False, "No recent debrief found in root or brain directory"
 
 def check_wrapup_indicator_symmetry() -> tuple[bool, str]:
     """Verify 🏁 symmetry: 
     1. If 🏁 is in debrief.md, ensure SOP is complete (reflection, ID, PR etc).
     2. If SOP is complete, 🏁 should eventually be in the final summary.
     """
+    # Try local debrief first
+    debrief_paths = [Path("debrief.md")]
+
     brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    recent_debrief = None
     if brain_dir.exists():
         session_dirs = sorted(
             [d for d in brain_dir.iterdir() if d.is_dir()],
@@ -102,9 +108,13 @@ def check_wrapup_indicator_symmetry() -> tuple[bool, str]:
             reverse=True,
         )[:1]
         if session_dirs:
-            debrief_path = session_dirs[0] / "debrief.md"
-            if debrief_path.exists():
-                recent_debrief = debrief_path
+            debrief_paths.append(session_dirs[0] / "debrief.md")
+
+    recent_debrief = None
+    for p in debrief_paths:
+        if p.exists():
+            recent_debrief = p
+            break
 
     if not recent_debrief:
         return True, "No recent debrief.md found to check for 🏁"
@@ -424,65 +434,72 @@ def check_pr_exists() -> tuple[bool, str]:
 
 def check_handoff_pr_link() -> tuple[bool, str]:
     """Check if the session handoff (debrief.md) contains a GitHub PR link."""
-    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    if not brain_dir.exists():
-        return False, "Brain directory not found"
+    # Potential debrief locations
+    debrief_paths = [Path("debrief.md")]
 
-    session_dirs = sorted(
-        [d for d in brain_dir.iterdir() if d.is_dir()],
-        key=lambda x: x.stat().st_mtime,
-        reverse=True,
-    )[:3]
+    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
+    if brain_dir.exists():
+        session_dirs = sorted(
+            [d for d in brain_dir.iterdir() if d.is_dir()],
+            key=lambda x: x.stat().st_mtime,
+            reverse=True,
+        )[:3]
+        for d in session_dirs:
+            debrief_paths.append(d / "debrief.md")
 
     pr_pattern = r"https://github\.com/[^/]+/[^/]+/pull/\d+"
 
-    for session_dir in session_dirs:
-        debrief_path = session_dir / "debrief.md"
+    for debrief_path in debrief_paths:
         if debrief_path.exists():
             try:
                 content = debrief_path.read_text()
-                if "PR Link" in content or "pull request" in content.lower():
+                if "PR Link" in content or "pull request" in content.lower() or "github.com" in content:
                     if re.search(pr_pattern, content):
-                        return True, f"PR link found in debrief: {debrief_path.name}"
+                        return True, f"PR link found in debrief: {debrief_path}"
             except Exception:
                 pass
 
-    return False, "No GitHub PR link found in recent debrief.md"
+    return False, "No GitHub PR link found in debrief.md"
 
 
 def check_handoff_beads_id() -> tuple[bool, str]:
     """Check if the session handoff (debrief.md) contains a Beads issue identifier."""
+    # Potential debrief locations
+    debrief_paths = [Path("debrief.md")]
+
     brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    if not brain_dir.exists():
-        return False, "Brain directory not found"
+    if brain_dir.exists():
+        session_dirs = sorted(
+            [d for d in brain_dir.iterdir() if d.is_dir()],
+            key=lambda x: x.stat().st_mtime,
+            reverse=True,
+        )[:3]
+        for d in session_dirs:
+            debrief_paths.append(d / "debrief.md")
 
-    session_dirs = sorted(
-        [d for d in brain_dir.iterdir() if d.is_dir()],
-        key=lambda x: x.stat().st_mtime,
-        reverse=True,
-    )[:3]
-
-    # Beads ID pattern: prefix-number or just numeric ID if it's a slug, 
-    # but usually it's something like agent-harness-abc
-    beads_id_pattern = r"(?:[a-z0-9\-]+-)?(?:[a-z0-9]{3}|[0-9]+)"
-    
-    # More specific search: look for "Issue ID", "Beads ID", or just the ID itself 
-    # associated with the active issue
     active_issue = get_active_issue_id()
     if not active_issue:
         return True, "No active issue identified (skipping Beads ID check)"
 
-    for session_dir in session_dirs:
-        debrief_path = session_dir / "debrief.md"
+    # Hardened check: look for specific labels or patterns to avoid false positives
+    patterns = [
+        rf"\b{re.escape(active_issue)}\b",
+        rf"Issue:\s*{re.escape(active_issue)}",
+        rf"Beads\s*(?:ID|Issue):\s*{re.escape(active_issue)}",
+        rf"\[{re.escape(active_issue)}\]",
+    ]
+
+    for debrief_path in debrief_paths:
         if debrief_path.exists():
             try:
                 content = debrief_path.read_text()
-                if active_issue.lower() in content.lower():
-                    return True, f"Beads issue ID '{active_issue}' found in debrief: {debrief_path.parent.name}"
+                for pattern in patterns:
+                    if re.search(pattern, content, re.IGNORECASE):
+                        return True, f"Beads issue ID '{active_issue}' verified in debrief: {debrief_path}"
             except Exception:
                 pass
 
-    return False, f"Active Beads issue ID '{active_issue}' not found in recent debrief.md"
+    return False, f"Active Beads issue ID '{active_issue}' not found in debrief.md (Required for handoff transparency)"
 
 
 def check_pr_decomposition_closure() -> tuple[bool, str]:
@@ -943,3 +960,36 @@ def inject_debrief_to_beads(*args) -> tuple[bool, str]:
             return False, f"Failed to inject debrief: {result.stderr.strip()}"
     except Exception as e:
         return False, f"Error during debrief injection: {e}"
+def check_protocol_compliance_reporting() -> tuple[bool, str]:
+    """Verify that the session debrief contains the mandatory protocol compliance statement with Beads ID and 🏁."""
+    issue_id = get_active_issue_id()
+    if not issue_id:
+        return False, "Could not determine active Beads issue ID for compliance reporting"
+
+    target_pattern = rf"Protocol Compliance: 100% verified via Orchestrator\s+\({re.escape(issue_id)}\)\.?\s*🏁"
+    
+    # Potential debrief locations
+    debrief_paths = [Path("debrief.md")]
+
+    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
+    if brain_dir.exists():
+        session_dirs = sorted(
+            [d for d in brain_dir.iterdir() if d.is_dir()],
+            key=lambda x: x.stat().st_mtime,
+            reverse=True,
+        )[:3]
+        for d in session_dirs:
+            debrief_paths.append(d / "debrief.md")
+
+    for debrief_path in debrief_paths:
+        if debrief_path.exists():
+            try:
+                content = debrief_path.read_text()
+                if re.search(target_pattern, content):
+                    return True, f"Full protocol compliance reporting found in {debrief_path}"
+                elif "Protocol Compliance: 100% verified via Orchestrator." in content:
+                    return False, f"Compliance statement found in {debrief_path} but missing issue ID '{issue_id}' or 🏁. Expected: 'Protocol Compliance: 100% verified via Orchestrator ({issue_id}) 🏁'"
+            except Exception:
+                pass
+
+    return False, f"Missing required compliance statement: 'Protocol Compliance: 100% verified via Orchestrator ({issue_id}) 🏁'"
