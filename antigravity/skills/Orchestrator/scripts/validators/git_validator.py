@@ -1,6 +1,7 @@
 import subprocess
 import re
 from pathlib import Path
+from typing import Optional, Union
 from .common import check_tool_available
 
 def check_workspace_integrity(*args) -> tuple[bool, list[str]]:
@@ -78,6 +79,14 @@ def check_git_status(turbo: bool = False) -> tuple[bool, str]:
         return False, f"Git check failed: {e}"
 
 
+def check_rebase_status() -> tuple[bool, str]:
+    """Detect hanging rebase or merge states."""
+    git_dir = Path(".git")
+    if (git_dir / "rebase-merge").exists() or (git_dir / "rebase-apply").exists() or (git_dir / "MERGE_HEAD").exists():
+        return False, "Hanging rebase/merge detected. Use 'git rebase --continue/--abort' or 'git merge --abort'."
+    return True, "No hanging rebase/merge detected"
+
+
 def check_sop_infrastructure_changes() -> tuple[bool, str]:
     """Check if changes involve SOP infrastructure (Orchestrator, skills, SOP docs).
     
@@ -142,8 +151,10 @@ def check_sop_infrastructure_changes() -> tuple[bool, str]:
         return False, f"SOP infrastructure check error (skipping): {e}"
 
 
-def check_branch_info(*args) -> tuple[str, bool]:
-    """Get current branch and check if it's a feature branch."""
+def check_branch_info(*args) -> tuple[Union[str, bool], bool]:
+    """Get current branch and check if it's a feature branch.
+    If args are provided, checks if the current branch matches the first arg.
+    """
     try:
         result = subprocess.run(
             ["git", "branch", "--show-current"],
@@ -152,41 +163,59 @@ def check_branch_info(*args) -> tuple[str, bool]:
         )
         if result.returncode == 0:
             branch = result.stdout.strip()
-            is_feature = branch.startswith(("agent/", "feature/", "chore/"))
+            # If an argument is provided, check for equality (for main/master check)
+            if args and args[0]:
+                target = args[0]
+                return branch, branch == target
+            
+            # Enforce feature branch naming conventions
+            is_feature = branch.startswith(("agent-harness/", "agent/", "feature/", "chore/"))
             return branch, is_feature
         return "unknown", False
     except Exception:
         return "unknown", False
 
 
-def get_active_issue_id() -> str | None:
-    """Identify the active beads issue ID."""
-    # Try branch name first
-    branch, _ = check_branch_info()
-    if branch.startswith(("agent/", "feature/", "chore/")):
+def get_active_issue_id() -> Optional[str]:
+    """Identify the active beads issue ID strictly from branch name if on feature branch."""
+    branch, is_feature = check_branch_info()
+    
+    # Strictly derive from branch name for feature branches
+    # Strictly derive from branch name for feature branches
+    if is_feature:
+        # Expected format: agent-harness/<issue-id>-<brief-desc>
+        # Example: agent-harness/agent-harness-va4-fix-logic
         parts = branch.split("/")
         if len(parts) > 1:
-            return parts[-1]
+            slug = parts[-1]
+            # Match project-id-id (e.g., agent-harness-abc) at the start of the slug
+            match = re.search(r"^(agent-harness-[a-z0-9]{3}|[0-9]+)", slug)
+            if match:
+                return match.group(1)
+            # Fallback if slug is just the ID
+            return slug
+        return branch
 
-    # Try bd ready
-    if check_tool_available("bd"):
-        try:
-            result = subprocess.run(
-                ["bd", "ready"], capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0:
-                lines = result.stdout.strip().split("\n")
-                # Skip header and empty lines, find first line with ID: Title pattern
-                for line in lines:
-                    line = line.strip()
-                    if not line or "Ready work" in line:
-                        continue
-                    # Match pattern like "1. [● P0] [task] issue-id: Title"
-                    match = re.search(r"([a-zA-Z0-9-]+):", line)
-                    if match:
-                        return match.group(1).strip()
-        except Exception:
-            pass
+    # Fallback to bd ready ONLY if on protected base branches (main/master/develop)
+    # This allows 'bd ready' to provide context for initial planning
+    protected_branches = ["main", "master", "develop", "origin/main", "origin/master"]
+    if branch in protected_branches:
+        if check_tool_available("bd"):
+            try:
+                result = subprocess.run(
+                    ["bd", "ready"], capture_output=True, text=True, timeout=5
+                )
+                if result.returncode == 0:
+                    lines = result.stdout.strip().split("\n")
+                    for line in lines:
+                        line = line.strip()
+                        if not line or "Ready work" in line:
+                            continue
+                        match = re.search(r"([a-zA-Z0-9-.]+):", line)
+                        if match:
+                            return match.group(1).strip()
+            except Exception:
+                pass
     return None
 
 
@@ -287,12 +316,12 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
             )
             if result.returncode == 0:
                 commit_msg = result.stdout.strip()
-                issue_pattern = r"\[([a-zA-Z0-9-]+)\]"
+                issue_pattern = r"\[([a-zA-Z0-9-\.]+)\]"
                 if not re.search(issue_pattern, commit_msg):
                     errors.append(
                         "Commit message must include Beads issue ID in format [issue-id]"
                     )
-                conv_pattern = r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
+                conv_pattern = r"^(\[[^\]]+\] )?(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
                 if not re.match(conv_pattern, commit_msg.split("\n")[0]):
                     errors.append("Commit message does not follow conventional commit format")
 
@@ -301,3 +330,193 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
     except Exception as e:
         errors.append(f"Atomic commit validation system error: {e}")
         return False, errors
+
+
+def prune_local_branches(dry_run: bool = False) -> tuple[bool, str]:
+    """Prune local branches that have been merged into the base branch (main/master)."""
+    try:
+        # Determine base branch
+        base_branch = "origin/main"
+        res = subprocess.run(
+            ["git", "rev-parse", "--verify", base_branch],
+            capture_output=True,
+            text=True,
+        )
+        if res.returncode != 0:
+            base_branch = "main"
+            res = subprocess.run(
+                ["git", "rev-parse", "--verify", base_branch],
+                capture_output=True,
+                text=True,
+            )
+            if res.returncode != 0:
+                base_branch = "master"
+        
+        # Fetch to update remote refs
+        subprocess.run(["git", "fetch", "--prune"], capture_output=True, timeout=10)
+        
+        # Get branches merged into base_branch
+        result = subprocess.run(
+            ["git", "branch", "--merged", base_branch],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        
+        if result.returncode != 0:
+            return False, f"Failed to list merged branches against {base_branch}"
+            
+        branches = [line.strip() for line in result.stdout.split("\n") if line.strip()]
+        to_delete = []
+        for b in branches:
+            # Clean branch name (remove asterisk for current branch)
+            b_clean = b.replace("*", "").strip()
+            if b_clean in ["main", "master", "develop", base_branch, "origin/main", "origin/master"]:
+                continue
+            # Only prune feature-like branches
+            if b_clean.startswith(("agent/", "feature/", "chore/", "bugfix/", "hotfix/")):
+                to_delete.append(b_clean)
+        
+        if not to_delete:
+            return True, "No merged branches to prune"
+            
+        if dry_run:
+            return False, f"Stale branches detected: {', '.join(to_delete)}. Run --clean or 'git branch -d' to remove."
+
+        deleted = []
+        failed = []
+        for b in to_delete:
+            # Use -d for safe deletion (already merged check)
+            res = subprocess.run(["git", "branch", "-d", b], capture_output=True, text=True)
+            if res.returncode == 0:
+                deleted.append(b)
+            else:
+                failed.append(b)
+                
+        msg = ""
+        if deleted:
+            msg += f"Pruned merged branches: {', '.join(deleted)}. "
+        if failed:
+            msg += f"Failed to prune (may have unmerged changes): {', '.join(failed)}."
+            return False, msg.strip()
+            
+        return True, msg.strip()
+        
+    except Exception as e:
+        return False, f"Pruning error: {e}"
+
+
+def check_closed_issue_branches() -> tuple[bool, str]:
+    """Identify local branches that correspond to closed Beads issues."""
+    if not check_tool_available("bd"):
+        return True, "Beads CLI not available (skipping closed issue branch check)"
+
+    try:
+        # Get all local feature branches
+        result = subprocess.run(
+            ["git", "branch", "--format=%(refname:short)"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            return False, "Failed to list local branches"
+        
+        local_branches = result.stdout.strip().split("\n")
+        feature_branches = [b for b in local_branches if b.startswith("agent-harness/")]
+        
+        if not feature_branches:
+            return True, "No local feature branches found"
+
+        # Get all closed issues from Beads in JSON format
+        bd_result = subprocess.run(
+            ["bd", "list", "--status", "closed", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if bd_result.returncode != 0:
+            return True, "Failed to query closed issues from Beads (skipping)"
+        
+        try:
+            import json
+            closed_data = json.loads(bd_result.stdout)
+            closed_ids = {issue["id"] for issue in closed_data}
+        except Exception:
+            return True, "Failed to parse Beads JSON output (skipping)"
+
+        stale_branches = []
+        for branch in feature_branches:
+            # Extract ID from branch name
+            parts = branch.split("/")
+            if len(parts) > 1:
+                slug = parts[-1]
+                match = re.search(r"^(agent-harness-[a-z0-9]{3}|[0-9]+)", slug)
+                issue_id = match.group(1) if match else slug
+                
+                if issue_id in closed_ids:
+                    stale_branches.append(branch)
+        
+        if stale_branches:
+            return False, f"Stale branches for closed issues detected: {', '.join(stale_branches)}. Please prune them."
+        
+        return True, "No stale branches for closed issues found"
+
+    except Exception as e:
+        return True, f"Closed issue branch check error: {e}"
+
+
+def check_branch_issue_coupling() -> tuple[bool, str]:
+    """Verify that the current branch ID matches a 'started' Beads issue and follows naming conventions."""
+    branch, is_feature = check_branch_info()
+    
+    # Protected base branches allowed for initial setup/planning
+    protected_branches = ["main", "master", "develop", "origin/main", "origin/master"]
+    
+    if not is_feature:
+        if branch in protected_branches:
+            return True, f"On protected base branch '{branch}'. Use for discovery/planning only."
+        else:
+            return False, f"PROTOCOL VIOLATION: Branch '{branch}' does not follow naming convention ('agent-harness/<issue-id>-<desc>')."
+
+    # Extract ID from branch (e.g., agent/label-harness-34f -> label-harness-34f)
+    branch_id = get_active_issue_id()
+    if not branch_id:
+        return False, f"Could not identify Beads issue ID from branch '{branch}'"
+
+    if not check_tool_available("bd"):
+        return True, "Beads CLI not available, coupling check skipped"
+
+    try:
+        # Check if the branch_id issue is actually 'started'
+        result = subprocess.run(
+            ["bd", "show", branch_id, "--json"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            return False, f"Branch refers to unknown Beads issue: {branch_id}"
+
+        import json
+        data = json.loads(result.stdout)
+        issue_data = data[0] if isinstance(data, list) else data
+        
+        if not issue_data:
+            return False, f"Issue {branch_id} data not found"
+            
+        labels = issue_data.get("labels", [])
+        
+        if "status:started" in labels or "started:true" in labels:
+            return True, f"Branch '{branch}' correctly coupled with started issue '{branch_id}'"
+        
+        # If it's NOT started, we have a violation
+        return (
+            False,
+            f"PROTOCOL VIOLATION: Branch issue '{branch_id}' is NOT in 'started' state. "
+            f"Current labels: {', '.join(labels)}. "
+            f"Run 'bd set-state {branch_id} status=started' first."
+        )
+
+    except Exception as e:
+        return False, f"Coupling check error: {e}"

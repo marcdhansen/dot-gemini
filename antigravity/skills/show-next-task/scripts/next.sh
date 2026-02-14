@@ -20,8 +20,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Run beads started to capture in-progress tasks
-INPROGRESS_OUTPUT=$(bd started 2>/dev/null)
+# Run beads list to capture in-progress tasks
+INPROGRESS_OUTPUT=$(bd list -s in_progress 2>/dev/null)
 if [ $? -ne 0 ]; then
     INPROGRESS_OUTPUT=""
 fi
@@ -36,15 +36,15 @@ P4_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P4\]' | wc -l | tr -d ' ')
 TOTAL_COUNT=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT + P4_COUNT))
 
 # Count and show in-progress tasks
-INPROGRESS_COUNT=$(echo "$INPROGRESS_OUTPUT" | grep -c 'lightrag-' | tr -d ' ')
+INPROGRESS_COUNT=$(echo "$INPROGRESS_OUTPUT" | grep -c 'agent-harness-' | tr -d ' ')
 
 if [ "$INPROGRESS_COUNT" -gt 0 ]; then
     echo "## 🔄 Currently In Progress ($INPROGRESS_COUNT tasks):"
     echo ""
-    echo "$INPROGRESS_OUTPUT" | grep 'lightrag-' | while IFS= read -r line; do
+    echo "$INPROGRESS_OUTPUT" | grep 'agent-harness-' | while IFS= read -r line; do
         # Extract task ID and description
-        TASK_ID=$(echo "$line" | grep -o 'lightrag-[a-zA-Z0-9]\+')
-        DESC=$(echo "$line" | sed 's/.*lightrag-[a-zA-Z0-9]\+: //')
+        TASK_ID=$(echo "$line" | grep -o 'agent-harness-[a-zA-Z0-9]\+')
+        DESC=$(echo "$line" | sed 's/.*agent-harness-[a-zA-Z0-9]\+: //')
         
         # Extract assignee if present
         if echo "$line" | grep -q "Assigned to:"; then
@@ -74,6 +74,33 @@ if [ "$TOTAL_COUNT" -eq 0 ]; then
     exit 0
 fi
 
+# Check for P0 tasks needing PR review
+REVIEW_P0_TASKS=""
+REVIEW_P0_COUNT=0
+
+if [ "$INPROGRESS_COUNT" -gt 0 ]; then
+    while IFS= read -r line; do
+        if echo "$line" | grep -q '\[● P0\]'; then
+            TASK_ID=$(echo "$line" | grep -o 'agent-harness-[a-zA-Z0-9]\+')
+            if [ -n "$TASK_ID" ]; then
+                # Check for PR URL in comments
+                if bd show "$TASK_ID" 2>/dev/null | grep -qi "PR: http"; then
+                    DESC=$(echo "$line" | sed 's/.*\[● P0\].*: //')
+                    REVIEW_P0_TASKS="${REVIEW_P0_TASKS}👀 **$TASK_ID** (IN REVIEW): $DESC\n"
+                    REVIEW_P0_COUNT=$((REVIEW_P0_COUNT + 1))
+                fi
+            fi
+        fi
+    done <<< "$(echo "$INPROGRESS_OUTPUT" | grep 'agent-harness-')"
+fi
+
+if [ "$REVIEW_P0_COUNT" -gt 0 ]; then
+    echo "## 🔍 NEIGHBORLY REVIEW REQUIRED (P0):"
+    echo ""
+    echo -e "$REVIEW_P0_TASKS"
+    echo ""
+fi
+
 echo "📊 Task Priority Breakdown: P0: $P0_COUNT, P1: $P1_COUNT, P2: $P2_COUNT, P3: $P3_COUNT, P4: $P4_COUNT"
 echo ""
 
@@ -90,7 +117,7 @@ format_tasks() {
         # Process tasks line by line
         echo "$READY_OUTPUT" | grep "\[● $priority\]" | while IFS= read -r line; do
             # Extract task ID and description
-            TASK_ID=$(echo "$line" | grep -o 'lightrag-[a-zA-Z0-9]\+')
+            TASK_ID=$(echo "$line" | grep -o 'agent-harness-[a-zA-Z0-9]\+')
             DESC=$(echo "$line" | sed 's/.*\[● '$priority'\].*: //')
             
             # Extract type if present
@@ -127,12 +154,15 @@ format_tasks "P4" "📝 LOGISTICS & EVENTS"
 
 echo ""
 echo "## 📊 Summary:"
-echo "• Ready tasks: $TOTAL_COUNT | In progress: $INPROGRESS_COUNT"
+echo "• Ready tasks: $TOTAL_COUNT | In progress: $INPROGRESS_COUNT | Needs Review: $REVIEW_P0_COUNT"
 echo ""
 echo "## 🎯 Recommendation:"
 echo ""
 
-if [ "$P0_COUNT" -gt 0 ]; then
+if [ "$REVIEW_P0_COUNT" -gt 0 ]; then
+    echo "TOP PRIORITY: Review open PRs for P0 issues listed above first."
+    echo "Reasoning: Unblocking teammates is the most efficient way to maintain project velocity."
+elif [ "$P0_COUNT" -gt 0 ]; then
     echo "Start with P0 tasks first - they are blocking project progress."
 elif [ "$P1_COUNT" -gt 0 ]; then
     echo "Tackle P1 tasks for maximum impact with clear deliverables."

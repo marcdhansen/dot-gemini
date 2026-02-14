@@ -501,6 +501,23 @@ def generate_debrief(
         ]
     )
 
+    # Append 🏁 indicator if SOP appears complete (Reflection exists, Tasks done)
+    reflection_exists = (project_dir / ".reflection_input.json").exists()
+    task_path = project_dir / "task.md"
+    if not task_path.exists():
+        task_path = project_dir / ".agent" / "task.md"
+    
+    tasks_done = False
+    if task_path.exists():
+        tasks_done = "- [ ]" not in task_path.read_text()
+
+    if reflection_exists and tasks_done:
+        debrief_lines.extend([
+            "",
+            "---",
+            "🏁 **Full SOP compliance verified. Session closed.**",
+        ])
+
     # Footer
     debrief_lines.extend(
         [

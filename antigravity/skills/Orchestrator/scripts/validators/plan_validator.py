@@ -41,11 +41,51 @@ def check_planning_docs(*args) -> tuple[bool, list[str]]:
     return len(missing) == 0, missing
 
 
-def check_beads_issue() -> tuple[bool, str]:
-    """Check if there's an active beads issue."""
+def check_beads_issue(*args) -> tuple[bool, str]:
+    """Check if there's an active beads issue and verify it's started on this branch for implementation.
+    
+    Args:
+        *args: Optional arguments. If 'require_started' is passed, strictly enforces started state.
+    """
     if not check_tool_available("bd"):
         return False, "beads (bd) not available"
 
+    import json
+    from .git_validator import get_active_issue_id, check_branch_info
+    
+    require_started = "require_started" in args
+    branch, is_feature = check_branch_info()
+    active_id = get_active_issue_id()
+    
+    # Strictly enforce started state on feature branches or if explicitly requested
+    if is_feature or require_started:
+        if not active_id:
+            return False, f"Could not identify active Beads issue from branch '{branch}'. Branch must follow 'agent/issue-id' pattern."
+        
+        try:
+            result = subprocess.run(
+                ["bd", "list", "--json"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                issues = json.loads(result.stdout)
+                for issue in issues:
+                    if issue['id'] == active_id:
+                        labels = issue.get('labels', [])
+                        is_started = any(l in labels for l in ["status:started", "started:true"])
+                        is_in_progress = issue.get('status') == 'in_progress'
+                        
+                        if is_started or is_in_progress:
+                            return True, f"Active issue {active_id} is {issue.get('status')} on branch '{branch}'"
+                        else:
+                            return False, f"Issue {active_id} is found but NOT started. Run: bd set-state {active_id} started=true"
+                return False, f"Active issue {active_id} (derived from branch '{branch}') not found in Beads database"
+        except Exception as e:
+            return False, f"Error verifying started state: {e}"
+
+    # Fallback/Initial check for planning on non-feature branches
     try:
         result = subprocess.run(
             ["bd", "ready"],
@@ -54,12 +94,10 @@ def check_beads_issue() -> tuple[bool, str]:
             timeout=10,
         )
         if result.returncode == 0 and result.stdout.strip():
-            lines = result.stdout.strip().split("\n")
+            lines = [l for l in result.stdout.strip().split("\n") if l.strip() and "Ready work" not in l]
             if lines:
-                return True, f"Issues ready: {len(lines)}"
-        return False, "No active Beads issues found"
-    except subprocess.TimeoutExpired:
-        return False, "beads command timed out"
+                return True, f"Issues ready for planning: {len(lines)}"
+        return False, "No active Beads issues found for planning"
     except Exception as e:
         return False, f"beads check failed: {e}"
 
@@ -126,11 +164,12 @@ def check_hook_integrity() -> tuple[bool, str]:
         "beads": {
             ".git/hooks/pre-commit": [
                 "bd (beads) pre-commit hook",
-                "bd sync --flush-only",
+                # Support both legacy and shim patterns
+                ["bd sync --flush-only", "bd hooks run pre-commit"],
             ],
             ".git/hooks/post-merge": [
                 "bd (beads) post-merge hook",
-                "bd import",
+                ["bd import", "bd hooks run post-merge"],
             ]
         }
     }
@@ -172,7 +211,13 @@ def check_hook_integrity() -> tuple[bool, str]:
 
         content = hook_file.read_text()
         for pattern in expected_patterns:
-            if pattern not in content:
+            if isinstance(pattern, list):
+                if not any(p in content for p in pattern):
+                    tampered_hooks.append(
+                        f"{hook_path} (missing one of expected patterns: {', '.join([p[:20] for p in pattern])}...)"
+                    )
+                    break
+            elif pattern not in content:
                 tampered_hooks.append(
                     f"{hook_path} (missing expected pattern: {pattern[:30]}...)"
                 )

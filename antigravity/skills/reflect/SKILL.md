@@ -130,7 +130,7 @@ Use this structure when performing enhanced reflection:
 
 ### Basic Information
 
-- **Objective**: [Issue ID / Task Name]
+- **Objective**: [Issue ID / Task Name] (REQUIRED: Include Beads ID)
 - **Outcome**: [Success / Partial / Failure]
 - **Duration**: [Hours spent]
 
