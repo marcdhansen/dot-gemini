@@ -57,21 +57,36 @@ def check_git_status(turbo: bool = False) -> tuple[bool, str]:
 
             # Detect code changes (.py, .sh, .js, .ts, etc.)
             code_extensions = {".py", ".sh", ".js", ".ts", ".go", ".c", ".cpp"}
+            metadata_extensions = {".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".jsonl", ".log"}
+            safe_filenames = {".gitignore", "uv.lock", "package-lock.json", "poetry.lock"}
+            
             code_changes = []
+            metadata_changes = []
+            
             for line in result.stdout.split("\n"):
                 if len(line) > 3:
-                    file_path = line[3:]
+                    file_path = line[3:].strip()
+                    # Skip safe files
+                    if any(file_path.endswith(f) for f in safe_filenames):
+                        continue
+                    
                     if any(file_path.endswith(ext) for ext in code_extensions):
+                        code_changes.append(file_path)
+                    elif any(file_path.endswith(ext) for ext in metadata_extensions):
+                        metadata_changes.append(file_path)
+                    else:
+                        # Other changes (assets, binary, unknown) - treat as potential code for safety
                         code_changes.append(file_path)
 
             if turbo:
                 if code_changes:
                     return (
                         False,
-                        f"ESCALATION REQUIRED: Code changes detected in Turbo Mode: {', '.join(code_changes)}. Please switch to Full SOP.",
+                        f"ESCALATION REQUIRED: Logic changes detected: {', '.join(code_changes)}. Please switch to Full SOP.",
                     )
                 else:
-                    return True, "Metadata changes only (Turbo safe)"
+                    change_type = "documentation" if metadata_changes else "metadata"
+                    return True, f"{change_type.capitalize()} changes only (Turbo safe)"
 
             return False, f"Uncommitted changes:\n{changes}"
         return False, "Git command failed"
@@ -169,7 +184,7 @@ def check_branch_info(*args) -> tuple[Union[str, bool], bool]:
                 return branch, branch == target
             
             # Enforce feature branch naming conventions
-            is_feature = branch.startswith(("agent-harness/", "agent/", "feature/", "chore/"))
+            is_feature = "/" in branch and not branch.startswith(("main", "master", "develop", "origin/"))
             return branch, is_feature
         return "unknown", False
     except Exception:
@@ -188,10 +203,11 @@ def get_active_issue_id() -> Optional[str]:
         parts = branch.split("/")
         if len(parts) > 1:
             slug = parts[-1]
-            # Match project-id-id (e.g., agent-harness-abc) at the start of the slug
-            match = re.search(r"^(agent-harness-[a-z0-9]{3}|[0-9]+)", slug)
+            # Match numeric ID first, then project-id (e.g., agent-harness-abc) or dotted ID
+            # Priority: 1. Dotted ID (agent-gbv.18), 2. Project-ID-Number (agent-gbv-18), 3. Project-ID-Hash (CORE-9a3), 4. Numeric ONLY (123)
+            match = re.search(r"^(.+?\.[0-9]+)(?:-|$)|^(.+?-[0-9]+)(?:-|$)|^(.+?-[a-z0-9]{3})(?:-|$)|^([0-9]+)(?:-|$)", slug)
             if match:
-                return match.group(1)
+                return match.group(1) or match.group(2) or match.group(3) or match.group(4)
             # Fallback if slug is just the ID
             return slug
         return branch
@@ -423,7 +439,7 @@ def check_closed_issue_branches() -> tuple[bool, str]:
             return False, "Failed to list local branches"
         
         local_branches = result.stdout.strip().split("\n")
-        feature_branches = [b for b in local_branches if b.startswith("agent-harness/")]
+        feature_branches = [b for b in local_branches if "/" in b and not b.startswith(("main", "master", "develop", "origin/"))]
         
         if not feature_branches:
             return True, "No local feature branches found"
@@ -451,8 +467,8 @@ def check_closed_issue_branches() -> tuple[bool, str]:
             parts = branch.split("/")
             if len(parts) > 1:
                 slug = parts[-1]
-                match = re.search(r"^(agent-harness-[a-z0-9]{3}|[0-9]+)", slug)
-                issue_id = match.group(1) if match else slug
+                match = re.search(r"^([0-9]+)(?:-|$)|^(.+?-[a-z0-9]{3})(?:-|$)|^(.+?\.[0-9]+)(?:-|$)", slug)
+                issue_id = match.group(1) or match.group(2) or match.group(3) if match else slug
                 
                 if issue_id in closed_ids:
                     stale_branches.append(branch)
@@ -477,7 +493,7 @@ def check_branch_issue_coupling() -> tuple[bool, str]:
         if branch in protected_branches:
             return True, f"On protected base branch '{branch}'. Use for discovery/planning only."
         else:
-            return False, f"PROTOCOL VIOLATION: Branch '{branch}' does not follow naming convention ('agent-harness/<issue-id>-<desc>')."
+            return False, f"PROTOCOL VIOLATION: Branch '{branch}' does not follow naming convention ('<prefix>/<issue-id>-<desc>')."
 
     # Extract ID from branch (e.g., agent/label-harness-34f -> label-harness-34f)
     branch_id = get_active_issue_id()

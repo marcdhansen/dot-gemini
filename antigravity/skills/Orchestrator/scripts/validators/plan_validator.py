@@ -234,9 +234,25 @@ def check_hook_integrity() -> tuple[bool, str]:
     return True, f"All {detected_standard} hooks intact"
 
 
+def get_approval_ttl() -> int:
+    """Load approval TTL from orchestrator.yaml or return default (4h)."""
+    config_path = Path.cwd() / "orchestrator.yaml"
+    if not config_path.exists():
+        return 4
+    
+    try:
+        import yaml
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+            
+        return config.get("approval", {}).get("default_ttl_hours", 4)
+    except Exception:
+        return 4
+
+
 def check_plan_approval(*args) -> tuple[bool, str]:
     """Check if plan approval exists and is fresh. Supports 'invert' argument."""
-    max_hours = 4
+    max_hours = None
     invert = False
     
     if args:
@@ -247,6 +263,9 @@ def check_plan_approval(*args) -> tuple[bool, str]:
                 max_hours = int(args[0])
             except ValueError:
                 pass
+
+    if max_hours is None:
+        max_hours = get_approval_ttl()
 
     task_paths = [
         Path(".agent/task.md"),

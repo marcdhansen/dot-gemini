@@ -629,7 +629,7 @@ def check_progress_log_exists() -> tuple[bool, str]:
     if not issue_id:
         return False, "Active issue ID not identified"
 
-    log_path = Path.home() / ".agent/progress-logs" / f"{issue_id}.md"
+    log_path = Path(".agent/progress-logs") / f"{issue_id}.md"
     if log_path.exists():
         return True, f"Progress log found: {log_path.name}"
     return False, f"Progress log missing: {log_path.name}"
