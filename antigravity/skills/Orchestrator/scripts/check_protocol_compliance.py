@@ -182,7 +182,28 @@ except ImportError:
 
 def run_initialization(verbose: bool = False) -> bool:
     """Run Initialization validation."""
-    # Try JSON-driven approach first
+    # Ensure session is initialized BEFORE running checklist if we have an active ID
+    active_id = get_active_issue_id()
+    if active_id:
+        try:
+            session_dir = Path.cwd() / ".agent" / "sessions"
+            session_dir.mkdir(parents=True, exist_ok=True)
+            session_file = session_dir / "session.lock"
+            
+            if not session_file.exists():
+                session_data = {
+                    "id": f"sess_{int(datetime.now().timestamp())}",
+                    "mode": "full",
+                    "issue_id": active_id,
+                    "started_at": datetime.now().timestamp(),
+                    "status": "active"
+                }
+                session_file.write_text(json.dumps(session_data))
+                print(f"├── Session Tracking: ✅ Initialized {session_data['id']}")
+        except Exception as e:
+            print(f"├── Session Tracking: ⚠️ Failed to initialize: {e}")
+
+    # Try JSON-driven approach
     executed, blockers, warnings = run_phase_from_json("initialization", verbose)
     if executed:
         if blockers:
@@ -194,33 +215,6 @@ def run_initialization(verbose: bool = False) -> bool:
         
         print(f"{Colors.GREEN}{Colors.BOLD}✅ INITIALIZATION COMPLETE (JSON){Colors.END}")
         update_progress_ledger("Initialization", "success", "Clean JSON initialization complete")
-        
-        # Initialize session tracking
-        from validators.git_validator import get_active_issue_id
-        from validators.session_validator import check_harness_session
-        
-        active_id = get_active_issue_id()
-        if active_id:
-            try:
-                # We need to reach back into the project to find the SessionTracker
-                # or just implement a minimal session lock here.
-                # Since SessionTracker is in the project, we'll use a project-local implementation.
-                session_dir = Path.cwd() / ".agent" / "sessions"
-                session_dir.mkdir(parents=True, exist_ok=True)
-                session_file = session_dir / "session.lock"
-                
-                session_data = {
-                    "id": f"sess_{int(datetime.now().timestamp())}",
-                    "mode": "full", # Defaulting to full for orchestrator init
-                    "issue_id": active_id,
-                    "started_at": datetime.now().timestamp(),
-                    "status": "active"
-                }
-                session_file.write_text(json.dumps(session_data))
-                print(f"├── Session Tracking: ✅ Initialized {session_data['id']}")
-            except Exception as e:
-                print(f"├── Session Tracking: ⚠️ Failed to initialize: {e}")
-        
         return True
 
     # Fallback to legacy hardcoded logic
