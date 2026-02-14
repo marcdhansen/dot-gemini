@@ -510,3 +510,161 @@ def check_progress_log_exists() -> tuple[bool, str]:
     if log_path.exists():
         return True, f"Progress log found: {log_path.name}"
     return False, f"Progress log missing: {log_path.name}"
+
+
+def check_handoff_pr_verification() -> tuple[bool, str]:
+    """Verify that there are no orphaned or multiple open PRs for the current issue."""
+    if not check_tool_available("gh") or not check_tool_available("bd"):
+        return True, "gh or bd not available (skipping handoff PR verification)"
+
+    issue_id = get_active_issue_id()
+    if not issue_id:
+        return True, "No active issue (skipping handoff PR verification)"
+
+    try:
+        # Search for open PRs containing the issue ID in the title or branch
+        result = subprocess.run(
+            [
+                "gh",
+                "pr",
+                "list",
+                "--search",
+                issue_id,
+                "--state",
+                "open",
+                "--json",
+                "number,title,headRefName,url",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+
+        if result.returncode != 0:
+            return False, f"gh command failed: {result.stderr.strip()}"
+
+        prs = json.loads(result.stdout)
+        if not prs:
+            return True, f"No open PRs found for issue '{issue_id}'"
+
+        branch, _ = check_branch_info()
+
+        if len(prs) > 1:
+            pr_list = ", ".join([f"#{pr['number']} ({pr['url']})" for pr in prs])
+            return (
+                False,
+                f"PROTOCOL VIOLATION: Multiple open PRs found for issue '{issue_id}': {pr_list}. Please close orphaned PRs.",
+            )
+
+        pr = prs[0]
+        # Allow drift if we are on main/master and checking a finished task? 
+        # Actually finalization is usually on a feature branch.
+        if pr["headRefName"] != branch:
+            return (
+                False,
+                f"PROTOCOL VIOLATION: Open PR #{pr['number']} is on branch '{pr['headRefName']}', but current branch is '{branch}'. This suggests workspace drift.",
+            )
+
+        return (
+            True,
+            f"Handoff PR verified: #{pr['number']} on branch '{pr['headRefName']}'",
+        )
+
+    except Exception as e:
+        return False, f"Handoff PR verification error: {e}"
+
+
+def check_beads_pr_sync() -> tuple[bool, str]:
+    """Verify that the current Pull Request title or body references the active Beads issue."""
+    if not check_tool_available("gh") or not check_tool_available("bd"):
+        return True, "gh or bd not available (skipping Beads-PR sync check)"
+
+    issue_id = get_active_issue_id()
+    if not issue_id:
+        return True, "No active issue identified (skipping Beads-PR sync check)"
+
+    try:
+        # Get the current PR for the branch
+        branch, is_feature = check_branch_info()
+        if not is_feature:
+            return True, "Not on feature branch"
+
+        result = subprocess.run(
+            ["gh", "pr", "view", "--json", "title,body"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if result.returncode != 0:
+            return False, "Could not find a PR for the current branch. Please run 'gh pr create --fill'."
+
+        pr_data = json.loads(result.stdout)
+        title = pr_data.get("title", "")
+        body = pr_data.get("body", "")
+
+        # Check for issue_id in title or body (case-insensitive)
+        issue_id_lower = issue_id.lower()
+        if issue_id_lower in title.lower() or issue_id_lower in body.lower():
+            return True, f"Beads issue '{issue_id}' properly synchronized with PR"
+        
+        # Also check for just the numeric part if applicable, but issue_id is safer
+        # Some users might use #ID or [ID]
+        patterns = [
+            f"[{issue_id}]",
+            f"#{issue_id}",
+            f"{issue_id}:",
+        ]
+        if any(p.lower() in title.lower() or p.lower() in body.lower() for p in patterns):
+             return True, f"Beads issue '{issue_id}' properly synchronized with PR"
+
+        return (
+            False,
+            f"PROTOCOL VIOLATION: Pull Request title/body must reference the active Beads issue '{issue_id}'. Run 'gh pr edit --title \"[{issue_id}] Your Title\"'.",
+        )
+
+    except Exception as e:
+        return False, f"Beads-PR synchronization check error: {e}"
+
+
+def check_workspace_cleanup() -> tuple[bool, str]:
+    """Verify that the workspace is free of temporary session artifacts drift."""
+    try:
+        # Check for untracked files using git
+        result = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if result.returncode != 0:
+            return True, "Could not check for untracked files (skipping)"
+
+        untracked = result.stdout.strip().split("\n") if result.stdout.strip() else []
+        
+        # Standard session files that are allowed in root during execution but should be noted
+        allowed_in_root = ["task.md", "debrief.md", ".reflection_input.json"]
+        
+        drift = [f for f in untracked if f not in allowed_in_root and not f.startswith("tests/")]
+        
+        if not drift:
+            return True, "Workspace clean of temporary artifact drift"
+
+        # Check for specifically suspicious prefixes/suffixes
+        suspicious = [f for f in drift if any(pattern in f for pattern in [".bak", ".tmp", "copy", "old", "test_"])]
+        
+        if suspicious:
+            return (
+                False,
+                f"Suspicious temporary files detected: {', '.join(suspicious)}. Please clean up before finalization.",
+            )
+
+        # Non-suspicious but untracked files - just a warning
+        return (
+            True,
+            f"Workspace has {len(drift)} untracked files (e.g., {drift[0]}). Ensure these are intended to be part of the PR.",
+        )
+
+    except Exception as e:
+        return False, f"Workspace cleanup check error: {e}"

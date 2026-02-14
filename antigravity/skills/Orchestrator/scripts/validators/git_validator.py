@@ -182,7 +182,7 @@ def get_active_issue_id() -> str | None:
                     if not line or "Ready work" in line:
                         continue
                     # Match pattern like "1. [● P0] [task] issue-id: Title"
-                    match = re.search(r"([a-zA-Z0-9-]+):", line)
+                    match = re.search(r"([a-zA-Z0-9-.]+):", line)
                     if match:
                         return match.group(1).strip()
         except Exception:
