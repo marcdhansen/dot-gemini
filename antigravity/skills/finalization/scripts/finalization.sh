@@ -125,7 +125,7 @@ else
     echo "$GIT_STATUS"
 fi
 
-# Auto-commit ALL remaining uncommitted changes to prevent RTB failures
+# Auto-commit ALL remaining uncommitted changes to prevent Finalization failures
 if [ ! -z "$GIT_STATUS" ]; then
     echo "🔧 Auto-committing remaining uncommitted changes..."
     

@@ -93,7 +93,7 @@ If Finalization fails:
 
 ## 🚨 Critical Fix Applied: Auto-Commit Missing Files
 
-**Issue**: RTB process could miss uncommitted files (like rag storage files)  
+**Issue**: Finalization process could miss uncommitted files (like rag storage files)  
 **Learning**: Finalization must auto-commit ALL remaining changes, not just initial git status  
 **Solution Implemented**: Enhanced auto-commit section in finalization.sh
 
@@ -193,7 +193,7 @@ reflection = {
         'Reflection Captured': False
     },
     'technical_learnings': [
-        'Remember to use the reflect skill before RTB completion',
+        'Remember to use the reflect skill before Finalization completion',
         'Systematic reflection ensures knowledge transfer'
     ],
     'challenges_overcome': [

@@ -4,7 +4,7 @@ description: Comprehensive planning skill with blast radius analysis, incrementa
 disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Glob, Grep
 version: "1.0.0"
-dependencies: [show-next-task, return-to-base, reflect]
+dependencies: [show-next-task, finalization, reflect]
 ---
 
 # Planning Skill - P0 Critical Infrastructure

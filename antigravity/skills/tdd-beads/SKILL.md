@@ -4,7 +4,7 @@ description: Automatic beads issue creation with TDD compliance enforcement for 
 disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Glob, Grep
 version: "1.0.0"
-dependencies: [planning, return-to-base, reflect]
+dependencies: [planning, finalization, reflect]
 ---
 
 # TDD-Beads Integration Skill
