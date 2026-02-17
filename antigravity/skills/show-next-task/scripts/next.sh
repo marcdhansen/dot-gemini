@@ -7,6 +7,63 @@ echo "🎯 ALL Available Tasks in the LightRAG Project"
 echo "========================================================="
 echo ""
 
+# ============================================
+# PHASE 0: Check for Open PRs (GitHub Source of Truth)
+# ============================================
+PR_SEEN=0
+if command -v gh &> /dev/null; then
+    PR_JSON=$(gh pr list --state open --json number,title,headRefName,createdAt,url 2>/dev/null)
+    # Check if we got valid JSON output
+    if [ -n "$PR_JSON" ] && [ "$PR_JSON" != "[]" ]; then
+        PR_COUNT=$(echo "$PR_JSON" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
+        
+        if [ "$PR_COUNT" -gt 0 ]; then
+            echo "## 🔴 OPEN PRs REQUIRING REVIEW ($PR_COUNT):"
+            echo ""
+            echo "$PR_JSON" | python3 -c "
+import sys, json
+from datetime import datetime
+try:
+    prs = json.load(sys.stdin)
+    for pr in prs:
+        created = pr.get('createdAt', '')
+        try:
+            # Simple date parsing
+            dt = datetime.fromisoformat(created.replace('Z', '+00:00'))
+            now = datetime.now(dt.tzinfo)
+            days = (now - dt).days
+            age = f'{days}d ago'
+        except:
+             age = '...'
+        
+        print(f'  🔍 PR #{pr[\"number\"]}: {pr[\"title\"]}')
+        print(f'     Branch: {pr[\"headRefName\"]} | Age: {age}')
+except:
+    pass
+"
+            echo ""
+            PR_SEEN=1
+        fi
+    fi
+fi
+
+# Fallback: Check for Beads issues with pr:open label if GH didn't show anything (or just as augmentation)
+if [ "$PR_SEEN" -eq 0 ] && command -v bd &> /dev/null; then
+    LABEL_OUTPUT=$(bd query "label='pr:open'" 2>/dev/null)
+    if [ $? -eq 0 ] && echo "$LABEL_OUTPUT" | grep -q "Found [1-9]"; then
+        LABEL_COUNT=$(echo "$LABEL_OUTPUT" | grep -o "Found [0-9]\+" | head -1 | awk '{print $NF}')
+        if [ "$LABEL_COUNT" -gt 0 ]; then
+             echo "## 🔴 ISSUES MARKED AS PR OPEN ($LABEL_COUNT):"
+             echo ""
+             echo "$LABEL_OUTPUT" | grep "^○\|^●" | while read -r line; do
+                 echo "  🏷️ $line"
+             done
+             echo ""
+             PR_SEEN=1
+        fi
+    fi
+fi
+
 # Get the current ready tasks from beads
 if ! command -v bd &> /dev/null; then
     echo "❌ Error: 'bd' command not found. Please install beads."
@@ -41,10 +98,10 @@ INPROGRESS_COUNT=$(echo "$INPROGRESS_OUTPUT" | grep -c 'agent-harness-' | tr -d 
 if [ "$INPROGRESS_COUNT" -gt 0 ]; then
     echo "## 🔄 Currently In Progress ($INPROGRESS_COUNT tasks):"
     echo ""
-    echo "$INPROGRESS_OUTPUT" | grep 'agent-harness-' | while IFS= read -r line; do
+    echo "$INPROGRESS_OUTPUT" | grep '\-[a-zA-Z0-9]\+' | while IFS= read -r line; do
         # Extract task ID and description
-        TASK_ID=$(echo "$line" | grep -o 'agent-harness-[a-zA-Z0-9]\+')
-        DESC=$(echo "$line" | sed 's/.*agent-harness-[a-zA-Z0-9]\+: //')
+        TASK_ID=$(echo "$line" | grep -o '[a-zA-Z0-9.-]\+-[a-zA-Z0-9.-]\+' | head -1)
+        DESC=$(echo "$line" | sed "s/.*$TASK_ID: //")
         
         # Extract assignee if present
         if echo "$line" | grep -q "Assigned to:"; then
@@ -81,7 +138,7 @@ REVIEW_P0_COUNT=0
 if [ "$INPROGRESS_COUNT" -gt 0 ]; then
     while IFS= read -r line; do
         if echo "$line" | grep -q '\[● P0\]'; then
-            TASK_ID=$(echo "$line" | grep -o 'agent-harness-[a-zA-Z0-9]\+')
+            TASK_ID=$(echo "$line" | grep -o '[a-zA-Z0-9.-]\+-[a-zA-Z0-9.-]\+')
             if [ -n "$TASK_ID" ]; then
                 # Check for PR URL in comments
                 if bd show "$TASK_ID" 2>/dev/null | grep -qi "PR: http"; then
@@ -91,7 +148,7 @@ if [ "$INPROGRESS_COUNT" -gt 0 ]; then
                 fi
             fi
         fi
-    done <<< "$(echo "$INPROGRESS_OUTPUT" | grep 'agent-harness-')"
+    done <<< "$(echo "$INPROGRESS_OUTPUT" | grep '\-[a-zA-Z0-9]\+')"
 fi
 
 if [ "$REVIEW_P0_COUNT" -gt 0 ]; then
@@ -117,8 +174,8 @@ format_tasks() {
         # Process tasks line by line
         echo "$READY_OUTPUT" | grep "\[● $priority\]" | while IFS= read -r line; do
             # Extract task ID and description
-            TASK_ID=$(echo "$line" | grep -o 'agent-harness-[a-zA-Z0-9]\+')
-            DESC=$(echo "$line" | sed 's/.*\[● '$priority'\].*: //')
+            TASK_ID=$(echo "$line" | grep -o '[a-zA-Z0-9.-]\+-[a-zA-Z0-9.-]\+' | head -1)
+            DESC=$(echo "$line" | sed "s/.*$TASK_ID: //")
             
             # Extract type if present
             if echo "$line" | grep -q "\[task\]"; then
@@ -159,7 +216,10 @@ echo ""
 echo "## 🎯 Recommendation:"
 echo ""
 
-if [ "$REVIEW_P0_COUNT" -gt 0 ]; then
+if [ "$PR_SEEN" -eq 1 ]; then
+    echo "TOP PRIORITY: Review open PRs listed above first."
+    echo "Reasoning: Unblocking teammates is the most efficient way to maintain project velocity."
+elif [ "$REVIEW_P0_COUNT" -gt 0 ]; then
     echo "TOP PRIORITY: Review open PRs for P0 issues listed above first."
     echo "Reasoning: Unblocking teammates is the most efficient way to maintain project velocity."
 elif [ "$P0_COUNT" -gt 0 ]; then
@@ -183,24 +243,64 @@ echo ""
 # Check if roadmap file exists
 ROADMAP_FILE=".agent/rules/ROADMAP.md"
 if [ -f "$ROADMAP_FILE" ]; then
-    # Extract current objective and phase from roadmap
-    CURRENT_OBJ=$(grep -A 5 "## 🎯 Current Objective" "$ROADMAP_FILE" | grep -v "## 🎯" | grep -v "Status:" | grep -v "Result:" | grep -v "Next Step:" | head -1 | sed 's/^- \*\*Task\*\*: //')
-    CURRENT_STATUS=$(grep "Status:" "$ROADMAP_FILE" | head -1 | sed 's/.*Status: //')
-    NEXT_STEP=$(grep "Next Step:" "$ROADMAP_FILE" | head -1 | sed 's/.*Next Step: //')
+    # Extract current phase (first one with unchecked items)
+    CURRENT_PHASE_HEADER=$(grep -n "^## Phase" "$ROADMAP_FILE" | head -n 1)
     
-    echo "📍 **Current Focus:** $CURRENT_OBJ"
-    echo "📊 **Status:** $CURRENT_STATUS"
-    if [ -n "$NEXT_STEP" ]; then
-        echo "➡️ **Next Phase:** $NEXT_STEP"
+    # Try to find a phase that is partially complete or first one with [ ]
+    # Group file by Phase blocks
+    PHASE_BLOCKS=$(awk '/^## Phase/{if (p) print p; p=$0; next} {p=p RS $0} END{print p}' "$ROADMAP_FILE")
+    
+    # Logic: Find first phase with [ ]
+    CURRENT_PHASE_TEXT=$(echo "$PHASE_BLOCKS" | python3 -c "
+import sys
+blocks = sys.stdin.read().split('## Phase')
+for block in blocks[1:]:
+    if '[ ]' in block:
+        print('Phase' + block.split('\n')[0].strip())
+        break
+")
+    
+    if [ -z "$CURRENT_PHASE_TEXT" ]; then
+        # All phases complete? Use the last one.
+        CURRENT_PHASE_TEXT=$(echo "$PHASE_BLOCKS" | tail -n 1 | head -n 1 | sed 's/^## //')
     fi
+
+    # Extract progress for this phase
+    PROGRESS=$(echo "$PHASE_BLOCKS" | python3 -c "
+import sys
+curr = sys.argv[1]
+blocks = sys.stdin.read().split('## Phase')
+for block in blocks[1:]:
+    title = 'Phase' + block.split('\n')[0].strip()
+    if title == curr:
+        done = block.count('[x]')
+        todo = block.count('[ ]')
+        total = done + todo
+        print(f'{done}/{total} items complete')
+        break
+" "$CURRENT_PHASE_TEXT")
+
+    echo "📍 **Current Focus:** $CURRENT_PHASE_TEXT"
+    echo "📊 **Status:** $PROGRESS"
     echo ""
     
-    # Check for phase alignment opportunities
-    if echo "$NEXT_STEP" | grep -iq "phase"; then
-        echo "💡 **Phase Alignment Opportunities:**"
-        echo "• Consider creating supporting tasks for the next phase"
-        echo "• Look for dependencies or prerequisites in the implementation plan"
-        echo "• Review if current tasks align with phase objectives"
+    # Next step: find the phase after current
+    NEXT_PHASE=$(echo "$PHASE_BLOCKS" | python3 -c "
+import sys
+curr = sys.argv[1]
+blocks = sys.stdin.read().split('## Phase')
+found = False
+for block in blocks[1:]:
+    title = 'Phase' + block.split('\n')[0].strip()
+    if found:
+        print(title)
+        break
+    if title == curr:
+        found = True
+" "$CURRENT_PHASE_TEXT")
+
+    if [ -n "$NEXT_PHASE" ]; then
+        echo "➡️ **Next Phase:** $NEXT_PHASE"
         echo ""
     fi
 else

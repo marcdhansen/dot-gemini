@@ -432,6 +432,50 @@ def check_pr_exists() -> tuple[bool, str]:
         return False, f"PR check failed: {e}"
 
 
+def check_pr_label_sync() -> tuple[bool, str]:
+    """Verify that if a PR exists, the active Beads issue has a pr:open label."""
+    # 1. Check if PR exists for current branch (reuse check_pr_exists logic)
+    pr_exists, pr_msg = check_pr_exists()
+
+    # If no PR found (or not required), we don't need a label
+    if not pr_exists:
+        return True, "No PR confirmed, skipping label check"
+
+    # 2. PR exists. Now ensure beads issue has the label.
+    if not check_tool_available("bd"):
+        return True, "beads (bd) not available, skipping label check"
+
+    issue_id = get_active_issue_id()
+    if not issue_id:
+        return True, "No active issue ID found"
+
+    try:
+        # Check labels using bd label list
+        result = subprocess.run(
+            ["bd", "label", "list", issue_id],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if result.returncode != 0:
+            return False, f"Failed to list labels for issue {issue_id}"
+
+        output = result.stdout.strip()
+        labels = [l.strip() for l in output.split("\n") if l.strip()]
+
+        if "pr:open" in labels:
+            return True, f"Issue {issue_id} has required 'pr:open' label"
+
+        return (
+            False,
+            f"BLOCKER: PR exists but issue {issue_id} is missing 'pr:open' label. "
+            f"Run: bd label add {issue_id} pr:open",
+        )
+    except Exception as e:
+        return False, f"Error checking PR label: {e}"
+
+
 def check_handoff_pr_link() -> tuple[bool, str]:
     """Check if the session handoff (debrief.md) contains a GitHub PR link."""
     # Potential debrief locations

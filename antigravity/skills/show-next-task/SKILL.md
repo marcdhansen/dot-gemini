@@ -27,12 +27,24 @@ This skill performs comprehensive task analysis:
 6. Suggests new feature development and issue creation to keep the plan moving
 7. Offers concrete next steps to get started immediately
 
+## ⚠️ Finding Scripts in This Skill
+
+Glob ignores hidden directories like `.config`. Always specify the path explicitly:
+
+```bash
+# ❌ Won't find scripts
+glob(pattern="**/next.sh")
+
+# ✅ Correct
+glob(path="~/.config/opencode", pattern="**/next.sh")
+```
+
 ## Implementation
 
 The skill executes:
 
 ```bash
-./.agent/skills/show-next-task/scripts/next.sh
+./scripts/next.sh
 ```
 
 ## Workflow Analysis
@@ -116,9 +128,60 @@ This skill integrates with:
 
 ## Error Handling
 
+This skill follows the **fail-loud** principle: always report problems immediately rather than silently falling back.
+
+### Script Discovery
+
+The skill executes `scripts/next.sh` from the current working directory. If not found:
+
+1. **Do NOT silently fall back to `bd ready`** - this hides the problem
+2. **Report the error clearly** - explain what was expected and what's missing
+3. **Exit with non-zero code** - force the issue to be fixed
+
+Example error message:
+
+```
+ERROR: scripts/next.sh not found.
+
+This skill requires scripts/next.sh to function.
+The script should exist in the project directory.
+
+To fix: Create the missing script or update this skill's implementation.
+```
+
+### Glob Tool Limitation
+
+When searching for files, be aware of glob limitations:
+
+- The `glob` tool excludes `.config` directories by default (security practice)
+- If searching in `~/.config/`, use explicit `path` parameter:
+
+  ```python
+  # Wrong - will not find files in ~/.config/
+  glob(pattern="**/next.sh")
+  
+  # Correct - explicitly specify path
+  glob(path="/Users/marchansen/.config", pattern="**/next.sh")
+  ```
+
+For more details, see **AGENTS.md** (Glob Tool Limitation section).
+
+### Reporting Issues
+
+Per AGENTS.md guidelines:
+
+- **Verify script exists** before executing (use `ls` or glob)
+- **Report broken scripts immediately** - do NOT silently work around
+- **Test before relying** - run the command manually first
+- **Document workarounds** if you find a fix
+
+### Beads Errors
+
 The skill gracefully handles:
 
 - Beads daemon not running
 - No ready tasks available
 - Command execution failures
 - Network connectivity issues
+
+But these are expected operational issues - the skill should handle them with helpful messages.

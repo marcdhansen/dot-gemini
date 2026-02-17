@@ -24,7 +24,9 @@ class InitializationBriefing:
         if turbo:
             is_clean, msg = self._check_for_code_changes()
             if not is_clean:
-                print("⚠️ ESCALATION DETECTED: Code changes found. Switching to FULL BRIEFING.")
+                print(
+                    "⚠️ ESCALATION DETECTED: Code changes found. Switching to FULL BRIEFING."
+                )
                 turbo = False
 
         mode_str = "TURBO" if turbo else "FULL"
@@ -34,6 +36,12 @@ class InitializationBriefing:
 
         # 1. Current Status Check
         self._show_current_status()
+
+        # 2. Check for Pending PRs (Priority)
+        self._check_pending_prs()
+
+        # 3. Check for beads issues with pr:open label (redundancy)
+        self._check_beads_pr_open()
 
         if turbo:
             print("⚡ TURBO MODE ACTIVE: Minimal protocol required.")
@@ -56,7 +64,9 @@ class InitializationBriefing:
         print()
         print(f"🎯 READY TO START: {mode_str} briefing complete!")
         if not turbo:
-            print("💡 Save friction points as they happen - don't wait until Finalization!")
+            print(
+                "💡 Save friction points as they happen - don't wait until Finalization!"
+            )
         print()
 
     def _check_for_code_changes(self):
@@ -175,9 +185,122 @@ class InitializationBriefing:
 
         print()
 
+    def _check_pending_prs(self):
+        """Check for potentially blocking open PRs"""
+        if not self._command_exists("gh"):
+            return
+
+        try:
+            # Query open PRs
+            result = subprocess.run(
+                [
+                    "gh",
+                    "pr",
+                    "list",
+                    "--state",
+                    "open",
+                    "--json",
+                    "number,title,headRefName,createdAt,url",
+                    "--limit",
+                    "30",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=self.workspace_dir,
+                timeout=10,
+            )
+
+            if result.returncode != 0:
+                print(f"⚠️  GitHub PR check failed: {result.stderr.strip()}")
+                return
+
+            try:
+                prs = json.loads(result.stdout)
+            except json.JSONDecodeError:
+                return
+
+            if not prs:
+                print("✅ PRs: No open PRs requiring review")
+                print("---------------------------------")
+                return
+
+            print(f"🔴 OPEN PRs NEEDING REVIEW ({len(prs)})")
+            print("---------------------------------")
+            for pr in prs:
+                number = pr.get("number", "?")
+                title = pr.get("title", "Unknown")
+                branch = pr.get("headRefName", "unknown")
+
+                # Calculate age roughly
+                created = pr.get("createdAt", "")
+                try:
+                    # Simple date parsing
+                    dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+                    now = datetime.now(dt.tzinfo)
+                    days = (now - dt).days
+                    age_str = f"{days}d ago"
+                except:
+                    age_str = "..."
+
+                print(f"  • #{number} {title}")
+                print(f"     └─ Branch: {branch} | Age: {age_str}")
+
+            print()
+            print(
+                "💡 PRIORITY ACTION: Open PRs are TOP PRIORITY. Review them before starting new tracks."
+            )
+            print()
+
+        except Exception as e:
+            print(f"⚠️  Failed to check PRs: {e}")
+
+    def _check_beads_pr_open(self):
+        """Check for beads issues with pr:open label (redundancy with GitHub PR check)"""
+        if not self._command_exists("bd"):
+            return
+
+        try:
+            result = subprocess.run(
+                ["bd", "list", "--label", "pr:open"],
+                capture_output=True,
+                text=True,
+                cwd=self.workspace_dir,
+                timeout=15,
+            )
+
+            if result.returncode != 0:
+                return
+
+            output = result.stdout.strip()
+            if not output or "No issues found" in output:
+                return
+
+            lines = output.split("\n")
+            issues = [
+                line for line in lines if line.strip() and ("○" in line or "●" in line)
+            ]
+
+            if not issues:
+                return
+
+            print(f"🔵 BEADS ISSUES WITH 'pr:open' LABEL ({len(issues)})")
+            print("---------------------------------")
+            for issue in issues[:10]:
+                print(f"  {issue.strip()}")
+
+            if len(issues) > 10:
+                print(f"  ... and {len(issues) - 10} more")
+
+            print()
+            print(
+                "💡 These issues have open PRs linked. Review them before starting new work."
+            )
+            print()
+
+        except Exception as e:
+            pass
+
     def _show_protocol_highlights(self):
-        """Display key protocol requirements"""
-        print("📜 PROTOCOL HIGHLIGHTS")
         print("---------------------")
         print("🧪 Quality Gates:")
         print("   1. Tests (pytest) - if test suite exists")
@@ -318,8 +441,11 @@ class InitializationBriefing:
 def main():
     """Main entry point for initialization briefing"""
     import argparse
+
     parser = argparse.ArgumentParser(description="Initialization Briefing Skill")
-    parser.add_argument("--turbo", action="store_true", help="Run in Turbo Mode (lightweight)")
+    parser.add_argument(
+        "--turbo", action="store_true", help="Run in Turbo Mode (lightweight)"
+    )
     args = parser.parse_args()
 
     # Check if we're in a valid workspace
