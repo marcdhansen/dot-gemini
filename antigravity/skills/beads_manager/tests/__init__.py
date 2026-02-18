@@ -1,0 +1,1 @@
+"""Beads Manager Tests Package"""
