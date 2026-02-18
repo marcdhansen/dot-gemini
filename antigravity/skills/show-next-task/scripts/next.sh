@@ -15,7 +15,8 @@ if command -v gh &> /dev/null; then
     PR_JSON=$(gh pr list --state open --json number,title,headRefName,createdAt,url 2>/dev/null)
     # Check if we got valid JSON output
     if [ -n "$PR_JSON" ] && [ "$PR_JSON" != "[]" ]; then
-        PR_COUNT=$(echo "$PR_JSON" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
+        # Filter out dependabot PRs when counting
+        PR_COUNT=$(echo "$PR_JSON" | python3 -c "import sys,json; prs = [p for p in json.load(sys.stdin) if not p.get('title','').lower().startswith('dependabot') and not p.get('headRefName','').lower().startswith('dependabot/')]; print(len(prs))" 2>/dev/null || echo 0)
         
         if [ "$PR_COUNT" -gt 0 ]; then
             echo "## 🔴 OPEN PRs REQUIRING REVIEW ($PR_COUNT):"
@@ -25,6 +26,8 @@ import sys, json
 from datetime import datetime
 try:
     prs = json.load(sys.stdin)
+    # Filter out dependabot PRs
+    prs = [pr for pr in prs if not pr.get('title', '').lower().startswith('dependabot') and not pr.get('headRefName', '').lower().startswith('dependabot/')]
     for pr in prs:
         created = pr.get('createdAt', '')
         try:

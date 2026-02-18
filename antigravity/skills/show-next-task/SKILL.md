@@ -161,7 +161,7 @@ When searching for files, be aware of glob limitations:
   glob(pattern="**/next.sh")
   
   # Correct - explicitly specify path
-  glob(path="/Users/marchansen/.config", pattern="**/next.sh")
+  glob(path="~/.config", pattern="**/next.sh")
   ```
 
 For more details, see **AGENTS.md** (Glob Tool Limitation section).

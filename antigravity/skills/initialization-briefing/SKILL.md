@@ -15,6 +15,58 @@ Essential pre-session information that prepares agents for successful task execu
 /initialization-briefing
 ```
 
+Or directly:
+
+```bash
+python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py
+```
+
+### Command-Line Options
+
+| Option | Description |
+| :--- | :--- |
+| `--turbo` | Run in Turbo Mode (lightweight, skips protocol details) |
+| `--force-full` | Force Full Mode regardless of task type |
+| `--clear-cache` | Clear static content cache |
+
+## Briefing Modes
+
+The skill operates in three modes:
+
+| Mode | Trigger | Content |
+| :--- | :--- | :--- |
+| **Ultra-Lite** | Admin task detected | Current status only |
+| **Turbo** | `--turbo` flag + no code changes | Status + PRs + minimal info |
+| **Full** | Code changes detected | All sections |
+
+### Ultra-Lite Mode
+
+Automatically activates for administrative/non-implementation tasks. Detects task type by checking:
+
+- Command-line arguments (keywords: beads, bd, issue, q&a, docs, research, help, etc.)
+- Beads issue description
+- Task context files
+
+Displays only current status - no protocol details.
+
+### Turbo Mode
+
+Lightweight mode for quick sessions:
+
+- Shows current status, PRs, and Beads pr:open issues
+- Skips protocol highlights, friction areas, pitfalls, checklist
+- Escalates to Full Mode if code changes are detected
+
+### Full Mode
+
+Complete briefing for implementation work:
+
+- All status checks (Git, Beads, PRs)
+- Protocol highlights and quality gates
+- Areas to watch for friction capture
+- Common pitfalls to avoid
+- Session checklist
+
 ## Purpose
 
 Provides balanced pre-initialization briefing covering:
@@ -27,11 +79,12 @@ Provides balanced pre-initialization briefing covering:
 
 ## Implementation
 
-The skill executes:
+### Optimizations
 
-```bash
-python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py
-```
+1. **Parallel Execution**: Git status, PRs, and Beads data fetched concurrently using ThreadPoolExecutor
+2. **Static Content Caching**: Protocol details cached in `.agent/.briefing_cache/` for 1 hour
+3. **Fast Git Checks**: Uses `git diff --quiet` for quick yes/no detection
+4. **Admin Task Detection**: Auto-detects administrative tasks for minimal briefing
 
 ## Briefing Sections
 
@@ -73,7 +126,8 @@ python ~/.gemini/antigravity/skills/initialization-briefing/initialization_brief
 
 ## Benefits
 
-- **Time Efficient**: 2-3 minutes vs 10+ minutes for full Finalization review
+- **Time Efficient**: Ultra-Lite: ~5 seconds, Turbo: ~10 seconds, Full: ~15 seconds
+- **Adaptive**: Automatically adjusts briefing depth based on task type
 - **Focused Information**: Only what agents need, not implementation details
 - **Proactive Learning**: Prepares agents to capture friction in real-time
 - **Context Awareness**: Current status and session context
@@ -85,6 +139,7 @@ This skill integrates with:
 
 - **Beads**: Issue status and assignment tracking
 - **Git**: Repository state and branch information  
+- **GitHub**: PR status and review requirements
 - **Session Management**: Lock coordination with other agents
 - **Finalization Process**: Complements full Finalization workflow
 - **Reflection Skill**: Provides context for friction capture
@@ -93,7 +148,7 @@ This skill integrates with:
 
 **Optimal Usage Pattern:**
 
-1. **Start of Session**: `/initialization-briefing` (2-3 minutes)
+1. **Start of Session**: `/initialization-briefing` (auto-detects appropriate mode)
 2. **During Work**: Real-time friction capture (guided by briefing)
 3. **End of Session**: `/finalization` (full Finalization execution)
 
@@ -108,9 +163,10 @@ This provides the perfect balance between:
 If briefing fails:
 
 1. Check git repository status
-2. Verify beads availability
+2. Verify beads/gh availability
 3. Check workspace directory structure
 4. Review system permissions
+5. Try `--clear-cache` if caching issues suspected
 
 ## Advantages Over Alternatives
 
@@ -118,6 +174,6 @@ If briefing fails:
 | :--- | :--- | :--- | :--- |
 | Full Finalization Review | 10-15 min | Implementation focus | Low |
 | Just Reflect Skill | 2-3 min | Learning focus only | Medium |
-| **Initialization Briefing** | **2-3 min** | **Balanced** | **High** |
+| **Initialization Briefing** | **5-15 sec** | **Adaptive** | **High** |
 
 The initialization briefing hits the sweet spot: comprehensive enough for context, focused enough for efficiency, practical enough for daily use.

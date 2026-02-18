@@ -262,6 +262,39 @@ Before considering work complete:
 
 ---
 
+## Core Principle: Fail Loudly
+
+TDD enforces the "Fail Loudly" principle through its cycle:
+
+### Red Phase: Fail Visibly
+
+- Tests **must fail** before implementation
+- Failure is **visible and immediate**
+- You see exactly **what's missing**
+
+### Green Phase: Verify Success
+
+- Tests **must pass** after implementation
+- Success is **verifiable and repeatable**
+- No "it works but I don't know why"
+
+### No Silent Failures
+
+TDD prevents silent failures by:
+
+1. **Explicit expectations**: Tests define what "success" means
+2. **Immediate feedback**: Run tests after every change
+3. **No guessed behavior**: If tests pass, behavior is correct
+4. **Regression protection**: Future changes that break things fail loudly
+
+This aligns with the coding principles:
+- **Fail Loudly**: Make errors visible and actionable
+- **Detect early**: Tests catch issues at development time
+
+See coding-principles.md (in .agent/rules/) for the full set of principles.
+
+---
+
 ## Examples
 
 ### Example 1: Bug Fix with TDD

@@ -165,6 +165,41 @@ python script.py --option value
 **Correct Command**: Use `bd comments add <issue-id> "<content>"` for final closure notes.
 **Future Improvement**: An alias or new command `bd note` is under investigation in issue `agent-harness-4nb`.
 
+## 🚨 NEW: Mandatory Closure Details (agent-xlj)
+
+**Issue**: PR reviewers need context about what was fixed, how it was verified, and related issues.
+**Solution**: Added mandatory BLOCKER validators in finalization.json checklist.
+
+### New Closure Requirements
+
+Before closing a beads issue, you MUST document:
+
+1. **Fix Details (BLOCKER)** - Required
+   - What fixes were applied
+   - Specific code changes or config updates
+   - Commit or PR reference
+   - Command: `bd comments add <id> "Fix: ..."`
+
+2. **Verification Tests (BLOCKER)** - Required
+   - What tests were used to verify the fix
+   - Test names or locations
+   - Manual testing performed (if any)
+   - Command: `bd comments add <id> "Test: ..."`
+
+3. **Related Issues (WARNING)** - Optional
+   - Link any related issues
+   - Note dependencies or blockers
+   - Command: `bd comments add <id> "Related: agent-xyz"`
+
+### Combined Example
+```bash
+bd comments add agent-xlj "Fix: Added mandatory closure validators to finalization.json. Changes: new validators check_fix_details_documented, check_verification_tests_listed, check_related_issues_linked. PR: https://github.com/.../pull/42"
+
+bd comments add agent-xlj "Test: Verified with uv run pytest tests/ - all 129 tests pass. Manual test: validators correctly block without comments and pass with proper closure notes."
+
+bd comments add agent-xlj "Related: agent-14p (coding principles), agent-beb (PR size limits)"
+```
+
 ## 🚨 NEW GATE ADDED: Mandatory Reflection Capture
 
 **Issue**: Agents completing sessions without systematic learning capture  
