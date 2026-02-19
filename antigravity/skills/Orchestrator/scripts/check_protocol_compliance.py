@@ -21,71 +21,66 @@ from typing import Optional
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# Add universal scripts to path
+# Add validators package to path (relative to this script)
+SCRIPT_DIR = Path(__file__).parent.resolve()
+sys.path.insert(0, str(SCRIPT_DIR))
+
+# Also support legacy paths for backward compatibility
 sys.path.append(str(Path.home() / ".agent/scripts"))
 sys.path.append(str(Path.home() / ".agent/ledgers"))
 
-# Import modular validators
-try:
-    from validators.common import (
-        Colors,
-        check_mark,
-        warning_mark,
-        check_tool_available,
-        check_tool_version,
-    )
-    from validators.git_validator import (
-        check_workspace_integrity,
-        check_git_status,
-        check_rebase_status,
-        check_sop_infrastructure_changes,
-        check_branch_info,
-        get_active_issue_id,
-        validate_atomic_commits,
-        prune_local_branches,
-        check_closed_issue_branches,
-        check_branch_issue_coupling,
-    )
-    from validators.plan_validator import (
-        check_planning_docs,
-        check_beads_issue,
-        check_sop_simplification,
-        check_hook_integrity,
-        check_plan_approval,
-        check_api_documentation,
-        check_beads_issue_created,
-        check_plan_storage,
-    )
-    from validators.code_validator import validate_tdd_compliance
-    from validators.session_validator import check_harness_session, check_show_next_task_used
-    from validators.finalization_validator import (
-        check_reflection_invoked,
-        check_debriefing_invoked,
-        check_code_review_status,
-        check_handoff_compliance,
-        check_todo_completion,
-        check_linked_repositories,
-        check_no_separate_review_issues,
-        check_pr_exists,
-        check_pr_size,
-        check_handoff_pr_link,
-        check_handoff_beads_id,
-        check_pr_decomposition_closure,
-        check_child_pr_linkage,
-        check_progress_log_exists,
-        check_handoff_pr_verification,
-        check_beads_pr_sync,
-        check_workspace_cleanup,
-        check_wrapup_indicator_symmetry,
-        check_wrapup_exclusivity,
-        check_issue_closure_gate,
-        inject_debrief_to_beads,
-        check_protocol_compliance_reporting,
-        check_handoff_cleanup_info,
-    )
-except ImportError as e:
-    print(f"Warning: Could not import modular validators: {e}")
-    pass
+# Import validators package
+from validators import (
+    Colors,
+    check_mark,
+    warning_mark,
+    check_tool_available,
+    check_tool_version,
+    check_workspace_integrity,
+    check_git_status,
+    check_rebase_status,
+    check_sop_infrastructure_changes,
+    check_branch_info,
+    get_active_issue_id,
+    validate_atomic_commits,
+    prune_local_branches,
+    check_closed_issue_branches,
+    check_branch_issue_coupling,
+    check_planning_docs,
+    check_beads_issue,
+    check_sop_simplification,
+    check_hook_integrity,
+    check_plan_approval,
+    check_api_documentation,
+    check_beads_issue_created,
+    check_plan_storage,
+    validate_tdd_compliance,
+    check_show_next_task_used,
+    check_harness_session,
+    check_reflection_invoked,
+    check_debriefing_invoked,
+    check_code_review_status,
+    check_handoff_compliance,
+    check_todo_completion,
+    check_linked_repositories,
+    check_no_separate_review_issues,
+    check_pr_exists,
+    check_pr_size,
+    check_handoff_pr_link,
+    check_handoff_beads_id,
+    check_pr_decomposition_closure,
+    check_child_pr_linkage,
+    check_progress_log_exists,
+    check_handoff_pr_verification,
+    check_beads_pr_sync,
+    check_workspace_cleanup,
+    check_wrapup_indicator_symmetry,
+    check_wrapup_exclusivity,
+    check_issue_closure_gate,
+    inject_debrief_to_beads,
+    check_protocol_compliance_reporting,
+    check_handoff_cleanup_info,
+)
 
 
 def load_json_checklist(phase_name: str) -> Optional[dict]:
