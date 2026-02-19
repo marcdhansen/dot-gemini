@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from .common import check_tool_available, Colors
 from .git_validator import check_branch_info, get_active_issue_id
 
+
 def check_reflection_invoked() -> tuple[bool, str]:
     """Check if reflection was recently invoked and follows structured JSON format."""
     input_artifact = Path(".reflection_input.json")
@@ -14,16 +15,16 @@ def check_reflection_invoked() -> tuple[bool, str]:
         try:
             with open(input_artifact, "r") as f:
                 data = json.load(f)
-            
+
             required = ["session_name", "outcome", "technical_learnings", "refactoring_candidates"]
             missing = [field for field in required if field not in data]
-            
+
             if missing:
                 return (
                     False,
                     f"Reflection artifact .reflection_input.json is missing required fields: {', '.join(missing)}",
                 )
-            
+
             mtime = datetime.fromtimestamp(input_artifact.stat().st_mtime)
             age = datetime.now() - mtime
             if age < timedelta(hours=2):
@@ -92,8 +93,9 @@ def check_debriefing_invoked() -> tuple[bool, str]:
 
     return False, "No recent debrief found in root or brain directory"
 
+
 def check_wrapup_indicator_symmetry() -> tuple[bool, str]:
-    """Verify 🏁 symmetry: 
+    """Verify 🏁 symmetry:
     1. If 🏁 is in debrief.md, ensure SOP is complete (reflection, ID, PR etc).
     2. If SOP is complete, 🏁 should eventually be in the final summary.
     """
@@ -131,13 +133,22 @@ def check_wrapup_indicator_symmetry() -> tuple[bool, str]:
 
     if has_flag and not sop_complete:
         missing = []
-        if not reflection_exists: missing.append("reflection")
-        if not has_id: missing.append("Beads ID")
-        if not has_pr: missing.append("PR link")
-        return False, f"PROTOCOL VIOLATION: 🏁 used but SOP incomplete. Missing: {', '.join(missing)}"
+        if not reflection_exists:
+            missing.append("reflection")
+        if not has_id:
+            missing.append("Beads ID")
+        if not has_pr:
+            missing.append("PR link")
+        return (
+            False,
+            f"PROTOCOL VIOLATION: 🏁 used but SOP incomplete. Missing: {', '.join(missing)}",
+        )
 
     if sop_complete and not has_flag:
-        return False, "SOP complete but 🏁 missing from debrief.md. Run finalization_debriefing.py to inject it."
+        return (
+            False,
+            "SOP complete but 🏁 missing from debrief.md. Run finalization_debriefing.py to inject it.",
+        )
 
     return True, "🏁 symmetry verified"
 
@@ -152,7 +163,7 @@ def check_wrapup_exclusivity() -> tuple[bool, str]:
         ".agent/rules/ROADMAP.md",
         ".agent/rules/ImplementationPlan.md",
     ]
-    
+
     found_in = []
     for doc in forbidden_docs:
         path = Path(doc)
@@ -163,15 +174,20 @@ def check_wrapup_exclusivity() -> tuple[bool, str]:
                 if issue_id == "agent-harness-b9y":
                     continue
                 found_in.append(doc)
-    
+
     if found_in:
-        return False, f"PROTOCOL VIOLATION: 🏁 found in forbidden documents: {', '.join(found_in)}. This emoji is reserved for session closure."
-    
+        return (
+            False,
+            f"PROTOCOL VIOLATION: 🏁 found in forbidden documents: {', '.join(found_in)}. This emoji is reserved for session closure.",
+        )
+
     return True, "🏁 exclusivity verified"
+
 
 def check_code_review_status() -> tuple[bool, str]:
     """Check if code review skill was recently invoked and passed."""
     import sys
+
     code_review_script = (
         Path.home() / ".gemini/antigravity/skills/code-review/scripts/code_review.py"
     )
@@ -231,6 +247,7 @@ def check_handoff_compliance() -> tuple[bool, str]:
 def check_todo_completion() -> tuple[bool, str]:
     """Check if all tasks in task.md are completed (oh-my-opencode pattern)."""
     import sys
+
     enforcer_script = Path.home() / ".agent/scripts/todo-enforcer.py"
     if enforcer_script.exists():
         try:
@@ -308,11 +325,7 @@ def check_linked_repositories() -> tuple[bool, list[str]]:
                         text=True,
                         timeout=2,
                     )
-                    branch = (
-                        branch_res.stdout.strip()
-                        if branch_res.returncode == 0
-                        else "unknown"
-                    )
+                    branch = branch_res.stdout.strip() if branch_res.returncode == 0 else "unknown"
 
                     if branch in ["main", "master"]:
                         errors.append(
@@ -350,13 +363,13 @@ def check_no_separate_review_issues() -> tuple[bool, str]:
     """Verify that NO separate Beads issues have been created for code review."""
     if not check_tool_available("bd"):
         return True, "beads (bd) not available (skipping review issue prohibition check)"
-    
+
     branch, is_feature = check_branch_info()
     if not is_feature:
         return True, "Not on feature branch"
-    
+
     active_issue = get_active_issue_id()
-    
+
     try:
         # List all open issues
         result = subprocess.run(
@@ -368,35 +381,38 @@ def check_no_separate_review_issues() -> tuple[bool, str]:
 
         if result.returncode != 0:
             return True, "Failed to query beads (skipping review issue prohibition check)"
-        
+
         output = result.stdout.strip()
         if not output:
             return True, "No open issues found"
-        
+
         lines = output.split("\n")
         violations = []
         for line in lines:
             line_lower = line.lower()
             # If the issue title contains "PR Review" or "Code Review"
-            if "pr review" in line_lower or "pr-review" in line_lower or "code review" in line_lower:
+            if (
+                "pr review" in line_lower
+                or "pr-review" in line_lower
+                or "code review" in line_lower
+            ):
                 parts = line.split(":")
                 if parts:
                     issue_id = parts[0].strip()
                     # It's a violation if it's NOT the active issue (or if the active issue itself is named "PR Review" which is discouraged)
                     if issue_id != active_issue:
                         violations.append(issue_id)
-        
+
         if violations:
             return (
                 False,
                 f"PROTOCOL VIOLATION: Separate review issues detected: {', '.join(violations)}. "
                 f"SOP prohibits separate issues for code review. Use the original issue '{active_issue}' instead.",
             )
-        
+
         return True, "No separate PR review issues detected"
     except Exception as e:
         return True, f"Review issue prohibition check error: {e}"
-
 
 
 def check_pr_exists() -> tuple[bool, str]:
@@ -476,6 +492,151 @@ def check_pr_label_sync() -> tuple[bool, str]:
         return False, f"Error checking PR label: {e}"
 
 
+def check_pr_size() -> tuple[bool, str]:
+    """Check if PR size is within configured limits.
+
+    Type-specific limits:
+    - Code/Logic: soft 400, hard 1000
+    - Docs-only: soft 800, hard 2000
+    - Mechanical refactoring: soft 800, hard 2000
+    """
+    branch, is_feature = check_branch_info()
+    if not is_feature:
+        return True, "No PR size check for non-feature branch"
+
+    if not check_tool_available("gh"):
+        return True, "gh not available, skipping PR size check"
+
+    try:
+        result = subprocess.run(
+            [
+                "gh",
+                "pr",
+                "list",
+                "--head",
+                branch,
+                "--json",
+                "url,additions,deletions",
+                "--jq",
+                ".[0]",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if result.returncode != 0:
+            return True, f"gh command failed: {result.stderr.strip()}"
+
+        pr_data = json.loads(result.stdout.strip())
+        if not pr_data:
+            return True, "No PR found, skipping size check"
+
+        additions = pr_data.get("additions", 0)
+        deletions = pr_data.get("deletions", 0)
+        total_lines = additions + deletions
+
+        pr_url = pr_data.get("url", "")
+
+        result_files = subprocess.run(
+            ["gh", "pr", "view", branch, "--json", "files", "--jq", ".files[].path"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        changed_files = []
+        if result_files.returncode == 0:
+            changed_files = [f for f in result_files.stdout.strip().split("\n") if f]
+
+        pr_type = detect_pr_type(changed_files)
+        soft_limit, hard_limit = get_pr_size_limits(pr_type, changed_files)
+
+        if total_lines < soft_limit:
+            return True, f"PR size: {total_lines} lines ({pr_type}) - OK"
+        elif total_lines < hard_limit:
+            return (
+                False,
+                f"PR size: {total_lines} lines ({pr_type}) - exceeds soft limit {soft_limit}. Consider splitting.",
+            )
+        else:
+            return (
+                False,
+                f"PR size: {total_lines} lines ({pr_type}) - EXCEEDS hard limit {hard_limit}. Must split.",
+            )
+
+    except subprocess.TimeoutExpired:
+        return True, "gh command timed out, skipping size check"
+    except Exception as e:
+        return True, f"PR size check failed: {e}"
+
+
+def detect_pr_type(changed_files: list) -> str:
+    """Detect the type of changes in the PR."""
+    doc_extensions = {"md", "txt", "rst", "html", "yaml", "yml", "json"}
+    code_extensions = {"py", "js", "ts", "go", "java", "cpp", "c", "rs", "rb", "php", "swift", "kt"}
+
+    doc_count = 0
+    code_count = 0
+
+    for file in changed_files:
+        ext = Path(file).suffix.lstrip(".")
+        if ext in doc_extensions:
+            doc_count += 1
+        elif ext in code_extensions:
+            code_count += 1
+
+    total = len(changed_files)
+    if total == 0:
+        return "unknown"
+    elif doc_count == total:
+        return "docs"
+    elif code_count > 0:
+        if is_mechanical_refactor(changed_files):
+            return "mechanical-refactor"
+        return "code"
+    else:
+        return "mixed"
+
+
+def is_mechanical_refactor(changed_files: list) -> bool:
+    """Check if changes are primarily mechanical refactoring (renames, formatting)."""
+    if not changed_files:
+        return False
+
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-status", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if result.returncode != 0:
+            return False
+
+        changes = result.stdout.strip().split("\n")
+        rename_count = sum(1 for c in changes if c.startswith(("R", "C")) or "rename" in c.lower())
+
+        return rename_count > 3
+
+    except Exception:
+        return False
+
+
+def get_pr_size_limits(pr_type: str, changed_files: list) -> tuple[int, int]:
+    """Get soft and hard limits based on PR type."""
+    limits = {
+        "docs": (800, 2000),
+        "mechanical-refactor": (800, 2000),
+        "code": (400, 1000),
+        "mixed": (400, 1000),
+        "unknown": (400, 1000),
+    }
+
+    return limits.get(pr_type, (400, 1000))
+
+
 def check_handoff_pr_link() -> tuple[bool, str]:
     """Check if the session handoff (debrief.md) contains a GitHub PR link."""
     # Potential debrief locations
@@ -497,7 +658,11 @@ def check_handoff_pr_link() -> tuple[bool, str]:
         if debrief_path.exists():
             try:
                 content = debrief_path.read_text()
-                if "PR Link" in content or "pull request" in content.lower() or "github.com" in content:
+                if (
+                    "PR Link" in content
+                    or "pull request" in content.lower()
+                    or "github.com" in content
+                ):
                     if re.search(pr_pattern, content):
                         return True, f"PR link found in debrief: {debrief_path}"
             except Exception:
@@ -539,62 +704,71 @@ def check_handoff_beads_id() -> tuple[bool, str]:
                 content = debrief_path.read_text()
                 for pattern in patterns:
                     if re.search(pattern, content, re.IGNORECASE):
-                        return True, f"Beads issue ID '{active_issue}' verified in debrief: {debrief_path}"
+                        return (
+                            True,
+                            f"Beads issue ID '{active_issue}' verified in debrief: {debrief_path}",
+                        )
             except Exception:
                 pass
 
-    return False, f"Active Beads issue ID '{active_issue}' not found in debrief.md (Required for handoff transparency)"
+    return (
+        False,
+        f"Active Beads issue ID '{active_issue}' not found in debrief.md (Required for handoff transparency)",
+    )
 
 
 def check_pr_decomposition_closure() -> tuple[bool, str]:
     """Verify that decomposed PRs are properly closed per PR Response Protocol."""
     if not check_tool_available("bd") or not check_tool_available("gh"):
         return True, "beads or gh not available (skipping decomposition check)"
-    
+
     try:
         active_issue = get_active_issue_id()
         if not active_issue:
             return True, "No active issue (decomposition check not applicable)"
-        
+
         result = subprocess.run(
             ["bd", "show", active_issue],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        
+
         if result.returncode != 0:
             return True, "Could not query issue details (skipping)"
-        
+
         output = result.stdout
         output_lower = output.lower()
         has_children = "part-of" in output_lower or "child" in output or "epic" in output
-        
+
         if not has_children:
             return True, "No child issues detected (not a decomposition)"
-        
+
         pr_pattern = r"PR #(\d+)|pull/(\d+)"
         pr_matches = re.findall(pr_pattern, output)
-        
+
         if not pr_matches:
             return True, "Parent issue with children but no original PR referenced"
-        
+
         pr_number = next((m[0] or m[1] for m in pr_matches if m[0] or m[1]), None)
-        
+
         if not pr_number:
             return True, "Could not extract PR number from issue"
-        
+
         pr_check = subprocess.run(
             ["gh", "pr", "view", pr_number, "--json", "state", "--jq", ".state"],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        
+
         if pr_check.returncode == 0:
             pr_status = pr_check.stdout.strip()
             if pr_status == "CLOSED":
-                return True, f"Original PR #{pr_number} properly closed (decomposition protocol followed)"
+                return (
+                    True,
+                    f"Original PR #{pr_number} properly closed (decomposition protocol followed)",
+                )
             elif pr_status == "MERGED":
                 return True, f"Original PR #{pr_number} was merged (not decomposed)"
             else:
@@ -602,7 +776,7 @@ def check_pr_decomposition_closure() -> tuple[bool, str]:
                     False,
                     f"PROTOCOL VIOLATION: Original PR #{pr_number} is still OPEN but child issues exist.",
                 )
-        
+
         return True, "Could not verify PR status (skipping)"
     except Exception as e:
         return True, f"Decomposition check error: {e}"
@@ -612,56 +786,54 @@ def check_child_pr_linkage() -> tuple[bool, str]:
     """Validate that child PRs properly reference their parent Epic/issue per PR Response Protocol."""
     if not check_tool_available("bd") or not check_tool_available("gh"):
         return True, "beads or gh not available (skipping linkage check)"
-    
+
     try:
         active_issue = get_active_issue_id()
         if not active_issue:
             return True, "No active issue (linkage check not applicable)"
-        
+
         result = subprocess.run(
             ["bd", "show", active_issue],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        
+
         if result.returncode != 0:
             return True, "Could not query issue details (skipping)"
-        
+
         parent_pattern = r"(?:part.?of|depends.?on|blocks?.?by)[\s:]+(\w+-[\w-]+)"
         parent_matches = re.findall(parent_pattern, result.stdout, re.IGNORECASE)
-        
+
         if not parent_matches:
             return True, "No parent issue detected (not a child PR)"
-        
+
         parent_id = parent_matches[0]
         branch, is_feature = check_branch_info()
         if not is_feature:
             return True, "Not on feature branch"
-        
+
         pr_check = subprocess.run(
             ["gh", "pr", "view", "--json", "body", "--jq", ".body"],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        
+
         if pr_check.returncode != 0:
             return True, "No PR found for current branch"
-        
+
         pr_body = pr_check.stdout.lower()
         parent_mentioned = (
-            parent_id.lower() in pr_body or
-            "parent epic" in pr_body or
-            "part of epic" in pr_body
+            parent_id.lower() in pr_body or "parent epic" in pr_body or "part of epic" in pr_body
         )
-        
+
         if not parent_mentioned:
             return (
                 False,
                 f"PROTOCOL VIOLATION: Child PR does not reference parent issue '{parent_id}'.",
             )
-        
+
         return True, f"Child PR properly references parent issue '{parent_id}'"
     except Exception as e:
         return True, f"Linkage check error: {e}"
@@ -724,7 +896,7 @@ def check_handoff_pr_verification() -> tuple[bool, str]:
             )
 
         pr = prs[0]
-        # Allow drift if we are on main/master and checking a finished task? 
+        # Allow drift if we are on main/master and checking a finished task?
         # Actually finalization is usually on a feature branch.
         if pr["headRefName"] != branch:
             return (
@@ -764,7 +936,10 @@ def check_beads_pr_sync() -> tuple[bool, str]:
         )
 
         if result.returncode != 0:
-            return False, "Could not find a PR for the current branch. Please run 'gh pr create --fill'."
+            return (
+                False,
+                "Could not find a PR for the current branch. Please run 'gh pr create --fill'.",
+            )
 
         pr_data = json.loads(result.stdout)
         title = pr_data.get("title", "")
@@ -774,11 +949,13 @@ def check_beads_pr_sync() -> tuple[bool, str]:
         # 1. Check for issue_id in title or body
         issue_id_lower = issue_id.lower()
         linked_in_pr = issue_id_lower in title.lower() or issue_id_lower in body.lower()
-        
+
         if not linked_in_pr:
             # Also check for common patterns
             patterns = [f"[{issue_id}]", f"#{issue_id}", f"{issue_id}:"]
-            linked_in_pr = any(p.lower() in title.lower() or p.lower() in body.lower() for p in patterns)
+            linked_in_pr = any(
+                p.lower() in title.lower() or p.lower() in body.lower() for p in patterns
+            )
 
         if not linked_in_pr:
             return (
@@ -794,16 +971,16 @@ def check_beads_pr_sync() -> tuple[bool, str]:
             text=True,
             timeout=10,
         )
-        
+
         if beads_res.returncode != 0:
             return False, f"Failed to query Beads issue '{issue_id}'"
-            
+
         beads_output = beads_res.stdout
         if pr_url.lower() not in beads_output.lower():
             return (
                 False,
                 f"PROTOCOL VIOLATION: Beads issue '{issue_id}' must contain a comment with the PR URL. "
-                f"Run: bd comments add {issue_id} \"PR: {pr_url}\"",
+                f'Run: bd comments add {issue_id} "PR: {pr_url}"',
             )
 
         return True, f"Beads issue '{issue_id}' properly synchronized with PR"
@@ -838,7 +1015,9 @@ def check_issue_closure_gate() -> tuple[bool, str]:
 
         issue_status = issue_data_list[0].get("status", "").lower()
         issue_labels = issue_data_list[0].get("labels", [])
-        is_in_review = issue_status == "in_review" or "in_review" in [l.lower() for l in issue_labels]
+        is_in_review = issue_status == "in_review" or "in_review" in [
+            l.lower() for l in issue_labels
+        ]
 
         # 2. Get associated PRs (searching by issue_id)
         gh_res = subprocess.run(
@@ -901,18 +1080,22 @@ def check_workspace_cleanup() -> tuple[bool, str]:
             return True, "Could not check for untracked files (skipping)"
 
         untracked = result.stdout.strip().split("\n") if result.stdout.strip() else []
-        
+
         # Standard session files that are allowed in root during execution but should be noted
         allowed_in_root = ["task.md", "debrief.md", ".reflection_input.json"]
-        
+
         drift = [f for f in untracked if f not in allowed_in_root and not f.startswith("tests/")]
-        
+
         if not drift:
             return True, "Workspace clean of temporary artifact drift"
 
         # Check for specifically suspicious prefixes/suffixes
-        suspicious = [f for f in drift if any(pattern in f for pattern in [".bak", ".tmp", "copy", "old", "test_"])]
-        
+        suspicious = [
+            f
+            for f in drift
+            if any(pattern in f for pattern in [".bak", ".tmp", "copy", "old", "test_"])
+        ]
+
         if suspicious:
             return (
                 False,
@@ -927,6 +1110,8 @@ def check_workspace_cleanup() -> tuple[bool, str]:
 
     except Exception as e:
         return False, f"Workspace cleanup check error: {e}"
+
+
 def inject_debrief_to_beads(*args) -> tuple[bool, str]:
     """Inject content from debrief.md into Beads issue comments."""
     issue_id = get_active_issue_id()
@@ -951,7 +1136,7 @@ def inject_debrief_to_beads(*args) -> tuple[bool, str]:
         return True, "No debrief.md found in recent session (skipping injection)"
 
     content = debrief_path.read_text()
-    
+
     # Check if we should only inject 'Implementation Details'
     if "## Implementation Details" in content:
         parts = content.split("## Implementation Details")
@@ -969,10 +1154,7 @@ def inject_debrief_to_beads(*args) -> tuple[bool, str]:
     # Check for duplicates by querying beads
     try:
         show_res = subprocess.run(
-            ["bd", "show", issue_id],
-            capture_output=True,
-            text=True,
-            timeout=10
+            ["bd", "show", issue_id], capture_output=True, text=True, timeout=10
         )
         if show_res.returncode == 0:
             # Use a smaller snippet to check for existence to avoid match failures due to truncation or headers
@@ -987,31 +1169,35 @@ def inject_debrief_to_beads(*args) -> tuple[bool, str]:
         # We'll use a temporary file to avoid shell expansion issues with large content
         temp_debrief = Path("/tmp/debrief_to_inject.md")
         temp_debrief.write_text(injection_content)
-        
+
         result = subprocess.run(
             ["bd", "comments", "add", issue_id, "-f", str(temp_debrief)],
             capture_output=True,
             text=True,
-            timeout=15
+            timeout=15,
         )
-        
+
         if temp_debrief.exists():
             temp_debrief.unlink()
-            
+
         if result.returncode == 0:
             return True, f"Injected debrief content into issue '{issue_id}'"
         else:
             return False, f"Failed to inject debrief: {result.stderr.strip()}"
     except Exception as e:
         return False, f"Error during debrief injection: {e}"
+
+
 def check_protocol_compliance_reporting() -> tuple[bool, str]:
     """Verify that the session debrief contains the mandatory protocol compliance statement with Beads ID and 🏁."""
     issue_id = get_active_issue_id()
     if not issue_id:
         return False, "Could not determine active Beads issue ID for compliance reporting"
 
-    target_pattern = rf"Protocol Compliance: 100% verified via Orchestrator\s+\({re.escape(issue_id)}\)\.?\s*🏁"
-    
+    target_pattern = (
+        rf"Protocol Compliance: 100% verified via Orchestrator\s+\({re.escape(issue_id)}\)\.?\s*🏁"
+    )
+
     # Potential debrief locations
     debrief_paths = [Path("debrief.md")]
 
@@ -1032,8 +1218,14 @@ def check_protocol_compliance_reporting() -> tuple[bool, str]:
                 if re.search(target_pattern, content):
                     return True, f"Full protocol compliance reporting found in {debrief_path}"
                 elif "Protocol Compliance: 100% verified via Orchestrator." in content:
-                    return False, f"Compliance statement found in {debrief_path} but missing issue ID '{issue_id}' or 🏁. Expected: 'Protocol Compliance: 100% verified via Orchestrator ({issue_id}) 🏁'"
+                    return (
+                        False,
+                        f"Compliance statement found in {debrief_path} but missing issue ID '{issue_id}' or 🏁. Expected: 'Protocol Compliance: 100% verified via Orchestrator ({issue_id}) 🏁'",
+                    )
             except Exception:
                 pass
 
-    return False, f"Missing required compliance statement: 'Protocol Compliance: 100% verified via Orchestrator ({issue_id}) 🏁'"
+    return (
+        False,
+        f"Missing required compliance statement: 'Protocol Compliance: 100% verified via Orchestrator ({issue_id}) 🏁'",
+    )

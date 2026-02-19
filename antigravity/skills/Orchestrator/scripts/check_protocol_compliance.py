@@ -64,6 +64,7 @@ try:
         check_linked_repositories,
         check_no_separate_review_issues,
         check_pr_exists,
+        check_pr_size,
         check_handoff_pr_link,
         check_handoff_beads_id,
         check_pr_decomposition_closure,
@@ -656,6 +657,13 @@ def run_finalization(verbose: bool = False) -> bool:
     print(f"├── PR Created: {check_mark(pr_ok)} {pr_msg}")
     if not pr_ok:
         blockers.append(f"PR required for code changes: {pr_msg}")
+
+    # PR Size Check (Type-specific limits)
+    pr_size_ok, pr_size_msg = check_pr_size()
+    pr_size_icon = check_mark(pr_size_ok) if pr_size_ok else warning_mark()
+    print(f"├── PR Size: {pr_size_icon} {pr_size_msg}")
+    if not pr_size_ok:
+        blockers.append(f"PR size check failed: {pr_size_msg}")
 
     # Todo Completion Check (Sisyphus pattern)
     todo_ok, todo_msg = check_todo_completion()

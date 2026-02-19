@@ -8,6 +8,17 @@ allowed-tools: Bash, Read, Glob, Grep
 
 The `code-review` skill provides automated and interactive code review capabilities for agents. It ensures that all changes meet quality standards before they are finalized.
 
+## 📏 PR Size Limits (Type-Specific)
+
+| Change Type | Soft Limit | Hard Limit |
+|-------------|------------|------------|
+| Code/Logic | 400 lines | 1000 lines |
+| Docs-only | 800 lines | 2000 lines |
+| Mechanical refactoring (renames, formatting) | 800 lines | 2000 lines |
+
+### Refactoring Constraint
+Single-file refactors over 500 lines should be split across multiple PRs (cognitive load).
+
 ## 🚨 MANDATORY: Finalization Gate
 
 > [!CAUTION]
@@ -134,21 +145,90 @@ fi
 # 7. Large PR Check
 echo ""
 echo "7. PR Size Check..."
+
+detect_pr_type() {
+    local changed_files="$1"
+    local doc_extensions="md txt rst html"
+    local code_extensions="py js ts go java cpp c rs"
+    
+    local doc_count=0
+    local code_count=0
+    local total_files=$(echo "$changed_files" | wc -l)
+    
+    for file in $changed_files; do
+        ext="${file##*.}"
+        if echo "$doc_extensions" | grep -qw "$ext"; then
+            doc_count=$((doc_count + 1))
+        elif echo "$code_extensions" | grep -qw "$ext"; then
+            code_count=$((code_count + 1))
+        fi
+    done
+    
+    if [ $total_files -eq 0 ]; then
+        echo "unknown"
+    elif [ $doc_count -eq $total_files ]; then
+        echo "docs"
+    elif [ $code_count -gt 0 ]; then
+        echo "code"
+    else
+        echo "mixed"
+    fi
+}
+
+is_mechanical_refactor() {
+    local diff="$1"
+    local rename_count=$(echo "$diff" | grep -c "rename to\|rename from" || true)
+    local format_count=$(echo "$diff" | grep -E "^\+[^+]*\s+$|^\-[^-]*\s+$" | wc -l)
+    local func_count=$(echo "$diff" | grep -cE "^\+.*def |^\+.*class " || true)
+    
+    if [ $rename_count -gt 5 ] || ([ $format_count -gt 50 ] && [ $func_count -eq 0 ]); then
+        return 0
+    fi
+    return 1
+}
+
 LINES_CHANGED=$(git diff origin/main --cached --shortstat | grep -oE '[0-9]+ insertion|[0-9]+ deletion' | grep -oE '[0-9]+' | awk '{sum+=$1} END {print sum}')
 
 if [ -z "$LINES_CHANGED" ]; then
     LINES_CHANGED=0
 fi
 
-if [ "$LINES_CHANGED" -lt 500 ]; then
+CHANGED_FILES=$(git diff origin/main --cached --name-only)
+PR_TYPE=$(detect_pr_type "$CHANGED_FILES")
+
+case "$PR_TYPE" in
+    "docs")
+        SOFT_LIMIT=800
+        HARD_LIMIT=2000
+        ;;
+    "code"|"mixed")
+        if is_mechanical_refactor "$(git diff origin/main --cached)"; then
+            SOFT_LIMIT=800
+            HARD_LIMIT=2000
+            PR_TYPE="mechanical-refactor"
+        else
+            SOFT_LIMIT=400
+            HARD_LIMIT=1000
+        fi
+        ;;
+    *)
+        SOFT_LIMIT=400
+        HARD_LIMIT=1000
+        ;;
+esac
+
+echo "   PR type detected: $PR_TYPE"
+echo "   Limits: soft=$SOFT_LIMIT, hard=$HARD_LIMIT"
+
+if [ "$LINES_CHANGED" -lt "$SOFT_LIMIT" ]; then
     echo "   ✅ PR size: $LINES_CHANGED lines (good)"
     CHECKS_PASSED=$((CHECKS_PASSED + 1))
-elif [ "$LINES_CHANGED" -lt 1000 ]; then
-    echo "   ⚠️ PR size: $LINES_CHANGED lines (large - consider splitting)"
+elif [ "$LINES_CHANGED" -lt "$HARD_LIMIT" ]; then
+    echo "   ⚠️ PR size: $LINES_CHANGED lines (soft limit $SOFT_LIMIT - consider splitting)"
 else
-    echo "   ❌ PR size: $LINES_CHANGED lines (too large - must split)"
+    echo "   ❌ PR size: $LINES_CHANGED lines (exceeds hard limit $HARD_LIMIT - must split)"
     CHECKS_FAILED=$((CHECKS_FAILED + 1))
-    BLOCKERS="$BLOCKERS\n- PR must be split (>1000 lines)"
+    BLOCKERS="$BLOCKERS\n- PR must be split (exceeds $HARD_LIMIT lines for $PR_TYPE changes)"
 fi
 
 # Summary
@@ -229,7 +309,11 @@ Before requesting review, agent should complete:
 - [ ] Input validation present where needed
 
 ### Review Readiness
-- [ ] PR size reasonable (<500 lines ideal)
+- [ ] PR size reasonable:
+  - Code/Logic: <400 lines (soft), <1000 lines (hard)
+  - Docs-only: <800 lines (soft), <2000 lines (hard)
+  - Mechanical refactoring: <800 lines (soft), <2000 lines (hard)
+- [ ] Single-file refactors over 500 lines split across PRs
 - [ ] PR description explains changes
 - [ ] Screenshots/examples provided (if UI changes)
 - [ ] Known limitations documented
@@ -359,31 +443,17 @@ gh pr review --request @reviewer
 Add to code-review/config/defaults.yaml:
 
 ```yaml
-automated_checks:
-  linting:
-    tool: ruff
-    blocking: true
-  
-  type_checking:
-    tool: mypy
-    blocking: false  # Warn but don't block
-  
-  security:
-    tool: bandit
-    severity_threshold: MEDIUM
-    blocking_on: HIGH
-  
-  coverage:
-    minimum: 80
-    allow_decrease: false
-  
-  complexity:
-    max_complexity: 10
-    tool: radon
-  
-  pr_size:
-    warning: 500
-    blocking: 1000
+pr_size_limits:
+  code:
+    soft: 400
+    hard: 1000
+  docs:
+    soft: 800
+    hard: 2000
+  mechanical_refactor:
+    soft: 800
+    hard: 2000
+  single_file_refactor_limit: 500
 
 self_review_checklist:
   required_sections:
@@ -417,7 +487,17 @@ This skill performs a multi-stage code review:
 Default settings in `config/defaults.yaml`:
 
 ```yaml
-max_diff_lines: 500
+pr_size_limits:
+  code:
+    soft: 400
+    hard: 1000
+  docs:
+    soft: 800
+    hard: 2000
+  mechanical_refactor:
+    soft: 800
+    hard: 2000
+  single_file_refactor_limit: 500
 require_tests: true
 block_on_request_changes: true
 ```
