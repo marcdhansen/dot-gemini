@@ -32,18 +32,28 @@ This skill performs comprehensive task analysis:
 Glob ignores hidden directories like `.config`. Always specify the path explicitly:
 
 ```bash
+# The skill lists the location of the helper script as:
+# ./scripts/next.sh
+# but this location is relative to the SKILL.md file, not the project.
+# You can use glob to find the script, but only if you include the prefix path.
+
 # ❌ Won't find scripts
 glob(pattern="**/next.sh")
 
 # ✅ Correct
 glob(path="~/.config/opencode", pattern="**/next.sh")
+
+# If you still can't find it, use the full path:
+/Users/marchansen/.gemini/antigravity/skills/show-next-task/scripts/next.sh
 ```
 
 ## Implementation
 
-The skill executes:
+The skill executes next.sh, which is in the ./scripts directory relative to the SKILL.md file,
+NOT THE PROJECT
 
 ```bash
+#NOTE that the . is relative to the SKILL.md file, not the project!!!
 ./scripts/next.sh
 ```
 
