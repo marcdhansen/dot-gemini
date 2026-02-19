@@ -1229,3 +1229,29 @@ def check_protocol_compliance_reporting() -> tuple[bool, str]:
         False,
         f"Missing required compliance statement: 'Protocol Compliance: 100% verified via Orchestrator ({issue_id}) 🏁'",
     )
+
+
+def check_handoff_cleanup_info() -> tuple[bool, str]:
+    """Informational: Verify handoff will be cleaned up on issue close.
+
+    WARNING: This is informational only. Handoff files in .agent/handoffs/
+    are automatically deleted when the associated beads issue is closed after PR merge.
+    """
+    from .git_validator import get_active_issue_id
+
+    project_root = Path.cwd()
+    active_id = get_active_issue_id()
+
+    if not active_id:
+        return True, "No active issue ID - handoff cleanup check skipped"
+
+    handoffs_dir = project_root / ".agent" / "handoffs"
+    handoff_file = handoffs_dir / f"{active_id}.md"
+
+    if handoff_file.exists():
+        return (
+            True,
+            f"Handoff file exists (.agent/handoffs/{active_id}.md) - will be auto-deleted when issue is closed after PR merge",
+        )
+
+    return True, f"No handoff file found for {active_id} - cleanup not needed"

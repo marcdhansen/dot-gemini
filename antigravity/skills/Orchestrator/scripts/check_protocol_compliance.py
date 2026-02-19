@@ -52,6 +52,9 @@ try:
         check_sop_simplification,
         check_hook_integrity,
         check_plan_approval,
+        check_api_documentation,
+        check_beads_issue_created,
+        check_plan_storage,
     )
     from validators.code_validator import validate_tdd_compliance
     from validators.session_validator import check_harness_session, check_show_next_task_used
@@ -78,7 +81,7 @@ try:
         check_issue_closure_gate,
         inject_debrief_to_beads,
         check_protocol_compliance_reporting,
-        check_pr_label_sync,
+        check_handoff_cleanup_info,
     )
 except ImportError as e:
     print(f"Warning: Could not import modular validators: {e}")

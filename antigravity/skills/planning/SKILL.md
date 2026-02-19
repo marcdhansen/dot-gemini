@@ -103,6 +103,172 @@ planning/
     └── metrics_utils.py       # Metrics calculation utilities
 ```
 
+## 📐 API Design Requirements
+
+All plans must include API documentation when the feature involves API changes.
+
+### Requirements
+
+- **Endpoint Definitions**: Document all endpoints (method, path, description)
+- **Request/Response Formats**: Include JSON schemas and examples
+- **Breaking Changes**: Explicitly list any breaking changes
+- **Backward Compatibility**: Document compatibility strategy
+
+### Template Usage
+
+Use the `feature_plan.md` template which includes the `## API Design` section:
+
+```markdown
+## API Design
+
+### Endpoints
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /api/v1/resource | Fetch resource |
+
+### Request Format
+```json
+{"id": "string"}
+```
+
+### Breaking Changes
+- [ ] None
+
+### Backward Compatibility
+- [ ] Full backward compatible
+```
+
+## 🔗 Gated Beads Issue Creation (BLOCKER)
+
+**IMPORTANT**: After plan approval, beads issue creation is **MANDATORY** and blocks execution.
+
+### Workflow
+
+```
+1. Create ImplementationPlan.md
+2. Get user approval (## Approval section)
+3. ⬛️ BLOCKER: Create beads issue(s)
+4. Execution begins
+```
+
+### Implementation
+
+- After user approval, agent MUST create beads issue(s)
+- For related issues, create epic first, then link items
+- Include plan reference in issue description
+- Update plan with issue IDs
+
+### Commands
+
+```bash
+# Create single issue
+bd create --title "Feature X" --type task --priority 2
+
+# Create epic for related issues
+bd create --title "Epic: Feature X" --type epic
+
+# Link issues to epic
+bd label add <issue-id> epic:<epic-id>
+```
+
+### Validation
+
+The Orchestrator validates that:
+1. Plan has `## Approval` section with approval
+2. Beads issue exists with matching title/description
+3. Issue IDs are documented in the plan
+
+## 📁 Plan Storage with Issue ID
+
+Plans must be stored in `.agent/plans/{issue-id}.md` for proper linkage.
+
+### Storage Structure
+
+```
+.agent/
+├── plans/
+│   ├── agent-abc.md      # Plan for issue agent-abc
+│   ├── agent-def.md      # Plan for issue agent-def
+│   └── ...
+├── handoffs/
+│   ├── agent-abc.md      # Handoff for agent-abc
+│   └── ...
+└── rules/
+    └── ImplementationPlan.md  # Legacy - no longer used for new plans
+```
+
+### Plan Header Requirements
+
+All plans must include:
+
+```markdown
+# Implementation Plan: feature-name
+
+**Beads Issue**: agent-xyz
+**Status**: [OPEN | IN_PROGRESS | COMPLETED]
+**Created**: YYYY-MM-DD
+**Plan Link**: .agent/plans/agent-xyz.md
+```
+
+### Bi-directional Links
+
+- **Plan → Issue**: Include beads issue ID in plan header
+- **Issue → Plan**: Include plan path in issue description
+
+```markdown
+# Issue agent-abc
+**Plan**: See .agent/plans/agent-abc.md
+```
+
+## 📤 Handoff System
+
+Every task (even single-agent work) requires a handoff document for continuity.
+
+### Handoff Location
+
+`.agent/handoffs/{issue-id}.md`
+
+### Template
+
+Use `templates/handoff.md`:
+
+```markdown
+# Handoff: {issue_id}
+
+## Current Status
+- [ ] Task 1: Done/In Progress/Pending
+- [ ] Task 2: Done/In Progress/Pending
+
+## Completed
+- What was finished
+
+## Remaining
+- What needs doing
+
+## Blockers
+- Any context needed
+
+## Plan Link
+See: ../plans/{issue_id}.md
+```
+
+### Handoff Creation
+
+- Create during session finalization
+- Reference in task.md
+- Add summary to beads issue via `bd comments add`
+
+### Auto-Cleanup on Issue Close
+
+**IMPORTANT**: Handoff files are deleted when the associated beads issue is closed after PR merge.
+
+```
+When closing beads issue (after PR merge):
+  → DELETE `.agent/handoffs/{issue-id}.md`
+```
+
+This cleanup happens automatically during the finalization process.
+
 ## 🔄 Workflow Integration
 
 ### Orchestrator Integration
