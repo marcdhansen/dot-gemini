@@ -25,10 +25,6 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).parent.resolve()
 sys.path.insert(0, str(SCRIPT_DIR))
 
-# Also support legacy paths for backward compatibility
-sys.path.append(str(Path.home() / ".agent/scripts"))
-sys.path.append(str(Path.home() / ".agent/ledgers"))
-
 # Import validators package
 from validators import (
     Colors,
