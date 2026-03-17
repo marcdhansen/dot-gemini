@@ -1,6 +1,22 @@
 ---
-name: TDD
-description: Test-Driven Development best practices for all code changes
+name: tdd
+description: >
+  Test-Driven Development workflow and best practices. Enforces the
+  Red-Green-Refactor cycle: write failing tests first, implement code to
+  pass them, then refactor. Use when writing tests before implementation,
+  starting a new feature or bug fix, or needing guidance on what tests to
+  write first.
+  Do NOT use for running an existing test suite or generating coverage
+  reports (use test-runner instead). Do NOT use for documentation-only
+  changes or metadata edits.
+compatibility: >
+  Requires pytest (or equivalent test framework) and git. No scripts to
+  run; instructions guide the TDD workflow directly.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: code-quality
+  tags: [tdd, testing, red-green-refactor, quality, test-first]
 ---
 
 # 🧪 TDD (Test-Driven Development) Skill

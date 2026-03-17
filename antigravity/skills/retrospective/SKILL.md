@@ -1,8 +1,23 @@
 ---
 name: retrospective
-description: Post-session strategic analysis invoked after Finalization. Synthesizes session results, reflection learnings, and generates improvement suggestions for SOP and workflow optimization.
-disable-model-invocation: true
-allowed-tools: Bash, Read, Glob, Grep
+description: >
+  Post-session strategic analysis invoked after Finalization. Synthesises
+  session results and reflection learnings, writes the handoff artifact, and
+  generates improvement suggestions for SOP and workflow optimisation.
+  Use when Finalization is complete and the session is ready to close,
+  as the final step of every session.
+  Do NOT use before Finalization is complete; quality gates and git
+  operations must be done first.
+compatibility: >
+  Requires Python 3.x, Read access to reflection outputs, and git. Script
+  at ~/.gemini/antigravity/skills/retrospective/scripts/finalization_debriefing.py.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: learning
+  tags: [retrospective, session-end, handoff, strategic-analysis, sop]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Glob, Grep
 ---
 
 # Retrospective (Finalization Session Analysis) Skill
@@ -42,12 +57,50 @@ Invoke `/reflect` to:
 
 ### 2. Handoff
 
-Provide summary of:
+Write the handoff artifact **before** providing the summary:
+
+```python
+import uuid, datetime, json, pathlib
+
+agent    = "opencode"  # substitute your agent name
+ts       = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+sid      = f"{agent}-{ts}-{uuid.uuid4().hex[:4]}"
+handoff  = {
+    "schema_version": "1.2",
+    "session_id": sid,
+    "agent": agent,
+    "timestamp": datetime.datetime.now().isoformat(),
+    "mode": "full",
+    "status": "complete",
+    "completed":  [],   # fill in
+    "open_items": [],   # fill in
+    "blockers":   [],
+    "next_recommended": "",  # fill in
+    "context": {"description": "", "beads_issue": None, "pr_url": None, "branch": None},
+    "handoff_ready": True,
+}
+p = pathlib.Path.home() / f".agent/handoff/{sid}.json"
+p.write_text(json.dumps(handoff, indent=2))
+print(f"Handoff written: {sid}")
+```
+
+Then announce to the user:
+> "Handoff written: `{sid}`. Next session: type `/continue` to auto-resume."
+
+Then provide the human-readable summary:
 
 - Work completed and deliverables
 - Beads issues identifier (primary and created/closed)
 - Skills used
-- Recommended next steps
+- Recommended next steps (mirrors `next_recommended` in handoff artifact)
+
+### 2a. Handoff Cleanup
+
+```bash
+python ~/.agent/skills/continue/scripts/cleanup_handoffs.py
+```
+
+Prunes old handoffs to the 20 most recent per agent, archives the rest.
 
 ### 3. Plan Cleanup
 

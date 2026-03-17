@@ -1,8 +1,23 @@
 ---
 name: reflect
-description: Analyzes current conversation history to extract lessons, user preferences, and corrections, then updates relevant SKILL.md files to prevent repeating mistakes. Enhanced version includes protocol integration for comprehensive learning capture.
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
+description: >
+  Analyses the current conversation to extract lessons, user preferences,
+  and corrections, then updates relevant SKILL.md files to prevent repeating
+  mistakes. Implements "correct once, never again" philosophy. Use when the
+  user corrects the agent, identifies a recurring friction point, or at
+  session end to capture permanent learnings.
+  Do NOT use proactively during active work; invoke only at session end or
+  when explicitly capturing a correction.
+compatibility: >
+  Requires Read and Edit access to skill SKILL.md files. Enhanced script at
+  ~/.gemini/antigravity/skills/reflect/enhanced_reflection.py.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: learning
+  tags: [reflection, learning, skill-improvement, preferences, corrections]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # Reflect & Improve

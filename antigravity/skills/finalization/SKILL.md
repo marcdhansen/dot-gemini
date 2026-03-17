@@ -1,8 +1,22 @@
 ---
 name: finalization
-description: Performs Finalization checks and completes session closure. Validates git status, runs quality gates, updates issue status, and ensures proper session closure.
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
+description: >
+  Performs Finalization checks and completes session closure. Validates git
+  status, runs quality gates, updates issue status, and ensures proper
+  session closure. Use when all planned work is complete and the session is
+  ready to close — commits pushed, tests passing, issues updated.
+  Do NOT use mid-session; invoke only when all work is done and ready for
+  session closure.
+compatibility: >
+  Requires Bash, git, bd CLI, pytest (if tests exist). Script at
+  ~/.gemini/antigravity/skills/finalization/scripts/finalization.sh.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: session-management
+  tags: [finalization, quality-gates, git, session-closure, sop]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # Finalization Execution Skill

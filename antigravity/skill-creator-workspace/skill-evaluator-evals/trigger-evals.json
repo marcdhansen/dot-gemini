@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I just finished writing a new skill. How do I test it before shipping?",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to make sure my skill still works after I refactor it. what's the right approach?",
+    "should_trigger": true
+  },
+  {
+    "query": "my skill loads for the wrong queries — how do I diagnose and fix the triggering?",
+    "should_trigger": true
+  },
+  {
+    "query": "here's my evals.json — can you run it and tell me if my skill passes?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need a baseline for my pdf skill before I start making changes",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I measure whether a skill improvement actually made things better?",
+    "should_trigger": true
+  },
+  {
+    "query": "help me write test cases for my recipe-helper skill, both for triggering and output quality",
+    "should_trigger": true
+  },
+  {
+    "query": "my skill never loads when users ask about meal planning even though the SKILL.md covers it. help",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to run evals on my skill and get a report showing pass rates",
+    "should_trigger": true
+  },
+  {
+    "query": "what's the TDD approach for iterating on a skill?",
+    "should_trigger": true
+  },
+  {
+    "query": "write unit tests for my Python data pipeline module",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I test my MCP server's tool responses end to end?",
+    "should_trigger": false
+  },
+  {
+    "query": "help me set up pytest for my new Python package",
+    "should_trigger": false
+  },
+  {
+    "query": "I want to evaluate the quality of this essay draft",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I run integration tests in my CI/CD pipeline?",
+    "should_trigger": false
+  },
+  {
+    "query": "can you review my code and tell me if there are any bugs?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to benchmark the performance of my SQL queries",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I test a REST API with curl?",
+    "should_trigger": false
+  },
+  {
+    "query": "help me write a test plan for my mobile app",
+    "should_trigger": false
+  },
+  {
+    "query": "I want to check if my prompt template produces good outputs — can you evaluate a few examples?",
+    "should_trigger": false
+  }
+]

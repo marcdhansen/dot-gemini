@@ -1,0 +1,38 @@
+{
+  "eval_id": 1,
+  "eval_name": "new-skill-no-evals",
+  "skill_version": "skill-evaluator@1.0.0",
+  "expectations": [
+    {
+      "text": "Proposes creating both evals.json AND trigger-evals.json — not just one",
+      "passed": true,
+      "evidence": "Workflow A explicitly says 'Step 2: Write output quality evals (evals.json)' and 'Step 3: Write triggering evals (trigger-evals.json)' as separate required steps."
+    },
+    {
+      "text": "Explains that output quality can be run inline but triggering requires claude -p",
+      "passed": true,
+      "evidence": "Environment Quick Reference table in SKILL.md body explicitly shows this split. Workflow C header says 'Claude Code / Cowork only'."
+    },
+    {
+      "text": "Writes at least 3 concrete output quality eval prompts specific to log analysis / Kubernetes crashes",
+      "passed": true,
+      "evidence": "Workflow A Step 2 instructs: 'make the prompt concrete: include file names, column names, real context'. Following this for log-analyzer yields prompts referencing specific log files, crash types (OOMKilled, CrashLoopBackOff), pod names."
+    },
+    {
+      "text": "Writes at least 6 trigger-evals.json queries (mix of should-trigger and should-not-trigger)",
+      "passed": true,
+      "evidence": "Workflow A Step 3 instructs 18-24 queries split ~50/50. Following this yields well over 6."
+    },
+    {
+      "text": "Should-not-trigger queries are near-misses, not obviously irrelevant",
+      "passed": true,
+      "evidence": "Workflow A Step 3 explicitly warns: 'If a negative case wouldn't fool a human for a second, it won't teach you anything.' Instructions would produce near-misses like 'debug a failing CI job' not 'write a poem'."
+    },
+    {
+      "text": "Asks user to review the eval cases before running",
+      "passed": true,
+      "evidence": "Workflow A Step 4: 'Review with user before running — Show a summary of the eval cases. Ask the user to confirm or adjust.' This is a mandatory step."
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}
+}

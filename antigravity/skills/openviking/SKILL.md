@@ -1,3 +1,24 @@
+---
+name: openviking
+description: >
+  Enhanced agent system designed to replace the Standard Mission Protocol
+  with improved skill discovery, token efficiency, and conversation memory
+  management. Use when starting a session in the OpenViking environment,
+  migrating from SOP, or when token efficiency and enhanced memory are
+  required for complex multi-turn workflows.
+  Do NOT use in standard SOP sessions; OpenViking is a distinct runtime
+  that requires its own Docker services and OpenAI API key.
+compatibility: >
+  Requires Docker, docker-compose, and an OpenAI API key. Services must
+  be started with ./openviking/scripts/manage.sh start before use.
+  Ports: OpenViking API :8000, LightRAG integration :9622, Redis :6379.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: orchestration
+  tags: [openviking, agent-system, token-efficiency, memory, docker]
+---
+
 # OpenViking Agent Skill
 
 ## Overview

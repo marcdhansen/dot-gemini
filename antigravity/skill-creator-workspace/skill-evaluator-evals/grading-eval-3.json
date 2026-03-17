@@ -1,0 +1,39 @@
+{
+  "eval_id": 3,
+  "eval_name": "run-existing-evals",
+  "skill_version": "skill-evaluator@1.0.1",
+  "expectations": [
+    {
+      "text": "Acknowledges it will read the data-cleaner skill before running (or notes it needs access to it)",
+      "passed": true,
+      "evidence": "FIXED in v1.0.1: Workflow B Step 1 now reads 'If the user has not provided a path to the target skill's SKILL.md, ask for it before proceeding.' The agent will ask for the path rather than attempting to proceed without it."
+    },
+    {
+      "text": "Simulates executing the eval prompt following the skill's instructions",
+      "passed": true,
+      "evidence": "Workflow B Step 2: 'Follow the skill's instructions to complete the prompt' and 'Keep a structured trace of steps taken.'"
+    },
+    {
+      "text": "Grades each of the three expectations individually with PASS/FAIL and cited evidence",
+      "passed": true,
+      "evidence": "Workflow B Step 3: 'For each expectation: Cite specific evidence from your trace. Mark PASS or FAIL — no partial credit.'"
+    },
+    {
+      "text": "Produces a summary with overall pass rate",
+      "passed": true,
+      "evidence": "Workflow B Step 4: 'Produce a summary including per-eval pass rates, overall pass rate...'"
+    },
+    {
+      "text": "Flags the inline grading caveat (self-grading bias) and suggests Claude Code for final validation",
+      "passed": true,
+      "evidence": "Workflow B Step 4 ends with explicit caveat: 'Treat inline results as a fast-iteration signal, not a definitive verdict. Claude Code subagent runs are more rigorous for final sign-off.'"
+    },
+    {
+      "text": "Does NOT just describe what the skill would do — actually traces through the execution",
+      "passed": true,
+      "evidence": "Workflow B Step 2 says 'Keep a structured trace of steps taken' and Step 3 says 'Cite specific evidence from your trace.'"
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0},
+  "note": "Was 5/6 at v1.0.0. Bug found during inline grading and fixed before finalising."
+}

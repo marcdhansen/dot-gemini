@@ -1,0 +1,38 @@
+{
+  "eval_id": 4,
+  "eval_name": "scaffold-file-structure",
+  "skill_version": "skill-creator@1.0.0",
+  "expectations": [
+    {
+      "text": "Uses 'log-analyzer' (kebab-case, no underscores)",
+      "passed": true,
+      "evidence": "create_skill.py to_kebab() converts 'log-analyzer' → 'log-analyzer' (already valid). Folder created as log-analyzer/, not log_analyzer/."
+    },
+    {
+      "text": "Includes SKILL.md as a required file",
+      "passed": true,
+      "evidence": "create_skill.py creates skill_dir / 'SKILL.md' as the first file. spec.md: 'SKILL.md — required'."
+    },
+    {
+      "text": "Includes CHANGELOG.md with at least a [1.0.0] placeholder",
+      "passed": true,
+      "evidence": "create_skill.py now generates CHANGELOG.md with a dated [1.0.0] entry. This was the key fix from skill-making."
+    },
+    {
+      "text": "Does NOT include a README.md inside the skill folder",
+      "passed": true,
+      "evidence": "create_skill.py no longer generates README.md. spec.md: 'No README.md inside the skill folder. READMEs go at repo root.' This was removed from the old skill-making create_skill.py."
+    },
+    {
+      "text": "SKILL.md frontmatter includes name, description, and metadata fields",
+      "passed": true,
+      "evidence": "create_skill.py SKILL.md template now generates full YAML frontmatter with name, description, compatibility, and metadata (author, version, category, tags). The old skill-making version generated no frontmatter at all."
+    },
+    {
+      "text": "If scripts/ is included, files are placed under scripts/ not at skill root",
+      "passed": true,
+      "evidence": "create_skill.py creates the script at skill_dir / 'scripts' / f'{skill_name.replace(\"-\", \"_\")}.py' — correct placement under scripts/."
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}
+}

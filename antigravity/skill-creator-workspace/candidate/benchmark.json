@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "baseline_skill": "skill-making@1.1.0",
+    "candidate_skill": "skill-creator@1.0.0",
+    "evaluated_by": "Claude Sonnet 4.6 (inline, Claude.ai)",
+    "timestamp": "2026-03-16"
+  },
+  "runs": [
+    {
+      "eval_id": 1, "eval_name": "new-skill-from-scratch",
+      "baseline":  {"pass_rate": 0.0,  "passed": 0, "total": 6},
+      "candidate": {"pass_rate": 1.0,  "passed": 6, "total": 6}
+    },
+    {
+      "eval_id": 2, "eval_name": "review-bad-skill",
+      "baseline":  {"pass_rate": 0.17, "passed": 1, "total": 6},
+      "candidate": {"pass_rate": 1.0,  "passed": 6, "total": 6}
+    },
+    {
+      "eval_id": 3, "eval_name": "fix-under-triggering",
+      "baseline":  {"pass_rate": 0.0,  "passed": 0, "total": 4},
+      "candidate": {"pass_rate": 1.0,  "passed": 4, "total": 4}
+    },
+    {
+      "eval_id": 4, "eval_name": "scaffold-file-structure",
+      "baseline":  {"pass_rate": 0.33, "passed": 2, "total": 6},
+      "candidate": {"pass_rate": 1.0,  "passed": 6, "total": 6}
+    },
+    {
+      "eval_id": 5, "eval_name": "non-interactive-eof-fix",
+      "baseline":  {"pass_rate": 1.0,  "passed": 5, "total": 5},
+      "candidate": {"pass_rate": 1.0,  "passed": 5, "total": 5}
+    }
+  ],
+  "run_summary": {
+    "baseline":  {"total_passed": 8,  "total_assertions": 27, "overall_pass_rate": 0.30},
+    "candidate": {"total_passed": 27, "total_assertions": 27, "overall_pass_rate": 1.0},
+    "delta": "+19 assertions, +0.70 pass rate"
+  },
+  "gates": {
+    "eval_5_no_regression": "PASS — 5/5 both versions",
+    "overall_target_75pct": "PASS — 27/27 (100%) exceeds 75% target"
+  },
+  "notes": [
+    "All 5 evals pass at 100% — exceeds the 75% (20/27) acceptance gate.",
+    "Eval 5 (non-interactive) maintained at 100% — critical non-regression confirmed.",
+    "Evals 1-4 went from near-zero to 100% by adding the missing workflows and fixing create_skill.py.",
+    "Triggering evals still pending — run from Claude Code using trigger-evals.json + run_eval.py.",
+    "Self-grading bias applies — recommend independent Claude Code subagent run for final validation."
+  ]
+}

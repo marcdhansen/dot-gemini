@@ -1,7 +1,19 @@
 ---
 name: code-review
-description: Checklist-based code review skill for identifying logic errors, ensuring test coverage, and validating PR size.
-allowed-tools: Bash, Read, Glob, Grep
+description: >
+  Reviews code for bugs, security issues, and quality. Use when checking
+  code before merging, auditing a PR, reviewing code for bugs or quality
+  issues, or getting a second opinion on a change.
+  Do NOT use for writing new code or debugging runtime errors.
+compatibility: >
+  Requires Bash, git, and Python 3.x for the automated review script at
+  ~/.gemini/antigravity/skills/code-review/scripts/code_review.py.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: code-quality
+  tags: [code-review, quality, testing, pr-size, security]
+  allowed-tools: Bash, Read, Glob, Grep
 ---
 
 # 🛡️ Code Review Skill

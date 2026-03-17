@@ -1,0 +1,78 @@
+{
+  "skill_name": "skill-creator",
+  "description": "Evals covering the union of skill-making (current) and skill-creator (proposed) capabilities. Used to baseline current skill and gate changes.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "new-skill-from-scratch",
+      "prompt": "I want to build a skill that helps me write database migration scripts. It should check for common pitfalls like missing rollback scripts, non-transactional DDL on Postgres, and adding NOT NULL columns without defaults. Walk me through creating it.",
+      "expected_output": "A complete SKILL.md draft with correct frontmatter (kebab-case name, description with WHAT+WHEN+negative trigger, metadata), numbered workflow instructions, and at least one example. CHANGELOG.md stub mentioned.",
+      "files": [],
+      "expectations": [
+        "Proposes a kebab-case skill name (e.g. db-migration-helper, not db_migration_helper)",
+        "Drafts a description field that includes WHAT the skill does AND WHEN to use it",
+        "Description includes at least one negative trigger (Do NOT use for...)",
+        "Produces numbered, actionable step-by-step workflow instructions",
+        "Mentions or drafts a CHANGELOG.md",
+        "Does NOT use underscores in the skill name or folder name"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "review-bad-skill",
+      "prompt": "Please review this skill for me:\n\n```yaml\n---\nname: My_SQLHelper\ndescription: Helps with SQL queries and database stuff.\nmetadata:\n  version: 1.0\n---\n\n# SQL Helper\n\nThis skill helps you write SQL. Use it whenever you need SQL help.\n\n## Steps\n\nJust ask me about SQL and I'll help.\n```",
+      "expected_output": "A structured review identifying: underscore/capital in name, description too vague (no negative trigger, no specific trigger phrases, no WHEN), instructions not numbered or actionable, missing author/category/tags in metadata, missing CHANGELOG.md.",
+      "files": [],
+      "expectations": [
+        "Flags the underscore and capital in 'My_SQLHelper' as a naming violation",
+        "Flags the description as too vague / missing negative trigger",
+        "Flags that instructions are not numbered or actionable",
+        "Flags missing or incomplete metadata fields (author, category, tags)",
+        "Flags missing CHANGELOG.md",
+        "Provides a verdict or summary judgment (not just a list of issues)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "fix-under-triggering",
+      "prompt": "My skill called 'recipe-helper' never loads when users ask about meal planning or weekly meal prep, even though it should handle those cases. The current description is: 'Helps users find and adapt recipes for dietary restrictions.' How do I fix it?",
+      "expected_output": "Concrete suggestions to add trigger phrases ('meal planning', 'weekly meal prep', 'what to cook this week', 'meal schedule') to the description. Explains WHY the description doesn't match those queries. May suggest making the description slightly 'pushy' per Anthropic guidance.",
+      "files": [],
+      "expectations": [
+        "Identifies that 'meal planning' and 'meal prep' are missing from the current description",
+        "Suggests specific phrases to add to the description",
+        "Explains the mechanism: Claude matches descriptions to queries by keyword/concept coverage",
+        "Produces a revised description draft (not just advice)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "scaffold-file-structure",
+      "prompt": "Create the file and folder structure for a new skill called 'log-analyzer' that will help me triage Kubernetes pod crash logs. Show me every file I need to create and what should go in each one.",
+      "expected_output": "Correct kebab-case directory 'log-analyzer/', SKILL.md with frontmatter, CHANGELOG.md stub with [1.0.0] entry, optional scripts/ and references/ mentioned. No README.md at the skill level.",
+      "files": [],
+      "expectations": [
+        "Uses 'log-analyzer' (kebab-case, no underscores)",
+        "Includes SKILL.md as a required file",
+        "Includes CHANGELOG.md with at least a [1.0.0] placeholder",
+        "Does NOT include a README.md inside the skill folder",
+        "SKILL.md frontmatter includes name, description, and metadata fields",
+        "If scripts/ is included, files are placed under scripts/ not at skill root"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "non-interactive-eof-fix",
+      "prompt": "My skill script keeps crashing in CI with 'EOFError: EOF when reading a line'. Here's the relevant code:\n\n```python\nprint('Which environment do you want to deploy to?')\nprint('1. staging')\nprint('2. production')\nchoice = input('Enter 1 or 2: ')\nif choice == '1':\n    deploy('staging')\nelif choice == '2':\n    deploy('production')\n```\n\nHow do I fix this?",
+      "expected_output": "Provides a fix using non-interactive detection (checking sys.stdin.isatty() or CI env vars), a safe_input wrapper with EOFError handling, and an auto-fallback default for CI environments.",
+      "files": [],
+      "expectations": [
+        "Provides working Python code (not just description of a fix)",
+        "Uses sys.stdin.isatty() or equivalent CI env var check (CI, GITHUB_ACTIONS, etc.)",
+        "Wraps input() in a try/except that catches EOFError",
+        "Provides an automatic default/fallback when running non-interactively",
+        "The fixed code still works interactively (not just hardcoded non-interactive)"
+      ]
+    }
+  ]
+}

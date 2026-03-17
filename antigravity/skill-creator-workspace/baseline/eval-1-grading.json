@@ -1,0 +1,43 @@
+{
+  "eval_id": 1,
+  "eval_name": "new-skill-from-scratch",
+  "skill_version": "skill-making@1.1.0",
+  "expectations": [
+    {
+      "text": "Proposes a kebab-case skill name (e.g. db-migration-helper, not db_migration_helper)",
+      "passed": false,
+      "evidence": "create_skill.py converts name to snake_case via .replace('-', '_'). The template produces 'db_migration_helper' folder name."
+    },
+    {
+      "text": "Drafts a description field that includes WHAT the skill does AND WHEN to use it",
+      "passed": false,
+      "evidence": "SKILL.md template has no frontmatter at all — description field is not generated. The _create_skill_md method produces a body-only document."
+    },
+    {
+      "text": "Description includes at least one negative trigger (Do NOT use for...)",
+      "passed": false,
+      "evidence": "No description field exists in the template output, so negative triggers are impossible."
+    },
+    {
+      "text": "Produces numbered, actionable step-by-step workflow instructions",
+      "passed": false,
+      "evidence": "SKILL.md template has placeholder sections like '[Brief technical description]' but no numbered workflow. Skill focuses on Python script structure, not instruction workflow."
+    },
+    {
+      "text": "Mentions or drafts a CHANGELOG.md",
+      "passed": false,
+      "evidence": "create_skill.py creates scripts/, tests/, config/, README.md — but no CHANGELOG.md."
+    },
+    {
+      "text": "Does NOT use underscores in the skill name or folder name",
+      "passed": false,
+      "evidence": "Explicit code: skill_name = name.lower().replace(' ', '_').replace('-', '_'). All names converted to snake_case."
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 6,
+    "total": 6,
+    "pass_rate": 0.0
+  }
+}

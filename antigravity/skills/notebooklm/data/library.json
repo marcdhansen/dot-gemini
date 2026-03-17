@@ -1,0 +1,142 @@
+{
+  "notebooks": {
+    "agent-harnesses": {
+      "id": "agent-harnesses",
+      "url": "https://notebooklm.google.com/notebook/5be74448-ff28-446c-956c-2a89f5083f55",
+      "name": "Agent Harnesses",
+      "description": "AI Agent Frameworks (LangGraph, CrewAI, AutoGen), Agent Harness architecture patterns, AI Coding Assistants, Multi-Agent Systems (Magentic-One), Benchmarking and Enterprise Adoption",
+      "topics": [
+        "agent-harness",
+        "multi-agent",
+        "langraph",
+        "crewai",
+        "autogen",
+        "orchestration",
+        "ai-coding"
+      ],
+      "content_types": [],
+      "use_cases": [],
+      "tags": [],
+      "created_at": "2026-02-05T18:06:06.753244",
+      "updated_at": "2026-02-05T18:06:06.753250",
+      "use_count": 0,
+      "last_used": null
+    },
+    "multi-agent-workflows": {
+      "id": "multi-agent-workflows",
+      "url": "https://notebooklm.google.com/notebook/68a3d031-da8a-4237-879a-6406a1223844",
+      "name": "Multi-Agent Workflows",
+      "description": "Best practices for multi-agent workflows and coordination patterns",
+      "topics": [
+        "multi-agent",
+        "workflows",
+        "best-practices",
+        "coordination"
+      ],
+      "content_types": [],
+      "use_cases": [],
+      "tags": [],
+      "created_at": "2026-02-05T18:06:10.154128",
+      "updated_at": "2026-02-05T18:06:10.154140",
+      "use_count": 0,
+      "last_used": null
+    },
+    "event-driven-agentic-workflows": {
+      "id": "event-driven-agentic-workflows",
+      "url": "https://notebooklm.google.com/notebook/ea2b8bf6-649a-4796-9779-c5ff15725e83",
+      "name": "Event-Driven Agentic Workflows",
+      "description": "Event-driven architecture patterns for agentic workflows",
+      "topics": [
+        "event-driven",
+        "workflows",
+        "async",
+        "architecture"
+      ],
+      "content_types": [],
+      "use_cases": [],
+      "tags": [],
+      "created_at": "2026-02-05T18:06:12.343243",
+      "updated_at": "2026-02-05T18:06:12.343255",
+      "use_count": 0,
+      "last_used": null
+    },
+    "cross-agent-memory": {
+      "id": "cross-agent-memory",
+      "url": "https://notebooklm.google.com/notebook/5e4137c8-0795-49aa-8cbc-7ba318b3e10b",
+      "name": "Cross-Agent Memory",
+      "description": "Cross-agent memory sharing and persistent state management",
+      "topics": [
+        "memory",
+        "cross-agent",
+        "state",
+        "persistence"
+      ],
+      "content_types": [],
+      "use_cases": [],
+      "tags": [],
+      "created_at": "2026-02-05T18:06:13.089804",
+      "updated_at": "2026-02-05T18:06:13.089816",
+      "use_count": 0,
+      "last_used": null
+    },
+    "self-evolution-patterns": {
+      "id": "self-evolution-patterns",
+      "url": "https://notebooklm.google.com/notebook/babde57b-5837-45ea-8439-91edc47b84e8",
+      "name": "Self-Evolution Patterns",
+      "description": "Agent self-evolution and learning patterns from sessions",
+      "topics": [
+        "self-evolution",
+        "learning",
+        "reflection",
+        "improvement"
+      ],
+      "content_types": [],
+      "use_cases": [],
+      "tags": [],
+      "created_at": "2026-02-05T19:16:56.410483",
+      "updated_at": "2026-02-05T19:16:56.410572",
+      "use_count": 0,
+      "last_used": null
+    },
+    "agent-learning-systems": {
+      "id": "agent-learning-systems",
+      "url": "https://notebooklm.google.com/notebook/4e2eafa8-2563-473f-b56c-852fccf907c0",
+      "name": "Agent Learning Systems",
+      "description": "Agent learning systems and memory improvement patterns",
+      "topics": [
+        "learning",
+        "memory",
+        "improvement",
+        "patterns"
+      ],
+      "content_types": [],
+      "use_cases": [],
+      "tags": [],
+      "created_at": "2026-02-05T19:16:57.122962",
+      "updated_at": "2026-02-05T19:16:57.122973",
+      "use_count": 0,
+      "last_used": null
+    },
+    "agentic-harnesses-research": {
+      "id": "agentic-harnesses-research",
+      "url": "https://notebooklm.google.com/notebook/5be74448-ff28-446c-956c-2a89f5083f55",
+      "name": "Agentic Harnesses Research",
+      "description": "[Use what the notebook told you]",
+      "topics": [
+        "agent-harness",
+        "multi-agent",
+        "orchestration",
+        "[etc]"
+      ],
+      "content_types": [],
+      "use_cases": [],
+      "tags": [],
+      "created_at": "2026-02-17T01:29:54.644203",
+      "updated_at": "2026-02-17T01:29:54.644215",
+      "use_count": 0,
+      "last_used": null
+    }
+  },
+  "active_notebook_id": "agent-harnesses",
+  "updated_at": "2026-02-17T01:29:54.644220"
+}

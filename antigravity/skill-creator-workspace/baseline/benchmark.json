@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "skill_name": "skill-making",
+    "skill_path": "/Users/marchansen/.gemini/antigravity/skills/skill-making",
+    "skill_version": "1.1.0",
+    "evaluated_by": "Claude Sonnet 4.6 (inline, Claude.ai — no subagents)",
+    "timestamp": "2026-03-16",
+    "evals_run": [1, 2, 3, 4, 5],
+    "method": "Inline simulation: Claude read current SKILL.md and graded what the skill would produce for each prompt. Not independent subagent execution.",
+    "note": "Eval 5 (non-interactive-eof-fix) is the skill's core strength. Evals 1-4 cover skill-creation workflows the current skill does not address."
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "new-skill-from-scratch",
+      "configuration": "skill-making@1.1.0",
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 6,
+        "total": 6
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "review-bad-skill",
+      "configuration": "skill-making@1.1.0",
+      "result": {
+        "pass_rate": 0.17,
+        "passed": 1,
+        "failed": 5,
+        "total": 6
+      }
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "fix-under-triggering",
+      "configuration": "skill-making@1.1.0",
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4
+      }
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "scaffold-file-structure",
+      "configuration": "skill-making@1.1.0",
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 2,
+        "failed": 4,
+        "total": 6
+      }
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "non-interactive-eof-fix",
+      "configuration": "skill-making@1.1.0",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5
+      }
+    }
+  ],
+  "run_summary": {
+    "skill-making@1.1.0": {
+      "pass_rate": {
+        "mean": 0.30,
+        "by_eval": {
+          "new-skill-from-scratch": 0.0,
+          "review-bad-skill": 0.17,
+          "fix-under-triggering": 0.0,
+          "scaffold-file-structure": 0.33,
+          "non-interactive-eof-fix": 1.0
+        }
+      },
+      "total_assertions": 27,
+      "total_passed": 8
+    }
+  },
+  "notes": [
+    "Eval 5 (non-interactive EOF fix) is a perfect score — this is the skill's entire purpose.",
+    "Evals 1-4 are all near-zero because skill-making has no skill-creation workflow, no naming rules, no review checklist, and no triggering guidance.",
+    "Eval 2 gets 1/6 only because the skill's own frontmatter template happens to include metadata fields, giving indirect awareness.",
+    "Eval 4 gets 2/6: SKILL.md is created (correct), scripts/ placement is correct — everything else (kebab-case, no CHANGELOG, no frontmatter, README.md violation) fails.",
+    "The merged skill-creator must score >= 1.0 on eval 5 to be accepted — do not degrade the non-interactive patterns.",
+    "Target: >= 0.75 overall mean pass rate to justify the rewrite."
+  ]
+}

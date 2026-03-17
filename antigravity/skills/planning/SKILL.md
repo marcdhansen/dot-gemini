@@ -1,10 +1,22 @@
 ---
 name: planning
-description: Comprehensive planning skill with blast radius analysis, incremental validation, and value-driven change management for LightRAG features and tasks
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
-version: "1.0.0"
-dependencies: [show-next-task, finalization, reflect]
+description: >
+  Plans features by mapping what could break and assessing impact before
+  coding begins. Use when scoping a feature, creating an implementation
+  plan, understanding the impact of a change, or tracking milestones.
+  Do NOT use for browsing or searching code to understand it (use
+  code-search). Do NOT use for minor or documentation-only changes.
+compatibility: >
+  Requires Python 3.x, bd CLI, and git. Scripts live in
+  ~/.gemini/antigravity/skills/planning/scripts/.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: planning
+  tags: [planning, blast-radius, incremental-validation, milestones, risk]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
+  dependencies: [show-next-task, finalization, reflect]
 ---
 
 # Planning Skill - P0 Critical Infrastructure

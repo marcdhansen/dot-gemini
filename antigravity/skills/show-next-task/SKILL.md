@@ -1,8 +1,22 @@
 ---
 name: show-next-task
-description: Shows what to work on next in the LightRAG project by running beads ready and providing intelligent recommendations
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
+description: >
+  Shows what to work on next in the LightRAG project by running bd ready
+  and providing intelligent priority-based recommendations. Use when
+  starting a session and deciding what task to pick up, or any time the
+  current task completes and the next one needs to be chosen.
+  Do NOT use to bypass task prioritisation or skip directly to a specific
+  task; use it to discover what the team has determined is highest priority.
+compatibility: >
+  Requires bd CLI and Bash. Script at
+  ~/.gemini/antigravity/skills/show-next-task/scripts/next.sh.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: project-management
+  tags: [task-management, beads, prioritisation, next-task, roadmap]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # Show Next Task Skill

@@ -1,6 +1,22 @@
 ---
 name: notebooklm
-description: Use this skill to query your Google NotebookLM notebooks directly from Claude Code for source-grounded, citation-backed answers from Gemini. Browser automation, library management, persistent auth. Drastically reduced hallucinations through document-only responses.
+description: >
+  Query Google NotebookLM notebooks directly for source-grounded,
+  citation-backed answers from Gemini. Handles browser automation, notebook
+  library management, and persistent authentication. Use when the user
+  mentions NotebookLM, shares a notebook URL, asks to query their
+  notebooks or documentation, or uses phrases like "ask my NotebookLM".
+  Do NOT use for general web searches or queries that are not sourced
+  from your NotebookLM notebooks.
+compatibility: >
+  Requires Python 3.x, Playwright, and a configured .venv inside the skill
+  directory. Always invoke scripts via the run.py wrapper, never directly.
+  Requires Google account authentication on first use.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: research
+  tags: [notebooklm, google, research, documentation, grounded-answers]
 ---
 
 # NotebookLM Research Assistant Skill

@@ -1,0 +1,2517 @@
+{
+  "timestamp": "2026-03-17T02:42:38.486562",
+  "models": {
+    "mistral-nemo:latest": {
+      "size_gb": 7.1,
+      "type": "general",
+      "correct": 57,
+      "wrong": 8,
+      "unparseable": 2,
+      "total": 67,
+      "pct": 85,
+      "by_category": {
+        "positive": {
+          "correct": 31,
+          "total": 39
+        },
+        "paraphrase": {
+          "correct": 18,
+          "total": 20
+        },
+        "negative": {
+          "correct": 8,
+          "total": 8
+        }
+      },
+      "cases": [
+        {
+          "case": "git_commit",
+          "input": "I need to commit my changes and write a good commit message",
+          "expected": "git",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "ERROR: timed out",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "git_merge_conflict",
+          "input": "I have a merge conflict, how do I resolve it?",
+          "expected": "git",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "ERROR: timed out",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "git_paraphrase",
+          "input": "My branch is behind main, I want to clean up the history before opening a PR",
+          "expected": "git",
+          "category": "paraphrase",
+          "parsed": "git",
+          "raw": "git",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_review_pr",
+          "input": "Please review this pull request before I merge it",
+          "expected": "code-review",
+          "category": "positive",
+          "parsed": "code-review",
+          "raw": "code-review",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_review_quality",
+          "input": "Check my code for bugs and quality issues",
+          "expected": "code-review",
+          "category": "positive",
+          "parsed": "code-review",
+          "raw": "code-review",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_review_paraphrase",
+          "input": "Can you look over this before I merge it into main?",
+          "expected": "code-review",
+          "category": "paraphrase",
+          "parsed": "code-review",
+          "raw": "code-review",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_feature",
+          "input": "Help me plan this new feature before I start coding",
+          "expected": "planning",
+          "category": "positive",
+          "parsed": "planning",
+          "raw": "planning",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_blast_radius",
+          "input": "I need to understand what will break if I change this module",
+          "expected": "planning",
+          "category": "positive",
+          "parsed": "planning",
+          "raw": "planning",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_paraphrase",
+          "input": "I need to understand the full impact before I change the database layer",
+          "expected": "planning",
+          "category": "paraphrase",
+          "parsed": "planning",
+          "raw": "planning",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_write_tests_first",
+          "input": "I'm about to implement a new feature, what tests should I write first?",
+          "expected": "tdd",
+          "category": "positive",
+          "parsed": "tdd",
+          "raw": "tdd",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_red_green",
+          "input": "I want to start with a failing test for this new feature before writing any code",
+          "expected": "tdd",
+          "category": "positive",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "wrong"
+        },
+        {
+          "case": "tdd_paraphrase",
+          "input": "I want to do this properly \u2014 tests before implementation",
+          "expected": "tdd",
+          "category": "paraphrase",
+          "parsed": "tdd",
+          "raw": "tdd",
+          "outcome": "correct"
+        },
+        {
+          "case": "debugging_failing_test",
+          "input": "My tests are unexpectedly failing and I can't find the root cause",
+          "expected": "debugging",
+          "category": "positive",
+          "parsed": "debugging",
+          "raw": "debugging",
+          "outcome": "correct"
+        },
+        {
+          "case": "debugging_crash",
+          "input": "The application crashes with a KeyError on line 47",
+          "expected": "debugging",
+          "category": "positive",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "wrong"
+        },
+        {
+          "case": "debugging_paraphrase",
+          "input": "I have a bug that only shows up sometimes and I can't track it down",
+          "expected": "debugging",
+          "category": "paraphrase",
+          "parsed": "debugging",
+          "raw": "debugging",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_done",
+          "input": "I'm done with my work, help me close out this session properly",
+          "expected": "finalization",
+          "category": "positive",
+          "parsed": "finalization",
+          "raw": "finalization",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_wrap_up",
+          "input": "All my changes are committed and tests pass, ready to wrap up",
+          "expected": "finalization",
+          "category": "positive",
+          "parsed": "finalization",
+          "raw": "finalization",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_paraphrase",
+          "input": "I want to make sure everything is pushed and the issue is updated before I stop",
+          "expected": "finalization",
+          "category": "paraphrase",
+          "parsed": "finalization",
+          "raw": "finalization",
+          "outcome": "correct"
+        },
+        {
+          "case": "reflect_correction",
+          "input": "I need to permanently record a correction so we don't repeat this mistake",
+          "expected": "reflect",
+          "category": "positive",
+          "parsed": "reflect",
+          "raw": "reflect",
+          "outcome": "correct"
+        },
+        {
+          "case": "reflect_session_end",
+          "input": "I want to save the lessons from this session into the skill files",
+          "expected": "reflect",
+          "category": "positive",
+          "parsed": "reflect",
+          "raw": "reflect",
+          "outcome": "correct"
+        },
+        {
+          "case": "retrospective_post_session",
+          "input": "Finalization is done, now let's do the post-session strategic analysis",
+          "expected": "retrospective",
+          "category": "positive",
+          "parsed": "retrospective",
+          "raw": "retrospective",
+          "outcome": "correct"
+        },
+        {
+          "case": "retrospective_paraphrase",
+          "input": "Session is closing, write the handoff and generate improvement suggestions",
+          "expected": "retrospective",
+          "category": "paraphrase",
+          "parsed": "retrospective",
+          "raw": "retrospective",
+          "outcome": "correct"
+        },
+        {
+          "case": "show_next_task_what_to_do",
+          "input": "What should I work on next?",
+          "expected": "show-next-task",
+          "category": "positive",
+          "parsed": "show-next-task",
+          "raw": "show-next-task",
+          "outcome": "correct"
+        },
+        {
+          "case": "show_next_task_paraphrase",
+          "input": "I just finished that issue, what's the highest priority thing to pick up now?",
+          "expected": "show-next-task",
+          "category": "paraphrase",
+          "parsed": "show-next-task",
+          "raw": "show-next-task",
+          "outcome": "correct"
+        },
+        {
+          "case": "continue_resume",
+          "input": "I'm starting a new session, I need to resume where I left off yesterday",
+          "expected": "continue",
+          "category": "positive",
+          "parsed": "continue",
+          "raw": "continue",
+          "outcome": "correct"
+        },
+        {
+          "case": "continue_handoff",
+          "input": "Load my handoff from the previous session so I can pick up where we stopped",
+          "expected": "continue",
+          "category": "positive",
+          "parsed": "continue",
+          "raw": "continue",
+          "outcome": "correct"
+        },
+        {
+          "case": "pull_request_open",
+          "input": "I'm ready to open a pull request for this feature",
+          "expected": "pull-request",
+          "category": "positive",
+          "parsed": "pull-request",
+          "raw": "pull-request",
+          "outcome": "correct"
+        },
+        {
+          "case": "pull_request_paraphrase",
+          "input": "I finished the feature and I'm ready to get it reviewed on GitHub",
+          "expected": "pull-request",
+          "category": "paraphrase",
+          "parsed": "pull-request",
+          "raw": "pull-request",
+          "outcome": "correct"
+        },
+        {
+          "case": "devils_advocate_challenge",
+          "input": "Challenge my plan \u2014 what are the risks I'm not seeing?",
+          "expected": "devils-advocate",
+          "category": "positive",
+          "parsed": "devils-advocate",
+          "raw": "devils-advocate",
+          "outcome": "correct"
+        },
+        {
+          "case": "devils_advocate_paraphrase",
+          "input": "I want critical pushback and risk analysis on my proposed design",
+          "expected": "devils-advocate",
+          "category": "paraphrase",
+          "parsed": "devils-advocate",
+          "raw": "devils-advocate",
+          "outcome": "correct"
+        },
+        {
+          "case": "init_briefing_new_session",
+          "input": "Starting a new session, give me the briefing",
+          "expected": "session-briefing",
+          "category": "positive",
+          "parsed": "session-briefing",
+          "raw": "session-briefing",
+          "outcome": "correct"
+        },
+        {
+          "case": "init_briefing_paraphrase",
+          "input": "Give me a quick status briefing before we dive in",
+          "expected": "session-briefing",
+          "category": "paraphrase",
+          "parsed": "session-briefing",
+          "raw": "session-briefing",
+          "outcome": "correct"
+        },
+        {
+          "case": "orchestrator_check",
+          "input": "Verify that all SOP compliance gates have been satisfied",
+          "expected": "sop-checker",
+          "category": "positive",
+          "parsed": "sop-checker",
+          "raw": "sop-checker",
+          "outcome": "correct"
+        },
+        {
+          "case": "orchestrator_finalize_check",
+          "input": "Verify that all the SOP finalization steps have been completed",
+          "expected": "sop-checker",
+          "category": "positive",
+          "parsed": "sop-checker",
+          "raw": "sop-checker",
+          "outcome": "correct"
+        },
+        {
+          "case": "context_full",
+          "input": "The context window is getting full, I need to compress it",
+          "expected": "context-management",
+          "category": "positive",
+          "parsed": "context-management",
+          "raw": "context-management",
+          "outcome": "correct"
+        },
+        {
+          "case": "context_paraphrase",
+          "input": "I'm running low on context space and need to manage my window",
+          "expected": "context-management",
+          "category": "paraphrase",
+          "parsed": "context-management",
+          "raw": "context-management",
+          "outcome": "correct"
+        },
+        {
+          "case": "beads_cross_repo",
+          "input": "Create a linked issue in both the agent-harness and LightRAG repos",
+          "expected": "beads-manager",
+          "category": "positive",
+          "parsed": "beads-manager",
+          "raw": "beads-manager",
+          "outcome": "correct"
+        },
+        {
+          "case": "beads_paraphrase",
+          "input": "I need to track this work across multiple repositories",
+          "expected": "beads-manager",
+          "category": "paraphrase",
+          "parsed": "beads-manager",
+          "raw": "beads-manager",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_beads_new_feature",
+          "input": "Create a new beads issue for this feature with TDD scaffolding set up",
+          "expected": "tdd-beads",
+          "category": "positive",
+          "parsed": "beads-manager",
+          "raw": "beads-manager",
+          "outcome": "wrong"
+        },
+        {
+          "case": "code_nav_find_function",
+          "input": "I need to find where the login function is implemented in this codebase",
+          "expected": "code-search",
+          "category": "positive",
+          "parsed": "code-search",
+          "raw": "code-search",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_nav_paraphrase",
+          "input": "Show me all the places in the codebase that reference the storage module",
+          "expected": "code-search",
+          "category": "paraphrase",
+          "parsed": "code-search",
+          "raw": "code-search",
+          "outcome": "correct"
+        },
+        {
+          "case": "mcp_which_tool",
+          "input": "Which tool should I use to read a file in the ~/.agent directory?",
+          "expected": "mcp-file-access",
+          "category": "positive",
+          "parsed": "mcp-file-access",
+          "raw": "mcp-file-access",
+          "outcome": "correct"
+        },
+        {
+          "case": "mcp_paraphrase",
+          "input": "I need to decide which MCP tool to use for writing to the ~/.agent directory",
+          "expected": "mcp-file-access",
+          "category": "paraphrase",
+          "parsed": "mcp-file-access",
+          "raw": "mcp-file-access",
+          "outcome": "correct"
+        },
+        {
+          "case": "notebooklm_query",
+          "input": "Ask my NotebookLM what the architecture looks like",
+          "expected": "notebooklm",
+          "category": "positive",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "wrong"
+        },
+        {
+          "case": "notebooklm_paraphrase",
+          "input": "Check my notebooks for documentation on the query pipeline",
+          "expected": "notebooklm",
+          "category": "paraphrase",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "wrong"
+        },
+        {
+          "case": "bridge_post_plan",
+          "input": "Submit my implementation plan for review by the other agent",
+          "expected": "bridge",
+          "category": "positive",
+          "parsed": "bridge",
+          "raw": "bridge",
+          "outcome": "correct"
+        },
+        {
+          "case": "bridge_paraphrase",
+          "input": "I need Claude and OpenCode to agree on this plan before I proceed",
+          "expected": "bridge",
+          "category": "paraphrase",
+          "parsed": "bridge",
+          "raw": "bridge",
+          "outcome": "correct"
+        },
+        {
+          "case": "skill_making_create",
+          "input": "I want to create a new skill for the agent",
+          "expected": "skill-making",
+          "category": "positive",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "wrong"
+        },
+        {
+          "case": "skill_making_paraphrase",
+          "input": "My skill script fails with EOF errors in non-interactive mode",
+          "expected": "skill-making",
+          "category": "paraphrase",
+          "parsed": "skill-making",
+          "raw": "skill-making",
+          "outcome": "correct"
+        },
+        {
+          "case": "sop_modify_gate",
+          "input": "I need to modify one of the mandatory quality gates in the SOP",
+          "expected": "sop-modification",
+          "category": "positive",
+          "parsed": "sop-modification",
+          "raw": "sop-modification",
+          "outcome": "correct"
+        },
+        {
+          "case": "process_ci",
+          "input": "Run the full CI pipeline",
+          "expected": "cicd",
+          "category": "positive",
+          "parsed": "cicd",
+          "raw": "cicd",
+          "outcome": "correct"
+        },
+        {
+          "case": "process_release",
+          "input": "Prepare a release candidate for version 1.3.0",
+          "expected": "cicd",
+          "category": "positive",
+          "parsed": "cicd",
+          "raw": "cicd",
+          "outcome": "correct"
+        },
+        {
+          "case": "testing_run_suite",
+          "input": "Run the full test suite with coverage reporting",
+          "expected": "test-runner",
+          "category": "positive",
+          "parsed": "test-runner",
+          "raw": "test-runner",
+          "outcome": "correct"
+        },
+        {
+          "case": "testing_paraphrase",
+          "input": "I want to check our current test coverage percentage",
+          "expected": "test-runner",
+          "category": "paraphrase",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "wrong"
+        },
+        {
+          "case": "ui_dev_server",
+          "input": "Start the development server for the web interface",
+          "expected": "ui",
+          "category": "positive",
+          "parsed": "ui",
+          "raw": "ui",
+          "outcome": "correct"
+        },
+        {
+          "case": "ui_paraphrase",
+          "input": "Deploy the WebUI to staging",
+          "expected": "ui",
+          "category": "paraphrase",
+          "parsed": "ui",
+          "raw": "ui",
+          "outcome": "correct"
+        },
+        {
+          "case": "multi_model_route",
+          "input": "I want to assign this coding task to the specialized implementation model",
+          "expected": "model-router",
+          "category": "positive",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "wrong"
+        },
+        {
+          "case": "openviking_start",
+          "input": "Start the OpenViking services",
+          "expected": "openviking",
+          "category": "positive",
+          "parsed": "openviking",
+          "raw": "openviking",
+          "outcome": "correct"
+        },
+        {
+          "case": "browser_cleanup",
+          "input": "Clean up the Playwright browser processes from the last session",
+          "expected": "playwright-manager",
+          "category": "positive",
+          "parsed": "playwright-manager",
+          "raw": "playwright-manager",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_general_knowledge",
+          "input": "What is machine learning?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_weather",
+          "input": "What is the weather like in Paris today?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_write_code",
+          "input": "What is the difference between a list and a tuple in Python?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_explain_concept",
+          "input": "Explain how transformers work",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_math",
+          "input": "What is the square root of 144?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_email",
+          "input": "What is the boiling point of water?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_casual",
+          "input": "Good morning! Ready to get started.",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "User: How do I make my code more efficient?\nOutput: none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_unrelated_code",
+          "input": "What year was Python first released?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        }
+      ]
+    },
+    "qwen2.5-coder:14b": {
+      "size_gb": 9.0,
+      "type": "code",
+      "correct": 64,
+      "wrong": 1,
+      "unparseable": 2,
+      "total": 67,
+      "pct": 95,
+      "by_category": {
+        "positive": {
+          "correct": 37,
+          "total": 39
+        },
+        "paraphrase": {
+          "correct": 20,
+          "total": 20
+        },
+        "negative": {
+          "correct": 7,
+          "total": 8
+        }
+      },
+      "cases": [
+        {
+          "case": "git_commit",
+          "input": "I need to commit my changes and write a good commit message",
+          "expected": "git",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "ERROR: timed out",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "git_merge_conflict",
+          "input": "I have a merge conflict, how do I resolve it?",
+          "expected": "git",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "ERROR: timed out",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "git_paraphrase",
+          "input": "My branch is behind main, I want to clean up the history before opening a PR",
+          "expected": "git",
+          "category": "paraphrase",
+          "parsed": "git",
+          "raw": "git",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_review_pr",
+          "input": "Please review this pull request before I merge it",
+          "expected": "code-review",
+          "category": "positive",
+          "parsed": "code-review",
+          "raw": "code-review",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_review_quality",
+          "input": "Check my code for bugs and quality issues",
+          "expected": "code-review",
+          "category": "positive",
+          "parsed": "code-review",
+          "raw": "code-review",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_review_paraphrase",
+          "input": "Can you look over this before I merge it into main?",
+          "expected": "code-review",
+          "category": "paraphrase",
+          "parsed": "code-review",
+          "raw": "code-review",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_feature",
+          "input": "Help me plan this new feature before I start coding",
+          "expected": "planning",
+          "category": "positive",
+          "parsed": "planning",
+          "raw": "planning",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_blast_radius",
+          "input": "I need to understand what will break if I change this module",
+          "expected": "planning",
+          "category": "positive",
+          "parsed": "planning",
+          "raw": "planning",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_paraphrase",
+          "input": "I need to understand the full impact before I change the database layer",
+          "expected": "planning",
+          "category": "paraphrase",
+          "parsed": "planning",
+          "raw": "planning",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_write_tests_first",
+          "input": "I'm about to implement a new feature, what tests should I write first?",
+          "expected": "tdd",
+          "category": "positive",
+          "parsed": "tdd",
+          "raw": "tdd",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_red_green",
+          "input": "I want to start with a failing test for this new feature before writing any code",
+          "expected": "tdd",
+          "category": "positive",
+          "parsed": "tdd",
+          "raw": "tdd",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_paraphrase",
+          "input": "I want to do this properly \u2014 tests before implementation",
+          "expected": "tdd",
+          "category": "paraphrase",
+          "parsed": "tdd",
+          "raw": "tdd",
+          "outcome": "correct"
+        },
+        {
+          "case": "debugging_failing_test",
+          "input": "My tests are unexpectedly failing and I can't find the root cause",
+          "expected": "debugging",
+          "category": "positive",
+          "parsed": "debugging",
+          "raw": "debugging",
+          "outcome": "correct"
+        },
+        {
+          "case": "debugging_crash",
+          "input": "The application crashes with a KeyError on line 47",
+          "expected": "debugging",
+          "category": "positive",
+          "parsed": "debugging",
+          "raw": "debugging",
+          "outcome": "correct"
+        },
+        {
+          "case": "debugging_paraphrase",
+          "input": "I have a bug that only shows up sometimes and I can't track it down",
+          "expected": "debugging",
+          "category": "paraphrase",
+          "parsed": "debugging",
+          "raw": "debugging",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_done",
+          "input": "I'm done with my work, help me close out this session properly",
+          "expected": "finalization",
+          "category": "positive",
+          "parsed": "finalization",
+          "raw": "finalization",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_wrap_up",
+          "input": "All my changes are committed and tests pass, ready to wrap up",
+          "expected": "finalization",
+          "category": "positive",
+          "parsed": "finalization",
+          "raw": "finalization",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_paraphrase",
+          "input": "I want to make sure everything is pushed and the issue is updated before I stop",
+          "expected": "finalization",
+          "category": "paraphrase",
+          "parsed": "finalization",
+          "raw": "finalization",
+          "outcome": "correct"
+        },
+        {
+          "case": "reflect_correction",
+          "input": "I need to permanently record a correction so we don't repeat this mistake",
+          "expected": "reflect",
+          "category": "positive",
+          "parsed": "reflect",
+          "raw": "reflect",
+          "outcome": "correct"
+        },
+        {
+          "case": "reflect_session_end",
+          "input": "I want to save the lessons from this session into the skill files",
+          "expected": "reflect",
+          "category": "positive",
+          "parsed": "reflect",
+          "raw": "reflect",
+          "outcome": "correct"
+        },
+        {
+          "case": "retrospective_post_session",
+          "input": "Finalization is done, now let's do the post-session strategic analysis",
+          "expected": "retrospective",
+          "category": "positive",
+          "parsed": "retrospective",
+          "raw": "retrospective",
+          "outcome": "correct"
+        },
+        {
+          "case": "retrospective_paraphrase",
+          "input": "Session is closing, write the handoff and generate improvement suggestions",
+          "expected": "retrospective",
+          "category": "paraphrase",
+          "parsed": "retrospective",
+          "raw": "retrospective",
+          "outcome": "correct"
+        },
+        {
+          "case": "show_next_task_what_to_do",
+          "input": "What should I work on next?",
+          "expected": "show-next-task",
+          "category": "positive",
+          "parsed": "show-next-task",
+          "raw": "show-next-task",
+          "outcome": "correct"
+        },
+        {
+          "case": "show_next_task_paraphrase",
+          "input": "I just finished that issue, what's the highest priority thing to pick up now?",
+          "expected": "show-next-task",
+          "category": "paraphrase",
+          "parsed": "show-next-task",
+          "raw": "show-next-task",
+          "outcome": "correct"
+        },
+        {
+          "case": "continue_resume",
+          "input": "I'm starting a new session, I need to resume where I left off yesterday",
+          "expected": "continue",
+          "category": "positive",
+          "parsed": "continue",
+          "raw": "continue",
+          "outcome": "correct"
+        },
+        {
+          "case": "continue_handoff",
+          "input": "Load my handoff from the previous session so I can pick up where we stopped",
+          "expected": "continue",
+          "category": "positive",
+          "parsed": "continue",
+          "raw": "continue",
+          "outcome": "correct"
+        },
+        {
+          "case": "pull_request_open",
+          "input": "I'm ready to open a pull request for this feature",
+          "expected": "pull-request",
+          "category": "positive",
+          "parsed": "pull-request",
+          "raw": "pull-request",
+          "outcome": "correct"
+        },
+        {
+          "case": "pull_request_paraphrase",
+          "input": "I finished the feature and I'm ready to get it reviewed on GitHub",
+          "expected": "pull-request",
+          "category": "paraphrase",
+          "parsed": "pull-request",
+          "raw": "pull-request",
+          "outcome": "correct"
+        },
+        {
+          "case": "devils_advocate_challenge",
+          "input": "Challenge my plan \u2014 what are the risks I'm not seeing?",
+          "expected": "devils-advocate",
+          "category": "positive",
+          "parsed": "devils-advocate",
+          "raw": "devils-advocate",
+          "outcome": "correct"
+        },
+        {
+          "case": "devils_advocate_paraphrase",
+          "input": "I want critical pushback and risk analysis on my proposed design",
+          "expected": "devils-advocate",
+          "category": "paraphrase",
+          "parsed": "devils-advocate",
+          "raw": "devils-advocate",
+          "outcome": "correct"
+        },
+        {
+          "case": "init_briefing_new_session",
+          "input": "Starting a new session, give me the briefing",
+          "expected": "session-briefing",
+          "category": "positive",
+          "parsed": "session-briefing",
+          "raw": "session-briefing",
+          "outcome": "correct"
+        },
+        {
+          "case": "init_briefing_paraphrase",
+          "input": "Give me a quick status briefing before we dive in",
+          "expected": "session-briefing",
+          "category": "paraphrase",
+          "parsed": "session-briefing",
+          "raw": "session-briefing",
+          "outcome": "correct"
+        },
+        {
+          "case": "orchestrator_check",
+          "input": "Verify that all SOP compliance gates have been satisfied",
+          "expected": "sop-checker",
+          "category": "positive",
+          "parsed": "sop-checker",
+          "raw": "sop-checker",
+          "outcome": "correct"
+        },
+        {
+          "case": "orchestrator_finalize_check",
+          "input": "Verify that all the SOP finalization steps have been completed",
+          "expected": "sop-checker",
+          "category": "positive",
+          "parsed": "sop-checker",
+          "raw": "sop-checker",
+          "outcome": "correct"
+        },
+        {
+          "case": "context_full",
+          "input": "The context window is getting full, I need to compress it",
+          "expected": "context-management",
+          "category": "positive",
+          "parsed": "context-management",
+          "raw": "context-management",
+          "outcome": "correct"
+        },
+        {
+          "case": "context_paraphrase",
+          "input": "I'm running low on context space and need to manage my window",
+          "expected": "context-management",
+          "category": "paraphrase",
+          "parsed": "context-management",
+          "raw": "context-management",
+          "outcome": "correct"
+        },
+        {
+          "case": "beads_cross_repo",
+          "input": "Create a linked issue in both the agent-harness and LightRAG repos",
+          "expected": "beads-manager",
+          "category": "positive",
+          "parsed": "beads-manager",
+          "raw": "beads-manager",
+          "outcome": "correct"
+        },
+        {
+          "case": "beads_paraphrase",
+          "input": "I need to track this work across multiple repositories",
+          "expected": "beads-manager",
+          "category": "paraphrase",
+          "parsed": "beads-manager",
+          "raw": "beads-manager",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_beads_new_feature",
+          "input": "Create a new beads issue for this feature with TDD scaffolding set up",
+          "expected": "tdd-beads",
+          "category": "positive",
+          "parsed": "tdd-beads",
+          "raw": "tdd-beads",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_nav_find_function",
+          "input": "I need to find where the login function is implemented in this codebase",
+          "expected": "code-search",
+          "category": "positive",
+          "parsed": "code-search",
+          "raw": "code-search",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_nav_paraphrase",
+          "input": "Show me all the places in the codebase that reference the storage module",
+          "expected": "code-search",
+          "category": "paraphrase",
+          "parsed": "code-search",
+          "raw": "code-search",
+          "outcome": "correct"
+        },
+        {
+          "case": "mcp_which_tool",
+          "input": "Which tool should I use to read a file in the ~/.agent directory?",
+          "expected": "mcp-file-access",
+          "category": "positive",
+          "parsed": "mcp-file-access",
+          "raw": "mcp-file-access",
+          "outcome": "correct"
+        },
+        {
+          "case": "mcp_paraphrase",
+          "input": "I need to decide which MCP tool to use for writing to the ~/.agent directory",
+          "expected": "mcp-file-access",
+          "category": "paraphrase",
+          "parsed": "mcp-file-access",
+          "raw": "mcp-file-access",
+          "outcome": "correct"
+        },
+        {
+          "case": "notebooklm_query",
+          "input": "Ask my NotebookLM what the architecture looks like",
+          "expected": "notebooklm",
+          "category": "positive",
+          "parsed": "notebooklm",
+          "raw": "notebooklm",
+          "outcome": "correct"
+        },
+        {
+          "case": "notebooklm_paraphrase",
+          "input": "Check my notebooks for documentation on the query pipeline",
+          "expected": "notebooklm",
+          "category": "paraphrase",
+          "parsed": "notebooklm",
+          "raw": "notebooklm",
+          "outcome": "correct"
+        },
+        {
+          "case": "bridge_post_plan",
+          "input": "Submit my implementation plan for review by the other agent",
+          "expected": "bridge",
+          "category": "positive",
+          "parsed": "bridge",
+          "raw": "bridge",
+          "outcome": "correct"
+        },
+        {
+          "case": "bridge_paraphrase",
+          "input": "I need Claude and OpenCode to agree on this plan before I proceed",
+          "expected": "bridge",
+          "category": "paraphrase",
+          "parsed": "bridge",
+          "raw": "bridge",
+          "outcome": "correct"
+        },
+        {
+          "case": "skill_making_create",
+          "input": "I want to create a new skill for the agent",
+          "expected": "skill-making",
+          "category": "positive",
+          "parsed": "skill-making",
+          "raw": "skill-making",
+          "outcome": "correct"
+        },
+        {
+          "case": "skill_making_paraphrase",
+          "input": "My skill script fails with EOF errors in non-interactive mode",
+          "expected": "skill-making",
+          "category": "paraphrase",
+          "parsed": "skill-making",
+          "raw": "skill-making",
+          "outcome": "correct"
+        },
+        {
+          "case": "sop_modify_gate",
+          "input": "I need to modify one of the mandatory quality gates in the SOP",
+          "expected": "sop-modification",
+          "category": "positive",
+          "parsed": "sop-modification",
+          "raw": "sop-modification",
+          "outcome": "correct"
+        },
+        {
+          "case": "process_ci",
+          "input": "Run the full CI pipeline",
+          "expected": "cicd",
+          "category": "positive",
+          "parsed": "cicd",
+          "raw": "cicd",
+          "outcome": "correct"
+        },
+        {
+          "case": "process_release",
+          "input": "Prepare a release candidate for version 1.3.0",
+          "expected": "cicd",
+          "category": "positive",
+          "parsed": "cicd",
+          "raw": "cicd",
+          "outcome": "correct"
+        },
+        {
+          "case": "testing_run_suite",
+          "input": "Run the full test suite with coverage reporting",
+          "expected": "test-runner",
+          "category": "positive",
+          "parsed": "test-runner",
+          "raw": "test-runner",
+          "outcome": "correct"
+        },
+        {
+          "case": "testing_paraphrase",
+          "input": "I want to check our current test coverage percentage",
+          "expected": "test-runner",
+          "category": "paraphrase",
+          "parsed": "test-runner",
+          "raw": "test-runner",
+          "outcome": "correct"
+        },
+        {
+          "case": "ui_dev_server",
+          "input": "Start the development server for the web interface",
+          "expected": "ui",
+          "category": "positive",
+          "parsed": "ui",
+          "raw": "ui",
+          "outcome": "correct"
+        },
+        {
+          "case": "ui_paraphrase",
+          "input": "Deploy the WebUI to staging",
+          "expected": "ui",
+          "category": "paraphrase",
+          "parsed": "ui",
+          "raw": "ui",
+          "outcome": "correct"
+        },
+        {
+          "case": "multi_model_route",
+          "input": "I want to assign this coding task to the specialized implementation model",
+          "expected": "model-router",
+          "category": "positive",
+          "parsed": "model-router",
+          "raw": "model-router",
+          "outcome": "correct"
+        },
+        {
+          "case": "openviking_start",
+          "input": "Start the OpenViking services",
+          "expected": "openviking",
+          "category": "positive",
+          "parsed": "openviking",
+          "raw": "openviking",
+          "outcome": "correct"
+        },
+        {
+          "case": "browser_cleanup",
+          "input": "Clean up the Playwright browser processes from the last session",
+          "expected": "playwright-manager",
+          "category": "positive",
+          "parsed": "playwright-manager",
+          "raw": "playwright-manager",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_general_knowledge",
+          "input": "What is machine learning?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_weather",
+          "input": "What is the weather like in Paris today?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_write_code",
+          "input": "What is the difference between a list and a tuple in Python?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_explain_concept",
+          "input": "Explain how transformers work",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_math",
+          "input": "What is the square root of 144?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_email",
+          "input": "What is the boiling point of water?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_casual",
+          "input": "Good morning! Ready to get started.",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "session-briefing",
+          "raw": "session-briefing",
+          "outcome": "wrong"
+        },
+        {
+          "case": "none_unrelated_code",
+          "input": "What year was Python first released?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        }
+      ]
+    },
+    "dolphincoder:15b": {
+      "size_gb": 9.1,
+      "type": "code",
+      "correct": 56,
+      "wrong": 5,
+      "unparseable": 6,
+      "total": 67,
+      "pct": 83,
+      "by_category": {
+        "positive": {
+          "correct": 34,
+          "total": 39
+        },
+        "paraphrase": {
+          "correct": 17,
+          "total": 20
+        },
+        "negative": {
+          "correct": 5,
+          "total": 8
+        }
+      },
+      "cases": [
+        {
+          "case": "git_commit",
+          "input": "I need to commit my changes and write a good commit message",
+          "expected": "git",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "ERROR: timed out",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "git_merge_conflict",
+          "input": "I have a merge conflict, how do I resolve it?",
+          "expected": "git",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "ERROR: timed out",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "git_paraphrase",
+          "input": "My branch is behind main, I want to clean up the history before opening a PR",
+          "expected": "git",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "ERROR: timed out",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "code_review_pr",
+          "input": "Please review this pull request before I merge it",
+          "expected": "code-review",
+          "category": "positive",
+          "parsed": "code-review",
+          "raw": "code-review\n\nThe user is asking to review the code in a pull request before merging. This corresponds to the \"code-review\" skill, which",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_review_quality",
+          "input": "Check my code for bugs and quality issues",
+          "expected": "code-review",
+          "category": "positive",
+          "parsed": "code-review",
+          "raw": "code-review\n\nThe user message is asking about checking the code for bugs and quality issues. The most relevant skill in this context would be \"code-",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_review_paraphrase",
+          "input": "Can you look over this before I merge it into main?",
+          "expected": "code-review",
+          "category": "paraphrase",
+          "parsed": "code-review",
+          "raw": "code-review\n\nI understand the user's request and have identified that the most relevant skill to address their query is \"code-review\". This skill allows",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_feature",
+          "input": "Help me plan this new feature before I start coding",
+          "expected": "planning",
+          "category": "positive",
+          "parsed": "planning",
+          "raw": "planning\n\nThe user is asking for help in planning their new feature. The most relevant skill to address this request is \"planning\". So, the output will",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_blast_radius",
+          "input": "I need to understand what will break if I change this module",
+          "expected": "planning",
+          "category": "positive",
+          "parsed": "planning",
+          "raw": "planning\n\nThe user message is asking about understanding the impact of changing a module. The most relevant skill in this context is \"planning\". So, the output",
+          "outcome": "correct"
+        },
+        {
+          "case": "planning_paraphrase",
+          "input": "I need to understand the full impact before I change the database layer",
+          "expected": "planning",
+          "category": "paraphrase",
+          "parsed": "planning",
+          "raw": "planning\n\nThe most relevant skill for this user message is \"planning\". The planning skill helps in understanding the full impact of a change before making it, which",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_write_tests_first",
+          "input": "I'm about to implement a new feature, what tests should I write first?",
+          "expected": "tdd",
+          "category": "positive",
+          "parsed": "tdd-beads",
+          "raw": "tdd-beads\n\nThe user is asking for guidance on writing tests before implementing a new feature. The most relevant skill in this context is \"t",
+          "outcome": "wrong"
+        },
+        {
+          "case": "tdd_red_green",
+          "input": "I want to start with a failing test for this new feature before writing any code",
+          "expected": "tdd",
+          "category": "positive",
+          "parsed": "tdd-beads",
+          "raw": "tdd-beads\n\nThe user wants to create a failing test first, which is a part of the Test Driven Development (TDD) workflow",
+          "outcome": "wrong"
+        },
+        {
+          "case": "tdd_paraphrase",
+          "input": "I want to do this properly \u2014 tests before implementation",
+          "expected": "tdd",
+          "category": "paraphrase",
+          "parsed": "tdd-beads",
+          "raw": "tdd-beads\n\nThe user is asking about the TDD-beads skill, which creates beads issues with TDD compliance enforcement for",
+          "outcome": "wrong"
+        },
+        {
+          "case": "debugging_failing_test",
+          "input": "My tests are unexpectedly failing and I can't find the root cause",
+          "expected": "debugging",
+          "category": "positive",
+          "parsed": "debugging",
+          "raw": "debugging\n\nThe user message seems to be related to debugging, as they're having issues with their tests failing. The skill \"debugging\" would be most relevant",
+          "outcome": "correct"
+        },
+        {
+          "case": "debugging_crash",
+          "input": "The application crashes with a KeyError on line 47",
+          "expected": "debugging",
+          "category": "positive",
+          "parsed": "debugging",
+          "raw": "Debugging\n\nIn this case, the user is experiencing an error in their code. The error message mentions a KeyError on line 47. This suggests that",
+          "outcome": "correct"
+        },
+        {
+          "case": "debugging_paraphrase",
+          "input": "I have a bug that only shows up sometimes and I can't track it down",
+          "expected": "debugging",
+          "category": "paraphrase",
+          "parsed": "debugging",
+          "raw": "debugging\n\nThe user message is about debugging, so the most relevant skill would be \"debugging\". This skill helps to identify bugs in code and fix them.",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_done",
+          "input": "I'm done with my work, help me close out this session properly",
+          "expected": "finalization",
+          "category": "positive",
+          "parsed": "finalization",
+          "raw": "finalization\n\nThe user message is asking for assistance in closing out the current session. The most relevant skill to address this request is \"finalization\". So",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_wrap_up",
+          "input": "All my changes are committed and tests pass, ready to wrap up",
+          "expected": "finalization",
+          "category": "positive",
+          "parsed": "finalization",
+          "raw": "finalization\n\nThe user message is related to the finalization skill. This means that the system correctly identified the most relevant skill for the given context. The",
+          "outcome": "correct"
+        },
+        {
+          "case": "finalization_paraphrase",
+          "input": "I want to make sure everything is pushed and the issue is updated before I stop",
+          "expected": "finalization",
+          "category": "paraphrase",
+          "parsed": "finalization",
+          "raw": "In this case, the relevant skill would be \"git\" as it involves pushing code and updating an issue. The other skills like \"finalization\", \"code",
+          "outcome": "correct"
+        },
+        {
+          "case": "reflect_correction",
+          "input": "I need to permanently record a correction so we don't repeat this mistake",
+          "expected": "reflect",
+          "category": "positive",
+          "parsed": "reflect",
+          "raw": "reflect\n\nIn the given user message, \"I need to permanently record a correction so we don't repeat this mistake\", the most relevant skill is \"",
+          "outcome": "correct"
+        },
+        {
+          "case": "reflect_session_end",
+          "input": "I want to save the lessons from this session into the skill files",
+          "expected": "reflect",
+          "category": "positive",
+          "parsed": "reflect",
+          "raw": "reflect\n\nIn this example, the user wants to reflect on their conversation and update relevant SKILL.md files with their learnings. The most relevant skill",
+          "outcome": "correct"
+        },
+        {
+          "case": "retrospective_post_session",
+          "input": "Finalization is done, now let's do the post-session strategic analysis",
+          "expected": "retrospective",
+          "category": "positive",
+          "parsed": "retrospective",
+          "raw": "retrospective\n\nThe user message seems to be related to the \"retrospective\" skill. This skill is used when analyzing a session after it",
+          "outcome": "correct"
+        },
+        {
+          "case": "retrospective_paraphrase",
+          "input": "Session is closing, write the handoff and generate improvement suggestions",
+          "expected": "retrospective",
+          "category": "paraphrase",
+          "parsed": "retrospective",
+          "raw": "retrospective\n\nIn this case, the user wants to know which skill to use when they are about to close a session. The most relevant skill for",
+          "outcome": "correct"
+        },
+        {
+          "case": "show_next_task_what_to_do",
+          "input": "What should I work on next?",
+          "expected": "show-next-task",
+          "category": "positive",
+          "parsed": "show-next-task",
+          "raw": "show-next-task\n\nThe user is asking about the next task to be worked on in the LightRAG project. The most relevant skill for this",
+          "outcome": "correct"
+        },
+        {
+          "case": "show_next_task_paraphrase",
+          "input": "I just finished that issue, what's the highest priority thing to pick up now?",
+          "expected": "show-next-task",
+          "category": "paraphrase",
+          "parsed": "show-next-task",
+          "raw": "show-next-task\n\nThe user message seems to be asking about the next task after finishing an issue. The most relevant skill for this is \"",
+          "outcome": "correct"
+        },
+        {
+          "case": "continue_resume",
+          "input": "I'm starting a new session, I need to resume where I left off yesterday",
+          "expected": "continue",
+          "category": "positive",
+          "parsed": "continue",
+          "raw": "continue\n\nThe user is asking about resuming their previous agent session. The most relevant skill in this case would be \"continue\". This skill allows the user",
+          "outcome": "correct"
+        },
+        {
+          "case": "continue_handoff",
+          "input": "Load my handoff from the previous session so I can pick up where we stopped",
+          "expected": "continue",
+          "category": "positive",
+          "parsed": "continue",
+          "raw": "continue\n\nThe user message is asking to load their previous session's handoff, which means they want to continue with their work. The most relevant skill for",
+          "outcome": "correct"
+        },
+        {
+          "case": "pull_request_open",
+          "input": "I'm ready to open a pull request for this feature",
+          "expected": "pull-request",
+          "category": "positive",
+          "parsed": "pull-request",
+          "raw": "pull-request\n\nThe user message \"I'm ready to open a pull request for this feature\" is most relevant to the skill \"pull-request\".",
+          "outcome": "correct"
+        },
+        {
+          "case": "pull_request_paraphrase",
+          "input": "I finished the feature and I'm ready to get it reviewed on GitHub",
+          "expected": "pull-request",
+          "category": "paraphrase",
+          "parsed": "code-review",
+          "raw": "code-review\n\nThe user message is related to reviewing code, so the most relevant skill would be \"code-review\". The other skills like \"git",
+          "outcome": "wrong"
+        },
+        {
+          "case": "devils_advocate_challenge",
+          "input": "Challenge my plan \u2014 what are the risks I'm not seeing?",
+          "expected": "devils-advocate",
+          "category": "positive",
+          "parsed": "devils-advocate",
+          "raw": "Output: devils-advocate\n\nThe user is asking for advice on how to challenge their own plans and consider potential risks they might be over",
+          "outcome": "correct"
+        },
+        {
+          "case": "devils_advocate_paraphrase",
+          "input": "I want critical pushback and risk analysis on my proposed design",
+          "expected": "devils-advocate",
+          "category": "paraphrase",
+          "parsed": "devils-advocate",
+          "raw": "devils-advocate\n\nThe user is asking for advice or feedback on their design, which requires the \"devils-advocate\" skill",
+          "outcome": "correct"
+        },
+        {
+          "case": "init_briefing_new_session",
+          "input": "Starting a new session, give me the briefing",
+          "expected": "session-briefing",
+          "category": "positive",
+          "parsed": "session-briefing",
+          "raw": "session-briefing\n\nI understand you are starting a new session and need a pre-session briefing. Here is what I can provide for you:",
+          "outcome": "correct"
+        },
+        {
+          "case": "init_briefing_paraphrase",
+          "input": "Give me a quick status briefing before we dive in",
+          "expected": "session-briefing",
+          "category": "paraphrase",
+          "parsed": "session-briefing",
+          "raw": "session-briefing\n\nI understand that you want to know the current project status, protocol highlights, and friction areas before starting work. This is",
+          "outcome": "correct"
+        },
+        {
+          "case": "orchestrator_check",
+          "input": "Verify that all SOP compliance gates have been satisfied",
+          "expected": "sop-checker",
+          "category": "positive",
+          "parsed": "sop-checker",
+          "raw": "sop-checker\n\nThe user message is asking about verifying the completion of SOP (Standard Operating Procedure) compliance gates. The most relevant skill for",
+          "outcome": "correct"
+        },
+        {
+          "case": "orchestrator_finalize_check",
+          "input": "Verify that all the SOP finalization steps have been completed",
+          "expected": "sop-checker",
+          "category": "positive",
+          "parsed": "sop-checker",
+          "raw": "sop-checker\n\nThe user message is asking about verifying if all the SOP finalization steps have been completed. The most relevant skill for this question",
+          "outcome": "correct"
+        },
+        {
+          "case": "context_full",
+          "input": "The context window is getting full, I need to compress it",
+          "expected": "context-management",
+          "category": "positive",
+          "parsed": "context-management",
+          "raw": "context-management\n\nThis user message seems to be related to the \"context-management\" skill. The context window is a feature in Claude that stores",
+          "outcome": "correct"
+        },
+        {
+          "case": "context_paraphrase",
+          "input": "I'm running low on context space and need to manage my window",
+          "expected": "context-management",
+          "category": "paraphrase",
+          "parsed": "context-management",
+          "raw": "context-management\n\nThe user is asking about managing the agent's context window, which is an essential skill in maintaining focus and preventing memory overload. This",
+          "outcome": "correct"
+        },
+        {
+          "case": "beads_cross_repo",
+          "input": "Create a linked issue in both the agent-harness and LightRAG repos",
+          "expected": "beads-manager",
+          "category": "positive",
+          "parsed": "beads-manager",
+          "raw": "The most relevant skill for this user message is \"beads-manager\". \n\nBeads-manager creates and manages beads issues across multiple repositories. It",
+          "outcome": "correct"
+        },
+        {
+          "case": "beads_paraphrase",
+          "input": "I need to track this work across multiple repositories",
+          "expected": "beads-manager",
+          "category": "paraphrase",
+          "parsed": "beads-manager",
+          "raw": "beads-manager\n\nThe user message is related to the \"beads-manager\" skill, which creates and manages beads issues across multiple repos.",
+          "outcome": "correct"
+        },
+        {
+          "case": "tdd_beads_new_feature",
+          "input": "Create a new beads issue for this feature with TDD scaffolding set up",
+          "expected": "tdd-beads",
+          "category": "positive",
+          "parsed": "beads-manager",
+          "raw": "beads-manager\n\nThe user message is asking to create a new beads issue for a feature, and the skill \"beads-manager\" would",
+          "outcome": "wrong"
+        },
+        {
+          "case": "code_nav_find_function",
+          "input": "I need to find where the login function is implemented in this codebase",
+          "expected": "code-search",
+          "category": "positive",
+          "parsed": "code-search",
+          "raw": "code-search\n\nThe user message \"I need to find where the login function is implemented in this codebase\" is most relevant to the skill \"code-",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_nav_paraphrase",
+          "input": "Show me all the places in the codebase that reference the storage module",
+          "expected": "code-search",
+          "category": "paraphrase",
+          "parsed": "code-search",
+          "raw": "code-search\n\nThe user's message is asking about finding code references to a specific module. The most relevant skill for this task is \"code-search",
+          "outcome": "correct"
+        },
+        {
+          "case": "mcp_which_tool",
+          "input": "Which tool should I use to read a file in the ~/.agent directory?",
+          "expected": "mcp-file-access",
+          "category": "positive",
+          "parsed": "mcp-file-access",
+          "raw": "To read a file in the ~/.agent directory, you can use the \"mcp-file-access\" skill. This skill provides reference guides for file reading",
+          "outcome": "correct"
+        },
+        {
+          "case": "mcp_paraphrase",
+          "input": "I need to decide which MCP tool to use for writing to the ~/.agent directory",
+          "expected": "mcp-file-access",
+          "category": "paraphrase",
+          "parsed": "mcp-file-access",
+          "raw": "mcp-file-access\n\nThe user is asking about using an MCP tool to write to a specific directory. The most relevant skill for this question",
+          "outcome": "correct"
+        },
+        {
+          "case": "notebooklm_query",
+          "input": "Ask my NotebookLM what the architecture looks like",
+          "expected": "notebooklm",
+          "category": "positive",
+          "parsed": "notebooklm",
+          "raw": "The most relevant skill for this user message is \"notebooklm\". This skill allows users to query Google's NotebookLM, which provides source-grounded and c",
+          "outcome": "correct"
+        },
+        {
+          "case": "notebooklm_paraphrase",
+          "input": "Check my notebooks for documentation on the query pipeline",
+          "expected": "notebooklm",
+          "category": "paraphrase",
+          "parsed": "notebooklm",
+          "raw": "notebooklm\n\nThe user's message is related to querying Google NotebookLM, so the most relevant skill would be \"notebooklm\". This skill allows users to",
+          "outcome": "correct"
+        },
+        {
+          "case": "bridge_post_plan",
+          "input": "Submit my implementation plan for review by the other agent",
+          "expected": "bridge",
+          "category": "positive",
+          "parsed": "bridge",
+          "raw": "bridge\n\nThe most relevant skill to this user message is \"bridge\". This skill is used when submitting a plan for another agent to review, when two agents",
+          "outcome": "correct"
+        },
+        {
+          "case": "bridge_paraphrase",
+          "input": "I need Claude and OpenCode to agree on this plan before I proceed",
+          "expected": "bridge",
+          "category": "paraphrase",
+          "parsed": "bridge",
+          "raw": "bridge\n\nThe user message is asking about the bridge skill, which is used when submitting a plan for another agent to review or when two agents need to agree",
+          "outcome": "correct"
+        },
+        {
+          "case": "skill_making_create",
+          "input": "I want to create a new skill for the agent",
+          "expected": "skill-making",
+          "category": "positive",
+          "parsed": "skill-making",
+          "raw": "skill-making\n\nIn this case, the user is asking about creating a new skill for the agent. The most relevant skill in this context would be \"",
+          "outcome": "correct"
+        },
+        {
+          "case": "skill_making_paraphrase",
+          "input": "My skill script fails with EOF errors in non-interactive mode",
+          "expected": "skill-making",
+          "category": "paraphrase",
+          "parsed": "skill-making",
+          "raw": "The \"skill-making\" skill is the most relevant one to your user message. This skill provides comprehensive guidelines and patterns for creating robust, reliable skills that work",
+          "outcome": "correct"
+        },
+        {
+          "case": "sop_modify_gate",
+          "input": "I need to modify one of the mandatory quality gates in the SOP",
+          "expected": "sop-modification",
+          "category": "positive",
+          "parsed": "sop-modification",
+          "raw": "sop-modification\n\nThe most relevant skill for this user message is \"sop-modification\". This skill provides guidelines and patterns for modifying mandatory quality gates,",
+          "outcome": "correct"
+        },
+        {
+          "case": "process_ci",
+          "input": "Run the full CI pipeline",
+          "expected": "cicd",
+          "category": "positive",
+          "parsed": "cicd",
+          "raw": "cicd\n\nThe most relevant skill to run the full CI pipeline is \"cicd\". This skill covers running the CI/CD pipelines, releases, and",
+          "outcome": "correct"
+        },
+        {
+          "case": "process_release",
+          "input": "Prepare a release candidate for version 1.3.0",
+          "expected": "cicd",
+          "category": "positive",
+          "parsed": "cicd",
+          "raw": "Output: cicd\n\nThe user is asking about preparing a release candidate for version 1.3.0, which falls under the category of",
+          "outcome": "correct"
+        },
+        {
+          "case": "testing_run_suite",
+          "input": "Run the full test suite with coverage reporting",
+          "expected": "test-runner",
+          "category": "positive",
+          "parsed": "test-runner",
+          "raw": "test-runner\n\nThe user is asking to run the entire test suite and generate coverage reports. This corresponds to the \"test-runner\" skill, which",
+          "outcome": "correct"
+        },
+        {
+          "case": "testing_paraphrase",
+          "input": "I want to check our current test coverage percentage",
+          "expected": "test-runner",
+          "category": "paraphrase",
+          "parsed": "test-runner",
+          "raw": "test-runner\n\nThe user wants to know the current test coverage percentage, which is related to the \"test-runner\" skill. This skill helps in",
+          "outcome": "correct"
+        },
+        {
+          "case": "ui_dev_server",
+          "input": "Start the development server for the web interface",
+          "expected": "ui",
+          "category": "positive",
+          "parsed": "ui",
+          "raw": "ui\n\nThe most relevant skill for this user message is \"ui\". This skill deals with managing the LightRAG web interface, including WebUI development,",
+          "outcome": "correct"
+        },
+        {
+          "case": "ui_paraphrase",
+          "input": "Deploy the WebUI to staging",
+          "expected": "ui",
+          "category": "paraphrase",
+          "parsed": "ui",
+          "raw": "ui\n\nThe relevant skill for this user message is \"ui\". This skill deals with managing the LightRAG web interface, including frontend builds, deployment,",
+          "outcome": "correct"
+        },
+        {
+          "case": "multi_model_route",
+          "input": "I want to assign this coding task to the specialized implementation model",
+          "expected": "model-router",
+          "category": "positive",
+          "parsed": "model-router",
+          "raw": "model-router\n\nIn this case, the user is asking about assigning a coding task to a specific model. The most relevant skill for this request would be",
+          "outcome": "correct"
+        },
+        {
+          "case": "openviking_start",
+          "input": "Start the OpenViking services",
+          "expected": "openviking",
+          "category": "positive",
+          "parsed": "openviking",
+          "raw": "openviking\n\nThe most relevant skill for this user message is \"openviking\". This skill is designed to enhance agent system functionality and improve token efficiency",
+          "outcome": "correct"
+        },
+        {
+          "case": "browser_cleanup",
+          "input": "Clean up the Playwright browser processes from the last session",
+          "expected": "playwright-manager",
+          "category": "positive",
+          "parsed": "playwright-manager",
+          "raw": "playwright-manager\n\nThe user message is related to managing Playwright browser processes. Therefore, the most relevant skill for this context is \"play",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_general_knowledge",
+          "input": "What is machine learning?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none\n\nThe user's question does not match any of the skill descriptions. Therefore, the most relevant skill would be \"none\". This means that there is",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_weather",
+          "input": "What is the weather like in Paris today?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none\n\nThe user's question does not match any of the skill descriptions. Therefore, the output should be \"none\". This indicates that there is no relevant",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_write_code",
+          "input": "What is the difference between a list and a tuple in Python?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "UNPARSEABLE",
+          "raw": "In Python, a list is an ordered collection of items that can be changed (mutable), while a tuple is an ordered collection of items that cannot be changed (",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "none_explain_concept",
+          "input": "Explain how transformers work",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "UNPARSEABLE",
+          "raw": "Transformers are a type of neural network architecture that has gained popularity in natural language processing (NLP) and other areas of machine learning. They were",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "none_math",
+          "input": "What is the square root of 144?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "UNPARSEABLE",
+          "raw": "To find the square root of 144, you can use a calculator or perform simple math calculations. The square root of 144 is ",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "none_email",
+          "input": "What is the boiling point of water?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none\n\nThe user's question does not match any skill description. Therefore, the output should be \"none\". The system correctly identifies that there is no relevant",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_casual",
+          "input": "Good morning! Ready to get started.",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none\n\nThe user message is not related to any specific skill, so the output is \"none\". This indicates that there is no relevant skill for this user",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_unrelated_code",
+          "input": "What year was Python first released?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none\n\nThe user's question is not related to any of the listed skills. Therefore, the output should be \"none\". The system correctly identifies that the",
+          "outcome": "correct"
+        }
+      ]
+    },
+    "gpt-oss:20b": {
+      "size_gb": 13.0,
+      "type": "general",
+      "correct": 7,
+      "wrong": 0,
+      "unparseable": 60,
+      "total": 67,
+      "pct": 10,
+      "by_category": {
+        "positive": {
+          "correct": 2,
+          "total": 39
+        },
+        "paraphrase": {
+          "correct": 2,
+          "total": 20
+        },
+        "negative": {
+          "correct": 3,
+          "total": 8
+        }
+      },
+      "cases": [
+        {
+          "case": "git_commit",
+          "input": "I need to commit my changes and write a good commit message",
+          "expected": "git",
+          "category": "positive",
+          "parsed": "git",
+          "raw": "git",
+          "outcome": "correct"
+        },
+        {
+          "case": "git_merge_conflict",
+          "input": "I have a merge conflict, how do I resolve it?",
+          "expected": "git",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "git_paraphrase",
+          "input": "My branch is behind main, I want to clean up the history before opening a PR",
+          "expected": "git",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "code_review_pr",
+          "input": "Please review this pull request before I merge it",
+          "expected": "code-review",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "code_review_quality",
+          "input": "Check my code for bugs and quality issues",
+          "expected": "code-review",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "code_review_paraphrase",
+          "input": "Can you look over this before I merge it into main?",
+          "expected": "code-review",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "planning_feature",
+          "input": "Help me plan this new feature before I start coding",
+          "expected": "planning",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "planning_blast_radius",
+          "input": "I need to understand what will break if I change this module",
+          "expected": "planning",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "planning_paraphrase",
+          "input": "I need to understand the full impact before I change the database layer",
+          "expected": "planning",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "tdd_write_tests_first",
+          "input": "I'm about to implement a new feature, what tests should I write first?",
+          "expected": "tdd",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "tdd_red_green",
+          "input": "I want to start with a failing test for this new feature before writing any code",
+          "expected": "tdd",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "tdd_paraphrase",
+          "input": "I want to do this properly \u2014 tests before implementation",
+          "expected": "tdd",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "debugging_failing_test",
+          "input": "My tests are unexpectedly failing and I can't find the root cause",
+          "expected": "debugging",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "debugging_crash",
+          "input": "The application crashes with a KeyError on line 47",
+          "expected": "debugging",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "debugging_paraphrase",
+          "input": "I have a bug that only shows up sometimes and I can't track it down",
+          "expected": "debugging",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "finalization_done",
+          "input": "I'm done with my work, help me close out this session properly",
+          "expected": "finalization",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "finalization_wrap_up",
+          "input": "All my changes are committed and tests pass, ready to wrap up",
+          "expected": "finalization",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "finalization_paraphrase",
+          "input": "I want to make sure everything is pushed and the issue is updated before I stop",
+          "expected": "finalization",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "reflect_correction",
+          "input": "I need to permanently record a correction so we don't repeat this mistake",
+          "expected": "reflect",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "reflect_session_end",
+          "input": "I want to save the lessons from this session into the skill files",
+          "expected": "reflect",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "retrospective_post_session",
+          "input": "Finalization is done, now let's do the post-session strategic analysis",
+          "expected": "retrospective",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "retrospective_paraphrase",
+          "input": "Session is closing, write the handoff and generate improvement suggestions",
+          "expected": "retrospective",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "show_next_task_what_to_do",
+          "input": "What should I work on next?",
+          "expected": "show-next-task",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "show_next_task_paraphrase",
+          "input": "I just finished that issue, what's the highest priority thing to pick up now?",
+          "expected": "show-next-task",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "continue_resume",
+          "input": "I'm starting a new session, I need to resume where I left off yesterday",
+          "expected": "continue",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "continue_handoff",
+          "input": "Load my handoff from the previous session so I can pick up where we stopped",
+          "expected": "continue",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "pull_request_open",
+          "input": "I'm ready to open a pull request for this feature",
+          "expected": "pull-request",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "pull_request_paraphrase",
+          "input": "I finished the feature and I'm ready to get it reviewed on GitHub",
+          "expected": "pull-request",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "devils_advocate_challenge",
+          "input": "Challenge my plan \u2014 what are the risks I'm not seeing?",
+          "expected": "devils-advocate",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "devils_advocate_paraphrase",
+          "input": "I want critical pushback and risk analysis on my proposed design",
+          "expected": "devils-advocate",
+          "category": "paraphrase",
+          "parsed": "devils-advocate",
+          "raw": "devils-advocate",
+          "outcome": "correct"
+        },
+        {
+          "case": "init_briefing_new_session",
+          "input": "Starting a new session, give me the briefing",
+          "expected": "session-briefing",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "init_briefing_paraphrase",
+          "input": "Give me a quick status briefing before we dive in",
+          "expected": "session-briefing",
+          "category": "paraphrase",
+          "parsed": "session-briefing",
+          "raw": "session-briefing",
+          "outcome": "correct"
+        },
+        {
+          "case": "orchestrator_check",
+          "input": "Verify that all SOP compliance gates have been satisfied",
+          "expected": "sop-checker",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "orchestrator_finalize_check",
+          "input": "Verify that all the SOP finalization steps have been completed",
+          "expected": "sop-checker",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "context_full",
+          "input": "The context window is getting full, I need to compress it",
+          "expected": "context-management",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "context_paraphrase",
+          "input": "I'm running low on context space and need to manage my window",
+          "expected": "context-management",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "beads_cross_repo",
+          "input": "Create a linked issue in both the agent-harness and LightRAG repos",
+          "expected": "beads-manager",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "beads_paraphrase",
+          "input": "I need to track this work across multiple repositories",
+          "expected": "beads-manager",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "tdd_beads_new_feature",
+          "input": "Create a new beads issue for this feature with TDD scaffolding set up",
+          "expected": "tdd-beads",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "code_nav_find_function",
+          "input": "I need to find where the login function is implemented in this codebase",
+          "expected": "code-search",
+          "category": "positive",
+          "parsed": "code-search",
+          "raw": "code-search",
+          "outcome": "correct"
+        },
+        {
+          "case": "code_nav_paraphrase",
+          "input": "Show me all the places in the codebase that reference the storage module",
+          "expected": "code-search",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "mcp_which_tool",
+          "input": "Which tool should I use to read a file in the ~/.agent directory?",
+          "expected": "mcp-file-access",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "mcp_paraphrase",
+          "input": "I need to decide which MCP tool to use for writing to the ~/.agent directory",
+          "expected": "mcp-file-access",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "notebooklm_query",
+          "input": "Ask my NotebookLM what the architecture looks like",
+          "expected": "notebooklm",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "notebooklm_paraphrase",
+          "input": "Check my notebooks for documentation on the query pipeline",
+          "expected": "notebooklm",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "bridge_post_plan",
+          "input": "Submit my implementation plan for review by the other agent",
+          "expected": "bridge",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "bridge_paraphrase",
+          "input": "I need Claude and OpenCode to agree on this plan before I proceed",
+          "expected": "bridge",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "skill_making_create",
+          "input": "I want to create a new skill for the agent",
+          "expected": "skill-making",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "skill_making_paraphrase",
+          "input": "My skill script fails with EOF errors in non-interactive mode",
+          "expected": "skill-making",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "sop_modify_gate",
+          "input": "I need to modify one of the mandatory quality gates in the SOP",
+          "expected": "sop-modification",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "process_ci",
+          "input": "Run the full CI pipeline",
+          "expected": "cicd",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "process_release",
+          "input": "Prepare a release candidate for version 1.3.0",
+          "expected": "cicd",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "testing_run_suite",
+          "input": "Run the full test suite with coverage reporting",
+          "expected": "test-runner",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "testing_paraphrase",
+          "input": "I want to check our current test coverage percentage",
+          "expected": "test-runner",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "test",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "ui_dev_server",
+          "input": "Start the development server for the web interface",
+          "expected": "ui",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "ui_paraphrase",
+          "input": "Deploy the WebUI to staging",
+          "expected": "ui",
+          "category": "paraphrase",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "multi_model_route",
+          "input": "I want to assign this coding task to the specialized implementation model",
+          "expected": "model-router",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "openviking_start",
+          "input": "Start the OpenViking services",
+          "expected": "openviking",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "browser_cleanup",
+          "input": "Clean up the Playwright browser processes from the last session",
+          "expected": "playwright-manager",
+          "category": "positive",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "none_general_knowledge",
+          "input": "What is machine learning?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "none_weather",
+          "input": "What is the weather like in Paris today?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_write_code",
+          "input": "What is the difference between a list and a tuple in Python?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "none_explain_concept",
+          "input": "Explain how transformers work",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "none_math",
+          "input": "What is the square root of 144?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_email",
+          "input": "What is the boiling point of water?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "none",
+          "raw": "none",
+          "outcome": "correct"
+        },
+        {
+          "case": "none_casual",
+          "input": "Good morning! Ready to get started.",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        },
+        {
+          "case": "none_unrelated_code",
+          "input": "What year was Python first released?",
+          "expected": "none",
+          "category": "negative",
+          "parsed": "UNPARSEABLE",
+          "raw": "",
+          "outcome": "unparseable"
+        }
+      ]
+    }
+  }
+}

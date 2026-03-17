@@ -1,8 +1,22 @@
 ---
 name: context-management
-description: Manage agent context window effectively for long sessions, including compression, summarization, and working memory optimization.
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
+description: >
+  Manage agent context window effectively for long sessions, including
+  compression, summarization, and working memory optimisation. Use when the
+  context window is approaching 75%+ capacity, during long debugging or
+  exploration sessions, or when the agent is losing track of earlier context.
+  Do NOT use as a substitute for handoffs; always write a handoff before
+  compressing, and use the continue skill for session resumption.
+compatibility: >
+  Requires Bash and Read access to ~/.agent/handoff/. No external tools
+  beyond standard shell.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: session-management
+  tags: [context, compression, working-memory, handoff, long-sessions]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # 🧠 Context Management Skill
@@ -25,6 +39,20 @@ Use this skill when:
 - Complex refactoring with many files
 - Multi-day work on same feature
 - Agent seems to "forget" earlier context
+
+## 🔗 Handoff Integration (MANDATORY at 75%+)
+
+**Before compressing context, always write a handoff first.**
+
+At ~75% context usage, the agent MUST:
+1. Write a handoff to `~/.agent/handoff/{agent}-{ts}-{hex}.json` — use schema in [HANDOFF.md](../../docs/sop/HANDOFF.md)
+2. Announce the session ID to the user:
+   > "Context at ~75% — writing handoff `{session-id}` before compressing.
+   > Type `/continue {session-id}` in a new session to resume."
+3. Then proceed with compression as normal.
+
+This ensures the handoff captures full pre-compression context, not a degraded
+summary. A handoff written after compression may be missing critical detail.
 
 ## 📊 Context Window Monitoring
 

@@ -1,0 +1,381 @@
+name: skill_routing_eval_v1
+description: >
+  Tests whether a model routes a user query to the correct skill name,
+  or correctly returns "none" when no skill applies.
+  Categories: positive (clear match), paraphrase (indirect phrasing),
+  negative (no skill should load).
+
+# Valid skill names for reference:
+# beads-manager, bridge, browser-manager, code-navigation, code-review,
+# context-management, continue, debugging, devils-advocate, finalization,
+# git, initialization-briefing, mcp-file-access, multi-model-orchestrator,
+# notebooklm, openviking, orchestrator, planning, process, pull-request,
+# reflect, retrospective, show-next-task, skill-making, sop-modification,
+# tdd, tdd-beads, testing, ui
+
+cases:
+
+  # ── git ──────────────────────────────────────────────────────────────────
+  - name: git_commit
+    input: "I need to commit my changes and write a good commit message"
+    expected: git
+    category: positive
+
+  - name: git_merge_conflict
+    input: "I have a merge conflict, how do I resolve it?"
+    expected: git
+    category: positive
+
+  - name: git_paraphrase
+    input: "My branch is behind main, I want to clean up the history before opening a PR"
+    expected: git
+    category: paraphrase
+
+  # ── code-review ───────────────────────────────────────────────────────────
+  - name: code_review_pr
+    input: "Please review this pull request before I merge it"
+    expected: code-review
+    category: positive
+
+  - name: code_review_quality
+    input: "Check my code for bugs and quality issues"
+    expected: code-review
+    category: positive
+
+  - name: code_review_paraphrase
+    input: "Can you look over this before I merge it into main?"
+    expected: code-review
+    category: paraphrase
+
+  # ── planning ──────────────────────────────────────────────────────────────
+  - name: planning_feature
+    input: "Help me plan this new feature before I start coding"
+    expected: planning
+    category: positive
+
+  - name: planning_blast_radius
+    input: "I need to understand what will break if I change this module"
+    expected: planning
+    category: positive
+
+  - name: planning_paraphrase
+    input: "I need to understand the full impact before I change the database layer"
+    expected: planning
+    category: paraphrase
+
+  # ── tdd ───────────────────────────────────────────────────────────────────
+  - name: tdd_write_tests_first
+    input: "I'm about to implement a new feature, what tests should I write first?"
+    expected: tdd
+    category: positive
+
+  - name: tdd_red_green
+    input: "I want to start with a failing test for this new feature before writing any code"
+    expected: tdd
+    category: positive
+
+  - name: tdd_paraphrase
+    input: "I want to do this properly — tests before implementation"
+    expected: tdd
+    category: paraphrase
+
+  # ── debugging ─────────────────────────────────────────────────────────────
+  - name: debugging_failing_test
+    input: "My tests are unexpectedly failing and I can't find the root cause"
+    expected: debugging
+    category: positive
+
+  - name: debugging_crash
+    input: "The application crashes with a KeyError on line 47"
+    expected: debugging
+    category: positive
+
+  - name: debugging_paraphrase
+    input: "I have a bug that only shows up sometimes and I can't track it down"
+    expected: debugging
+    category: paraphrase
+
+  # ── finalization ──────────────────────────────────────────────────────────
+  - name: finalization_done
+    input: "I'm done with my work, help me close out this session properly"
+    expected: finalization
+    category: positive
+
+  - name: finalization_wrap_up
+    input: "All my changes are committed and tests pass, ready to wrap up"
+    expected: finalization
+    category: positive
+
+  - name: finalization_paraphrase
+    input: "I want to make sure everything is pushed and the issue is updated before I stop"
+    expected: finalization
+    category: paraphrase
+
+  # ── reflect ───────────────────────────────────────────────────────────────
+  - name: reflect_correction
+    input: "I need to permanently record a correction so we don't repeat this mistake"
+    expected: reflect
+    category: positive
+
+  - name: reflect_session_end
+    input: "I want to save the lessons from this session into the skill files"
+    expected: reflect
+    category: positive
+
+  # ── retrospective ─────────────────────────────────────────────────────────
+  - name: retrospective_post_session
+    input: "Finalization is done, now let's do the post-session strategic analysis"
+    expected: retrospective
+    category: positive
+
+  - name: retrospective_paraphrase
+    input: "Session is closing, write the handoff and generate improvement suggestions"
+    expected: retrospective
+    category: paraphrase
+
+  # ── show-next-task ────────────────────────────────────────────────────────
+  - name: show_next_task_what_to_do
+    input: "What should I work on next?"
+    expected: show-next-task
+    category: positive
+
+  - name: show_next_task_paraphrase
+    input: "I just finished that issue, what's the highest priority thing to pick up now?"
+    expected: show-next-task
+    category: paraphrase
+
+  # ── continue ──────────────────────────────────────────────────────────────
+  - name: continue_resume
+    input: "I'm starting a new session, I need to resume where I left off yesterday"
+    expected: continue
+    category: positive
+
+  - name: continue_handoff
+    input: "Load my handoff from the previous session so I can pick up where we stopped"
+    expected: continue
+    category: positive
+
+  # ── pull-request ──────────────────────────────────────────────────────────
+  - name: pull_request_open
+    input: "I'm ready to open a pull request for this feature"
+    expected: pull-request
+    category: positive
+
+  - name: pull_request_paraphrase
+    input: "I finished the feature and I'm ready to get it reviewed on GitHub"
+    expected: pull-request
+    category: paraphrase
+
+  # ── devils-advocate ───────────────────────────────────────────────────────
+  - name: devils_advocate_challenge
+    input: "Challenge my plan — what are the risks I'm not seeing?"
+    expected: devils-advocate
+    category: positive
+
+  - name: devils_advocate_paraphrase
+    input: "I want critical pushback and risk analysis on my proposed design"
+    expected: devils-advocate
+    category: paraphrase
+
+  # ── initialization-briefing ───────────────────────────────────────────────
+  - name: init_briefing_new_session
+    input: "Starting a new session, give me the briefing"
+    expected: session-briefing
+    category: positive
+
+  - name: init_briefing_paraphrase
+    input: "Give me a quick status briefing before we dive in"
+    expected: session-briefing
+    category: paraphrase
+
+  # ── orchestrator ──────────────────────────────────────────────────────────
+  - name: orchestrator_check
+    input: "Verify that all SOP compliance gates have been satisfied"
+    expected: sop-checker
+    category: positive
+
+  - name: orchestrator_finalize_check
+    input: "Verify that all the SOP finalization steps have been completed"
+    expected: sop-checker
+    category: positive
+
+  # ── context-management ────────────────────────────────────────────────────
+  - name: context_full
+    input: "The context window is getting full, I need to compress it"
+    expected: context-management
+    category: positive
+
+  - name: context_paraphrase
+    input: "I'm running low on context space and need to manage my window"
+    expected: context-management
+    category: paraphrase
+
+  # ── beads-manager ─────────────────────────────────────────────────────────
+  - name: beads_cross_repo
+    input: "Create a linked issue in both the agent-harness and LightRAG repos"
+    expected: beads-manager
+    category: positive
+
+  - name: beads_paraphrase
+    input: "I need to track this work across multiple repositories"
+    expected: beads-manager
+    category: paraphrase
+
+  # ── tdd-beads ─────────────────────────────────────────────────────────────
+  - name: tdd_beads_new_feature
+    input: "Create a new beads issue for this feature with TDD scaffolding set up"
+    expected: tdd-beads
+    category: positive
+
+  # ── code-navigation ───────────────────────────────────────────────────────
+  - name: code_nav_find_function
+    input: "I need to find where the login function is implemented in this codebase"
+    expected: code-search
+    category: positive
+
+  - name: code_nav_paraphrase
+    input: "Show me all the places in the codebase that reference the storage module"
+    expected: code-search
+    category: paraphrase
+
+  # ── mcp-file-access ───────────────────────────────────────────────────────
+  - name: mcp_which_tool
+    input: "Which tool should I use to read a file in the ~/.agent directory?"
+    expected: mcp-file-access
+    category: positive
+
+  - name: mcp_paraphrase
+    input: "I need to decide which MCP tool to use for writing to the ~/.agent directory"
+    expected: mcp-file-access
+    category: paraphrase
+
+  # ── notebooklm ────────────────────────────────────────────────────────────
+  - name: notebooklm_query
+    input: "Ask my NotebookLM what the architecture looks like"
+    expected: notebooklm
+    category: positive
+
+  - name: notebooklm_paraphrase
+    input: "Check my notebooks for documentation on the query pipeline"
+    expected: notebooklm
+    category: paraphrase
+
+  # ── bridge ────────────────────────────────────────────────────────────────
+  - name: bridge_post_plan
+    input: "Submit my implementation plan for review by the other agent"
+    expected: bridge
+    category: positive
+
+  - name: bridge_paraphrase
+    input: "I need Claude and OpenCode to agree on this plan before I proceed"
+    expected: bridge
+    category: paraphrase
+
+  # ── skill-making ──────────────────────────────────────────────────────────
+  - name: skill_making_create
+    input: "I want to create a new skill for the agent"
+    expected: skill-making
+    category: positive
+
+  - name: skill_making_paraphrase
+    input: "My skill script fails with EOF errors in non-interactive mode"
+    expected: skill-making
+    category: paraphrase
+
+  # ── sop-modification ──────────────────────────────────────────────────────
+  - name: sop_modify_gate
+    input: "I need to modify one of the mandatory quality gates in the SOP"
+    expected: sop-modification
+    category: positive
+
+  # ── process ───────────────────────────────────────────────────────────────
+  - name: process_ci
+    input: "Run the full CI pipeline"
+    expected: cicd
+    category: positive
+
+  - name: process_release
+    input: "Prepare a release candidate for version 1.3.0"
+    expected: cicd
+    category: positive
+
+  # ── testing ───────────────────────────────────────────────────────────────
+  - name: testing_run_suite
+    input: "Run the full test suite with coverage reporting"
+    expected: test-runner
+    category: positive
+
+  - name: testing_paraphrase
+    input: "I want to check our current test coverage percentage"
+    expected: test-runner
+    category: paraphrase
+
+  # ── ui ────────────────────────────────────────────────────────────────────
+  - name: ui_dev_server
+    input: "Start the development server for the web interface"
+    expected: ui
+    category: positive
+
+  - name: ui_paraphrase
+    input: "Deploy the WebUI to staging"
+    expected: ui
+    category: paraphrase
+
+  # ── multi-model-orchestrator ──────────────────────────────────────────────
+  - name: multi_model_route
+    input: "I want to assign this coding task to the specialized implementation model"
+    expected: model-router
+    category: positive
+
+  # ── openviking ────────────────────────────────────────────────────────────
+  - name: openviking_start
+    input: "Start the OpenViking services"
+    expected: openviking
+    category: positive
+
+  # ── browser-manager ───────────────────────────────────────────────────────
+  - name: browser_cleanup
+    input: "Clean up the Playwright browser processes from the last session"
+    expected: playwright-manager
+    category: positive
+
+  # ── NEGATIVES: no skill should load ──────────────────────────────────────
+  - name: none_general_knowledge
+    input: "What is machine learning?"
+    expected: none
+    category: negative
+
+  - name: none_weather
+    input: "What is the weather like in Paris today?"
+    expected: none
+    category: negative
+
+  - name: none_write_code
+    input: "What is the difference between a list and a tuple in Python?"
+    expected: none
+    category: negative
+
+  - name: none_explain_concept
+    input: "Explain how transformers work"
+    expected: none
+    category: negative
+
+  - name: none_math
+    input: "What is the square root of 144?"
+    expected: none
+    category: negative
+
+  - name: none_email
+    input: "What is the boiling point of water?"
+    expected: none
+    category: negative
+
+  - name: none_casual
+    input: "Good morning! Ready to get started."
+    expected: none
+    category: negative
+
+  - name: none_unrelated_code
+    input: "What year was Python first released?"
+    expected: none
+    category: negative

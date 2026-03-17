@@ -1,8 +1,20 @@
 ---
 name: git
-description: Comprehensive Git workflow guidance for agents including commits, branches, merges, rebases, and conflict resolution. Ensures clean history and proper version control practices.
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
+description: >
+  Git version control: commits, branches, merges, rebases, and merge
+  conflicts. Use when writing commit messages, creating branches,
+  resolving merge conflicts, rebasing, or cleaning up git history.
+  Do NOT use for CI/CD pipelines (use cicd) or pull requests (use
+  pull-request).
+compatibility: >
+  Requires git. No scripts to run; instructions guide git commands directly.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: version-control
+  tags: [git, commits, branching, merging, conflict-resolution]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # 🔀 Git Skill

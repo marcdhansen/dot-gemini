@@ -1,8 +1,22 @@
 ---
 name: devils-advocate
-description: Devil's advocate persona for unbiased, critical thinking and balanced decision making. Challenges assumptions, generates counterarguments, demands evidence, and highlights risks to prevent bias and groupthink.
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
+description: >
+  Devil's advocate persona for unbiased, critical thinking and balanced
+  decision making. Challenges assumptions, generates counterarguments,
+  demands evidence, and highlights risks to prevent bias and groupthink.
+  Use when stress-testing a plan, evaluating a risky decision, or when
+  a proposal needs adversarial review before committing.
+  Do NOT use as a substitute for making decisions; invoke only to challenge
+  or pressure-test an existing plan or proposal.
+compatibility: >
+  No external tools or scripts required. Runs entirely from instructions.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: decision-making
+  tags: [critical-thinking, risk-analysis, assumptions, decision-quality]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # Devil's Advocate Skill

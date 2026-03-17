@@ -1,8 +1,20 @@
 ---
 name: debugging
-description: Systematic debugging approaches, tools, and techniques for identifying and fixing bugs efficiently. Covers reproduction, isolation, debugging tools, and common debugging patterns.
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
+description: >
+  Fixes bugs: crashes, exceptions, unexpected output, and tests failing for
+  unknown reasons. Use when tests fail unexpectedly, code crashes, a bug
+  cannot be reproduced, or behaviour differs from spec.
+  Do NOT use to run the test suite or check coverage (use test-runner).
+compatibility: >
+  Requires Bash with standard debugging tools (pdb, pytest, logging).
+  No scripts to run; instructions guide tool usage directly.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: code-quality
+  tags: [debugging, bug-fixing, testing, reproduction, root-cause]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # 🐛 Debugging Skill

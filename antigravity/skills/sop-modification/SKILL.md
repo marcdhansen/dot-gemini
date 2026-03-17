@@ -1,6 +1,20 @@
 ---
-name: SOP Modification
-description: Best practices for SOP enforcement, such as TDD and how to create tests anytime the SOP is modified to enforce a procedure.
+name: sop-modification
+description: >
+  Best practices for SOP enforcement, with TDD-first workflows for modifying
+  mandatory SOP gates. Use whenever modifying mandatory quality gates,
+  phase transitions, or compliance requirements in the SOP — ensures changes
+  are testable and enforced, not just documented.
+  Do NOT use for general TDD guidance (use the tdd skill instead) or for
+  code changes unrelated to SOP gates or SOP infrastructure.
+compatibility: >
+  Requires Python 3.x and access to SOP infrastructure files. Scripts live
+  in ~/.gemini/antigravity/skills/sop-modification/scripts/.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: process
+  tags: [sop, tdd, gates, compliance, process-modification]
 ---
 
 # 🛡️ SOP Modification Skill

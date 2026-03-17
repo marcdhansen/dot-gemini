@@ -1,0 +1,65 @@
+{
+  "skill_name": "skill-evaluator",
+  "evals": [
+    {
+      "id": 1,
+      "name": "new-skill-no-evals",
+      "prompt": "I just finished writing a skill called log-analyzer that helps triage Kubernetes pod crash logs. I haven't written any tests. How do I evaluate it before shipping?",
+      "expected_output": "Designs both evals.json and trigger-evals.json, explains inline vs Claude Code split, runs output quality inline, provides trigger commands for Claude Code.",
+      "files": [],
+      "expectations": [
+        "Proposes creating both evals.json (output quality) AND trigger-evals.json (triggering) — not just one",
+        "Explains that output quality can be run inline but triggering requires claude -p (Claude Code)",
+        "Writes at least 3 concrete output quality eval prompts specific to log analysis / Kubernetes crashes",
+        "Writes at least 6 trigger-evals.json queries (mix of should-trigger and should-not-trigger)",
+        "Should-not-trigger queries are near-misses, not obviously irrelevant (e.g. 'help me debug a failing CI job' not 'write a poem')",
+        "Asks user to review the eval cases before running"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "baseline-before-change",
+      "prompt": "I want to rewrite the instructions section of my pdf skill to simplify the table extraction steps. Can you help?",
+      "expected_output": "Stops the user before any changes, establishes a baseline on both dimensions first, only then proceeds.",
+      "files": [],
+      "expectations": [
+        "Explicitly says baseline must be established BEFORE making any changes",
+        "Checks whether evals.json exists — offers to create it if missing",
+        "Runs or describes running output quality evals on the current pdf skill first",
+        "Mentions triggering baseline and explains how to run it (even if user is in Claude.ai)",
+        "Records baseline scores before proceeding to the rewrite",
+        "Does NOT proceed with the rewrite before the baseline step is complete"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "run-existing-evals",
+      "prompt": "Here's my evals.json for a skill called data-cleaner:\n\n{\"skill_name\": \"data-cleaner\", \"evals\": [{\"id\": 1, \"name\": \"remove-duplicates\", \"prompt\": \"Clean the CSV at ~/Downloads/contacts.csv by removing duplicate rows based on the email column\", \"expected_output\": \"A cleaned CSV with duplicates removed\", \"expectations\": [\"The output CSV has fewer rows than the input\", \"The email column has no duplicate values\", \"The original file is not modified\"]}]}\n\nCan you run these?",
+      "expected_output": "Reads the data-cleaner skill, simulates executing the eval inline, grades against the three expectations with evidence.",
+      "files": [],
+      "expectations": [
+        "Acknowledges it will read the data-cleaner skill before running (or notes it needs access to it)",
+        "Simulates executing the eval prompt following the skill's instructions",
+        "Grades each of the three expectations individually with PASS/FAIL and cited evidence",
+        "Produces a summary with overall pass rate",
+        "Flags the inline grading caveat (self-grading bias) and suggests Claude Code for final validation",
+        "Does NOT just describe what the skill would do — actually traces through the execution"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "triggering-diagnosis",
+      "prompt": "My skill called commit-message-writer never loads when developers ask things like 'help me write a good commit message for this change' or 'what should I put in the commit description?'. The current description is: 'Formats git commit messages following conventional commits spec.'",
+      "expected_output": "Identifies why the description misses those queries, suggests specific phrase additions, proposes a revised description, explains run_loop.py for Claude Code.",
+      "files": [],
+      "expectations": [
+        "Identifies that 'write a commit message' and 'commit description' are missing from the current description",
+        "Explains WHY the description misses: it describes the format spec, not the user's intent",
+        "Suggests specific phrases to add (e.g. 'write a commit message', 'what to put in commit description', 'summarize my changes for a commit')",
+        "Produces a concrete revised description draft — not just advice",
+        "Mentions run_loop.py for automated optimization if in Claude Code",
+        "Does NOT suggest fixing the instructions body — correctly identifies this as a description problem"
+      ]
+    }
+  ]
+}
