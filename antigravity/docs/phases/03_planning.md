@@ -1,14 +1,22 @@
 # Phase 3: Planning
 
-> **Status**: **MANDATORY** for new features/significant changes  
-> **Skill**: `/plan scope <task-id>`  
+> **Status**: **MANDATORY** — **Approval required before Execution**  
+> **Skill**: `/planning`  
 > **Back to**: [SOP Checklist](../SOP_COMPLIANCE_CHECKLIST.md)
 
 ---
 
 ## Purpose
 
-Define what will be built, how it will be verified, and get user approval before execution.
+Define what will be built, how it will be verified, and get explicit user approval before execution.
+
+---
+
+## ⚠️ CRITICAL: Approval Gate
+
+> **Execution is BLOCKED until user provides explicit approval**  
+> Example: `"👍 APPROVED FOR EXECUTION"`  
+> Approval expires after 4 hours — re-approval required if stale.
 
 ---
 
@@ -17,8 +25,7 @@ Define what will be built, how it will be verified, and get user approval before
 - [ ] Create/update `implementation_plan.md` with proposed changes
 - [ ] Perform blast radius analysis for significant changes
 - [ ] Define milestones and success criteria
-- [ ] Get user approval before proceeding to the Execution Phase
-- [ ] **Create/Identify Beads Issue**: Mandatory before starting execution
+- [ ] **Present plan to user and get explicit approval**
 - [ ] Update `task.md` with current objectives
 
 ---
@@ -51,17 +58,6 @@ Progressive disclosure levels:
 - [ ] Define success criteria for each phase
 - [ ] Establish validation checkpoints
 - [ ] Document A/B testing requirements if applicable
-
-### Approval
-
-> [!CAUTION]
-> **Explicit Execution Approval Required**: Planning-to-Execution transition is BLOCKED until user provides explicit approval.
-
-- [ ] Present plan to user for review
-- [ ] Address feedback and update plan
-- [ ] **Receive explicit approval** (e.g., "👍 APPROVED FOR EXECUTION")
-- [ ] Record approval in `task.md` (Orchestrator looks for `## Approval` header or `[x]` markers)
-- [ ] **Freshness Requirement**: Approval must be within the last 4 hours (validated via file modification time)
 
 ---
 

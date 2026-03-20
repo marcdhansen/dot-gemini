@@ -14,14 +14,11 @@ Verify all prerequisites are met before starting work. Ensures tools, context, a
 
 ## Quick Checklist
 
-- [ ] **Tool Check**: Verify required tools (`bd`, `uv`, `git`)
-- [ ] **Context Check**: Read `ROADMAP.md` and `ImplementationPlan.md`
+- [ ] **Tool Check**: Verify required tools (`bd`, `git`)
 - [ ] **Status Check**: Run `bd ready` to see active tasks
-- [ ] **Issue Check**: Run `bd ready` (Optional for planning, highly recommended)
-- [ ] **Navigation Check**: Verify access to documentation
-- [ ] **Plan Approval**: Confirm plan approved within 4 hours
-- [ ] **Progress Log Discovery**: Check for `{issue-id}.md` in `~/.agent/progress-logs/`
-- [ ] **Orchestrator Check**: Run `check_protocol_compliance.py --init`
+- [ ] **🔒 Issue Check**: Beads issue **MANDATORY** for implementation
+- [ ] **Plan Approval**: Confirm plan approved within 4 hours (if implementation planned)
+- [ ] **Orchestrator Check**: `check_protocol_compliance.py --init`
 
 ---
 
@@ -30,25 +27,12 @@ Verify all prerequisites are met before starting work. Ensures tools, context, a
 ### Tool Check
 
 - [ ] `bd` — Beads task management available
-- [ ] `uv` — Python package manager available
 - [ ] `git` — Version control available
 - [ ] Project-specific tools as configured
 
-### Context Check
-
-- [ ] Read `.agent/rules/ROADMAP.md` for high-level objectives
-- [ ] Read `.agent/rules/ImplementationPlan.md` for current phase
-- [ ] Understand current milestone and success criteria
-
-### Status Check
-
-- [ ] Run `bd ready` to see unblocked tasks
-- [ ] Identify task to work on
-- [ ] Check for blocking dependencies
-
 ### Issue Check
 
-- [ ] Beads issue exists for current objective (Optional for planning, highly recommended)
+- [ ] Beads issue exists for current objective
 - [ ] If not, create with `bd create`
 - [ ] Assign issue to self if working in parallel
 
@@ -57,19 +41,6 @@ Verify all prerequisites are met before starting work. Ensures tools, context, a
 - [ ] Implementation plan exists and is approved
 - [ ] Approval timestamp is within 4 hours
 - [ ] If stale, request re-approval from user
-
-### Progress Log Discovery
-
-- [ ] Check `~/.agent/progress-logs/{issue-id}.md` exists
-- [ ] Read "Active Context" section for current state
-- [ ] Review last 3-5 entries for immediate context
-- [ ] Note any blockers or open questions
-
-### Navigation Check
-
-- [ ] Access to `~/.agent/docs/GLOBAL_INDEX.md`
-- [ ] Access to project documentation
-- [ ] Understand project structure
 
 ---
 
