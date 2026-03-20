@@ -7,6 +7,22 @@ differently on previously-working queries: renaming the skill, removing or
 substantially changing trigger phrases, or restructuring instructions in a way
 that invalidates existing behaviour.
 
+## [1.1.0] - 2026-03-17
+
+### Added
+- Workflow E: Post-Use Retrospective (Roses/Buds/Thorns)
+  - Applies RBT framework to each skill used in a session
+  - Classifies findings by failure mode (triggering, output quality,
+    progressive disclosure, missing, structural)
+  - Converts Thorns and significant Buds into beads issue proposals
+  - Full beads issue template with failure mode, proposed fix, and evals needed
+  - Enforces the rule: never patch a skill directly from a retrospective;
+    all changes go through the full SOP via beads issues
+- Updated description to include post-use retrospective use case
+- Updated Environment Quick Reference to include Workflow E row
+- Added Example 4 (post-session retrospective with planning/tdd/finalization)
+- Added note explaining Workflow E as the "immune system" for the skill library
+
 ## [1.0.1] - 2026-03-16
 
 ### Fixed

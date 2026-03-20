@@ -1,18 +1,19 @@
 ---
 name: skill-evaluator
-description: Design and run evaluations for agent skills, covering both failure modes: triggering (does the agent load the skill for the right queries?) and output quality (does the loaded skill guide correct output?). Use when testing a new skill before shipping, establishing a baseline before modifying an existing skill, diagnosing why a skill triggers at the wrong times, or running an existing eval suite and reporting results. Enforces a TDD discipline: baseline first, change second, accept only improvements. Do NOT use for testing general Python code, REST APIs, CLI tools, or any software that is not an agent skill defined by a SKILL.md file.
+description: Design and run evaluations for agent skills, covering both failure modes: triggering (does the agent load the skill for the right queries?) and output quality (does the loaded skill guide correct output?). Use when testing a new skill before shipping, establishing a baseline before modifying an existing skill, diagnosing why a skill triggers at the wrong times, running an existing eval suite and reporting results, or conducting a post-session Roses/Buds/Thorns retrospective on skills used. Enforces a TDD discipline: baseline first, change second, accept only improvements. Skill improvements are proposed as beads issues, never applied directly. Do NOT use for testing general Python code, REST APIs, CLI tools, or any software that is not an agent skill defined by a SKILL.md file.
 compatibility: Output quality evals run inline in any environment. Triggering evals require the claude CLI (claude -p), available in Claude Code and Cowork only. Schemas in references/schemas.md. Run commands in references/run-commands.md.
 metadata:
   author: Workshop Team
-  version: 1.0.1
+  version: 1.1.0
   category: meta
-  tags: [skill-testing, eval, tdd, triggering, output-quality, baseline, meta]
+  tags: [skill-testing, eval, tdd, triggering, output-quality, baseline, retrospective, meta]
 ---
 
 # Skill Evaluator
 
 Designs and runs two-dimensional evaluations for agent skills. Enforces a
 baseline-first discipline so every change can be measured objectively.
+Skill improvements are always proposed as beads issues — never patched directly.
 
 ## The Two Failure Modes
 
@@ -33,6 +34,7 @@ Fix these failure modes separately — they have different causes and different 
 - Modifying an existing skill: baseline BEFORE touching anything
 - Diagnosing a triggering problem: skill doesn't load when it should, or loads when it shouldn't
 - Running an existing eval suite: evals.json or trigger-evals.json already exist — run and report
+- End of session: run a Roses/Buds/Thorns retrospective on skills used (Workflow E)
 
 **Do not use for**: testing Python modules, REST APIs, CLI tools, MCP servers,
 or anything that does not have a SKILL.md. Use pytest or standard tooling for those.
@@ -160,13 +162,121 @@ use `run_loop.py` to optimize the description automatically rather than guessing
 
 ---
 
+## Workflow E: Post-Use Retrospective (Roses / Buds / Thorns)
+
+Run at the end of a session, typically called from the retrospective skill.
+Applies the Roses/Buds/Thorns framework to each skill used, and converts
+significant findings into beads issues for the full SOP improvement cycle.
+
+**Never patch a skill directly from a retrospective.** Direct patches bypass
+planning, TDD, and review — and accumulate as undocumented cruft. The output
+of this workflow is always a beads issue proposal, never a SKILL.md edit.
+
+### Step 1: Identify skills used
+
+From the session context or retrospective, list every skill that was loaded
+during the session. If uncertain, check the session transcript for skill reads.
+
+### Step 2: Apply Roses/Buds/Thorns to each skill
+
+For each skill, answer three questions:
+
+**🌹 Rose — what worked well?**
+The skill triggered reliably, its instructions were clear, the output matched
+expectations without correction. Note specific moments where it saved time or
+prevented an error.
+
+**🌱 Bud — what showed promise but wasn't quite right?**
+The skill worked but required interpretation, a workaround, or minor correction.
+The gap is real but small — the skill is close, not broken. Note what the ideal
+behaviour would have been.
+
+**🌵 Thorn — what caused friction or failed?**
+The skill didn't trigger when it should have, produced incorrect output, gave
+vague instructions that led to inconsistent behaviour, or was missing entirely
+for a task that needed it. Thorns require a beads issue.
+
+### Step 3: Classify each Thorn and significant Bud
+
+For each finding that warrants action, identify the failure mode:
+
+| Category | Symptom | Fix target |
+|---|---|---|
+| Triggering | Skill didn't load / loaded when it shouldn't | `description` field |
+| Output quality | Instructions produced wrong or inconsistent output | SKILL.md body |
+| Progressive disclosure | Skill body is bloated; instructions buried in reference data | Move content to `references/` |
+| Missing skill | No skill existed for a repeated task pattern | Create new skill (Workflow A) |
+| Structural | Naming, frontmatter, CHANGELOG violations | spec.md review |
+
+### Step 4: Draft beads issue proposals
+
+For each Thorn and significant Bud, produce a beads issue proposal in this format:
+
+```
+Title: skill: [skill-name] — [one-line description of the problem]
+
+Type: bug (Thorn) | enhancement (Bud)
+Priority: 2 (Thorn blocking work) | 3 (Bud / friction) | 4 (Rose / documentation)
+Skill path: ~/.gemini/antigravity/skills/[skill-name]/
+
+## What happened (the Thorn/Bud)
+[Concrete description of the friction: what you asked the skill to do,
+what it did instead, what you had to do to work around it]
+
+## Failure mode
+[Triggering / Output quality / Progressive disclosure / Missing / Structural]
+
+## Proposed fix
+[Minimum change that would resolve this. Be specific:
+- For triggering: the phrase(s) to add or remove from the description
+- For output quality: the instruction step that needs rewriting, and how
+- For progressive disclosure: which content to move and where
+- For missing skill: the proposed name, description, and core workflow]
+
+## Evals needed
+[Does an existing eval cover this? If not, what new expectation or eval
+prompt would catch this regression in the future?]
+
+## Session reference
+[Session ID or brief description of the task where this friction occurred]
+```
+
+### Step 5: Present and confirm
+
+Show the user a summary:
+- Roses: brief list (1 line each) — reinforces what to preserve
+- Buds: proposed beads issues with priority 3
+- Thorns: proposed beads issues with priority 2
+
+Ask the user to confirm before creating any issues. They may want to adjust
+priority, merge related issues, or defer some items.
+
+### Step 6: Create confirmed beads issues
+
+For each confirmed proposal:
+
+```bash
+bd create --title "skill: [skill-name] — [description]" \
+          --type task \
+          --priority [2|3]
+bd comments add <issue-id> "[full proposal text]"
+bd label add <issue-id> skill-improvement
+```
+
+The issue now enters the normal SOP: planning → TDD (update evals first,
+per Workflow D) → implementation → PR review.
+
+---
+
 ## Environment Quick Reference
 
 | Capability | Claude.ai | Claude Code / Cowork |
 |---|---|---|
-| Design eval suite | ✅ | ✅ |
-| Run output quality evals | ✅ inline (manual) | ✅ via subagents |
-| Run triggering evals | ❌ needs claude -p | ✅ run_eval.py |
+| Design eval suite (A) | ✅ | ✅ |
+| Run output quality evals (B) | ✅ inline | ✅ via subagents |
+| Run triggering evals (C) | ❌ needs claude -p | ✅ run_eval.py |
+| TDD baseline loop (D) | ✅ output quality | ✅ both dimensions |
+| Post-use retrospective (E) | ✅ | ✅ |
 | Optimize description automatically | ❌ | ✅ run_loop.py |
 | HTML eval viewer | ❌ | ✅ generate_review.py |
 
@@ -207,6 +317,24 @@ User: "My recipe-helper skill never loads for meal planning queries"
 5. In Claude.ai: manually reason through which description phrases would match
    the failing queries, propose a revision, and note it needs verification in Claude Code
 
+### Example 4: Post-session retrospective
+
+Called from the retrospective skill after a session that used planning, tdd, and finalization:
+
+1. List skills used: planning, tdd, finalization, git
+2. Apply RBT:
+   - planning 🌹: blast radius analysis caught a risky migration path early
+   - planning 🌱: the /plan scope command output was hard to parse; could be cleaner
+   - tdd 🌹: red-green-refactor loop kept the implementation honest
+   - finalization 🌵: skill didn't load when session ended mid-task (only triggers on "all work complete"); had to invoke manually
+   - finalization 🌵: closure notes template was inline in SKILL.md body, not in references/ — caused context bloat
+3. Two Thorns → two beads issue proposals:
+   - `skill: finalization — description doesn't trigger for mid-task session end` (priority 2, triggering failure)
+   - `skill: finalization — closure notes template should move to references/` (priority 3, progressive disclosure)
+4. One Bud → one beads issue:
+   - `skill: planning — /plan scope output format hard to parse` (priority 3, output quality)
+5. User confirms, issues created with `skill-improvement` label
+
 ---
 
 ## Notes
@@ -214,6 +342,11 @@ User: "My recipe-helper skill never loads for meal planning queries"
 - The two failure modes are independent. Don't fix a triggering problem by rewriting
   the skill instructions — fix the description. Don't fix an output quality problem
   by tweaking the description — fix the instructions. Mixing these up wastes cycles.
+- Workflow E is the immune system for the skill library. Without it, skills accumulate
+  undocumented workarounds and 🚨 patches directly in the body. With it, every friction
+  point becomes a tracked issue that goes through planning and TDD before being applied.
+- Roses are not just feel-good notes. They document what to preserve when refactoring —
+  the parts agents genuinely rely on that shouldn't be changed casually.
 - When writing negative trigger cases, think about what neighbour skills might
   claim the same query space. The most useful negatives are genuinely ambiguous.
 - Inline Workflow B has a self-grading bias. Use it for fast iteration.

@@ -1,9 +1,30 @@
 #!/bin/bash
 
-# Next Task Script for LightRAG
+# Next Task Script for Agent Projects
 # Shows what to work on next by running beads ready and providing detailed recommendations
 
-echo "🎯 ALL Available Tasks in the LightRAG Project"
+# Detect current workspace name
+get_workspace_name() {
+    # Try git remote first
+    if command -v git &> /dev/null && git rev-parse --git-dir > /dev/null 2>&1; then
+        REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+        if [ -n "$REMOTE_URL" ]; then
+            # Extract repo name from URL (handles both .git and non-.git URLs)
+            REPO_NAME=$(echo "$REMOTE_URL" | sed 's/.*\/\([^/]*\)\.git$/\1/' | sed 's/.*\/\([^/]*\)$/\1/')
+            if [ -n "$REPO_NAME" ]; then
+                echo "$REPO_NAME"
+                return
+            fi
+        fi
+    fi
+    
+    # Fallback to directory name
+    basename "$(pwd)"
+}
+
+WORKSPACE_NAME=$(get_workspace_name)
+
+echo "🎯 ALL Available Tasks in the $WORKSPACE_NAME Project"
 echo "========================================================="
 echo ""
 
@@ -86,12 +107,12 @@ if [ $? -ne 0 ]; then
     INPROGRESS_OUTPUT=""
 fi
 
-# Count priorities
-P0_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P0\]' | wc -l | tr -d ' ')
-P1_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P1\]' | wc -l | tr -d ' ')
-P2_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P2\]' | wc -l | tr -d ' ')
-P3_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P3\]' | wc -l | tr -d ' ')
-P4_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P4\]' | wc -l | tr -d ' ')
+# Count priorities (handle both ● and ○ status indicators)
+P0_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P0\]|P0 ' | wc -l | tr -d ' ')
+P1_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P1\]|P1 ' | wc -l | tr -d ' ')
+P2_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P2\]|P2 ' | wc -l | tr -d ' ')
+P3_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P3\]|P3 ' | wc -l | tr -d ' ')
+P4_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P4\]|P4 ' | wc -l | tr -d ' ')
 
 TOTAL_COUNT=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT + P4_COUNT))
 
@@ -168,17 +189,18 @@ echo ""
 format_tasks() {
     local priority=$1
     local label=$2
-    local count=$(echo "$READY_OUTPUT" | grep "\[● $priority\]" | wc -l | tr -d ' ')
+    local count=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E "\[$priority\]|$priority " | wc -l | tr -d ' ')
     
     if [ "$count" -gt 0 ]; then
         echo "## 🎯 $label ($priority):"
         echo ""
         
         # Process tasks line by line
-        echo "$READY_OUTPUT" | grep "\[● $priority\]" | while IFS= read -r line; do
+        echo "$READY_OUTPUT" | grep -E '●|○' | grep -E "\[$priority\]|$priority " | while IFS= read -r line; do
             # Extract task ID and description
             TASK_ID=$(echo "$line" | grep -o '[a-zA-Z0-9.-]\+-[a-zA-Z0-9.-]\+' | head -1)
-            DESC=$(echo "$line" | sed "s/.*$TASK_ID: //")
+            # Extract everything after the status indicators and priority
+            DESC=$(echo "$line" | sed "s/.*\] //" | sed "s/\[.*//" | sed "s/\[\]$//")
             
             # Extract type if present
             if echo "$line" | grep -q "\[task\]"; then

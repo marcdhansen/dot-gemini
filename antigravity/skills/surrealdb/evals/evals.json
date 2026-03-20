@@ -1,0 +1,65 @@
+{
+  "skill_name": "surrealdb",
+  "evals": [
+    {
+      "id": 1,
+      "name": "create-ontology-record",
+      "prompt": "Write a Python function that creates a new ontology record in SurrealDB. The ontology has id 'onto-001', name 'NBC 2025', base_iri 'https://onto-aec.ca/nbc/2025', domain 'building-code', and source_document_id 'nbc-2025-en'. Use the AsyncSurreal client.",
+      "expected_output": "A function that creates an ontology record and returns the created record with its ID",
+      "expectations": [
+        "The function uses await db.create() with the 'onto_ontology' table",
+        "The ontology_data dict includes all required fields",
+        "The function returns the created record",
+        "The code follows async/await pattern correctly"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "query-concepts-by-type",
+      "prompt": "Write a Python async function that queries SurrealDB to find all concepts with concept_type 'Class'. Use parameterized query to prevent injection.",
+      "expected_output": "A function that returns a list of concept records matching the type",
+      "expectations": [
+        "The function uses db.query() with a SELECT statement",
+        "The query uses a parameter ($type) for the concept_type",
+        "The function returns the query results",
+        "The code includes proper error handling"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "update-concept-with-merge",
+      "prompt": "Write a function that updates an existing concept's label_primary and definition fields using the merge operation in SurrealDB. The concept_id is 'concept-001'.",
+      "expected_output": "A function that merges updates into an existing concept record",
+      "expectations": [
+        "The function uses db.merge() with RecordID",
+        "The RecordID is constructed correctly as 'onto_concept:concept-001'",
+        "The updates dict contains label_primary and definition",
+        "The function returns the updated record"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "search-concepts-by-label",
+      "prompt": "Write an async function that searches concepts by label using case-insensitive matching. The search term should be parameterized.",
+      "expected_output": "A function that returns concepts matching the label search",
+      "expectations": [
+        "Uses string::lowercase() for case-insensitive search",
+        "The search term is passed as a parameter",
+        "The function uses CONTAINS for partial matching",
+        "Returns matching concept records"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "transactional-batch-update",
+      "prompt": "Write a function that atomically updates multiple related concepts within a single transaction. It should update the risk_tier for concept-001 and concept-002.",
+      "expected_output": "A function that performs atomic batch updates using transactions",
+      "expectations": [
+        "Uses db.transaction() as async context manager",
+        "Performs multiple db.merge() calls within the transaction",
+        "Updates risk_tier field for both concepts",
+        "Includes error handling with try/except"
+      ]
+    }
+  ]
+}

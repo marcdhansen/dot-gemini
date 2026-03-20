@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I need to validate that all SHALL requirements in my ontology have occupancy groups assigned",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I assign risk tiers to ontology concepts based on their content?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the validation rule for fire resistance ratings in subclass relationships?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to check if any concept IRIs are using IFC namespace prefixes - that's a violation",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I validate alignment confidence thresholds for standards mapping?",
+    "should_trigger": true
+  },
+  {
+    "query": "What are the NBC occupancy groups that need to be validated in V-003?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to validate that prohibited requirements (SHALL_NOT) have constraint conditions",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the validation for numeric property bounds like fire ratings?",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I check that deprecated concepts have a successor relationship?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to validate cross-references in my ontology resolve correctly",
+    "should_trigger": true
+  },
+  {
+    "query": "write unit tests for my Python module",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I create a REST API with FastAPI?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the best way to validate JSON schema?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to implement form validation in React",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I set up authentication with JWT?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the pattern for database transaction validation?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to validate email addresses in Python",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I implement input validation in a Flask form?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the best way to validate YAML files?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to validate XML against an XSD schema",
+    "should_trigger": false
+  }
+]

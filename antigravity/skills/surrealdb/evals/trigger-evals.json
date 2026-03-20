@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I need to connect to SurrealDB and create a new ontology record for a building code project",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I write an async query to find all concepts of type 'Class' in my ontology database?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the best way to update multiple concept records atomically in SurrealDB?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to search for concepts by their label in a case-insensitive way",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I set up schema definitions for my onto_concept table in SurrealDB?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the pattern for caching SurrealDB queries with Redis in ONTO-AEC?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to handle errors when my SurrealDB query fails",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I define indexes on frequently queried fields in SurrealDB?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the connection pattern for the agent_memory namespace in ONTO-AEC?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to create a migration that adds a new field to an existing table",
+    "should_trigger": true
+  },
+  {
+    "query": "write unit tests for my Python module",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I configure PostgreSQL connection pooling?",
+    "should_trigger": false
+  },
+  {
+    "query": "What are the best practices for MongoDB document design?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to set up a Redis cluster for high availability",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I optimize MySQL queries with EXPLAIN?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the difference between SQLite and PostgreSQL for my use case?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to migrate data from Oracle to MySQL",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I set up Elasticsearch for full-text search?",
+    "should_trigger": false
+  },
+  {
+    "query": "What are GraphQL resolver patterns for databases?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to set up database replication for read scaling",
+    "should_trigger": false
+  }
+]

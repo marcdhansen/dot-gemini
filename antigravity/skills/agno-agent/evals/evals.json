@@ -1,0 +1,68 @@
+{
+  "skill_name": "agno-agent",
+  "evals": [
+    {
+      "id": 1,
+      "name": "create-basic-agent",
+      "prompt": "Write a Python function that creates an agno Agent with the name 'ExtractionAgent', using MistralChat model with temperature 0.0, and SurrealDB for memory storage. Include a description and instructions.",
+      "expected_output": "A function that returns an agno Agent instance configured for extraction",
+      "expectations": [
+        "Uses agno.agent.Agent",
+        "Configures MistralChat with temperature=0.0",
+        "Sets up SurrealDb for memory",
+        "Includes name, description, and instructions",
+        "Returns the Agent instance"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "add-tools-to-agent",
+      "prompt": "Write a function that creates an agno Agent and adds two tool functions to it: create_record and update_record. The tools should be imported from src.tools.surreal_tools.",
+      "expected_output": "A function that creates an Agent with tools configured",
+      "expectations": [
+        "Creates an Agent instance",
+        "Adds create_record to tools list",
+        "Adds update_record to tools list",
+        "Tools are passed as a list to the tools parameter"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "configure-agent-memory",
+      "prompt": "Write a function that configures SurrealDB memory for an agno Agent. Use the ONTO-AEC namespace 'aec' and database 'agent_memory'. The URL should be converted from http to ws format.",
+      "expected_output": "A function that creates a SurrealDb configuration for agent memory",
+      "expectations": [
+        "Creates SurrealDb instance with correct namespace",
+        "Sets database to 'agent_memory'",
+        "Uses ws:// URL format for WebSocket connection",
+        "Includes credentials in the configuration"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "pipeline-orchestration",
+      "prompt": "Write a Python class that orchestrates a 3-agent pipeline: IngestionAgent, ExtractionAgent, and StructuringAgent. Include a process method that calls each agent sequentially.",
+      "expected_output": "A class with sequential agent orchestration",
+      "expectations": [
+        "Defines a class with __init__",
+        "Stores agent instances",
+        "Has a process method that is async",
+        "Calls agents in sequence (ingestion → extraction → structuring)",
+        "Returns the final result"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "set-agent-instructions",
+      "prompt": "Write a function that creates an agno Agent with specific instructions for an AEC ontology extraction specialist. The instructions should include extracting concepts, identifying relationships, and preserving source section references.",
+      "expected_output": "A function that creates an Agent with domain-specific instructions",
+      "expectations": [
+        "Creates an Agent with appropriate name",
+        "Instructions include concept extraction",
+        "Instructions include relationship identification",
+        "Instructions include source traceability",
+        "Instructions are provided as a list of strings"
+      ]
+    }
+  ]
+}

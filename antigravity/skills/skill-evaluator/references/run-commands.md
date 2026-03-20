@@ -1,17 +1,52 @@
 # Run Commands — Triggering Evals (Claude Code / Cowork)
 
 These commands require `claude -p` from the Claude Code CLI.
-They will NOT work in Claude.ai.
+They will NOT work in a plain terminal session.
 
 The scripts live in the Anthropic skill-creator example:
-`/mnt/skills/examples/skill-creator/scripts/`
+`~/GitHub/anthropics/skills/skills/skill-creator/scripts/`
+(or `/mnt/skills/examples/skill-creator/scripts/` if mounted)
+
+---
+
+## Critical: Run from inside a Claude Code bash session
+
+This is the most important thing to get right. `run_eval.py` works by:
+1. Writing a temporary skill description into `.claude/commands/<uuid>.md`
+2. Spawning `claude -p <query>` as a subprocess
+3. Watching the stream for a `Skill` or `Read` tool call on that UUID
+
+Step 3 only works if the `claude -p` subprocess inherits an **active Claude Code
+session context** — that's what populates `available_skills` in the system prompt
+and makes Claude aware of the injected command file. A standalone terminal session
+has no such context, so skills are invisible and every query returns trigger_rate=0.0.
+
+**Run the commands from Claude Code's bash tool, not from your terminal.**
+
+You can verify the session context is working when you see trigger_rate > 0 for
+at least some should-trigger queries. If everything is still 0.0 after seeding
+the `.claude/` directory, the session context is missing.
+
+---
+
+## Seed the .claude/ directory (one-time setup)
+
+The project root (the directory containing `.claude/`) must exist before running.
+`find_project_root()` in `run_eval.py` walks up from `cwd` looking for `.claude/`.
+
+```bash
+mkdir -p ~/GitHub/anthropics/skills/.claude/commands
+```
+
+Run evals from `~/GitHub/anthropics/skills/skills/skill-creator` so `find_project_root()`
+walks up and finds `~/GitHub/anthropics/skills/.claude/`.
 
 ---
 
 ## Quick start: run triggering evals against a skill
 
 ```bash
-cd /mnt/skills/examples/skill-creator
+cd ~/GitHub/anthropics/skills/skills/skill-creator
 
 python -m scripts.run_eval \
   --eval-set /path/to/evals/trigger-evals.json \
@@ -45,17 +80,22 @@ python -m scripts.run_eval \
   > /path/to/workspace/candidate/trigger-results.json
 ```
 
-Compare `baseline/trigger-baseline.json` vs `candidate/trigger-results.json`.
-Accept the change only if `summary.passed` is >= the baseline value.
+Accept the change only if `summary.passed` >= the baseline value.
 
 ---
 
 ## Optimize the description automatically
 
 Use this when triggering evals are failing and manual tweaks aren't working.
+Requires `improve_description.py`, which calls `claude -p` as a subprocess —
+this also requires Claude Code session context for the same reason as `run_eval.py`.
+
+Note: if `improve_description.py` exits with `claude -p exited 1` and empty
+stderr, it's a PATH issue — the subprocess can't find the `claude` binary.
+Fix: run from inside Claude Code's bash tool so PATH is inherited correctly.
 
 ```bash
-cd /mnt/skills/examples/skill-creator
+cd ~/GitHub/anthropics/skills/skills/skill-creator
 
 python -m scripts.run_loop \
   --eval-set /path/to/evals/trigger-evals.json \
@@ -68,25 +108,18 @@ python -m scripts.run_loop \
   --results-dir /path/to/workspace/description-optimization
 ```
 
-The loop:
-1. Evaluates the current description on train (60%) + test (40%) split
-2. Calls Claude to propose an improved description based on failures
-3. Evaluates the new description, repeats up to max-iterations
-4. Returns `best_description` selected by **test** score (not train — avoids overfitting)
-5. Writes an HTML report you can open in the browser
-
-Take the `best_description` from the JSON output and update the `description:`
-field in the skill's SKILL.md frontmatter.
+The loop selects `best_description` by **test** score (not train — avoids
+overfitting). Take that value and update the `description:` field in SKILL.md.
 
 ---
 
 ## Skill-specific paths for skill-creator-workspace
 
 ```bash
-# Baseline skill-making (current, before rewrite)
+# Baseline skill-making (archived, before rewrite)
 python -m scripts.run_eval \
   --eval-set ~/.gemini/antigravity/skill-creator-workspace/trigger-evals.json \
-  --skill-path ~/.gemini/antigravity/skills/skill-making \
+  --skill-path ~/.gemini/antigravity/skills/skill-making-archived \
   --runs-per-query 3 --verbose \
   > ~/.gemini/antigravity/skill-creator-workspace/baseline/trigger-baseline.json
 

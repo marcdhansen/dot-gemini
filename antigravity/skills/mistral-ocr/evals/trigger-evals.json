@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I need to process a PDF building code document using Mistral OCR and extract the section structure",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I extract cross-references like 'Article 3.2.4.4' or 'Table 2.1' from section text?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the pattern for merging tables that span across multiple PDF pages?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to cache OCR results in Redis to avoid re-processing pages",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I check which OCR provider (Mistral or PaddleOCR) is currently configured?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the best way to handle OCR errors when processing large documents?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to extract tables from a scanned building code document",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I process a document with the MistralOCRProvider class directly?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to switch the OCR provider at runtime from Mistral to PaddleOCR",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the cache key pattern for storing OCR results in Redis?",
+    "should_trigger": true
+  },
+  {
+    "query": "write unit tests for my Python module",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I create a REST API with FastAPI?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the best way to process images with OpenCV?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to set up a PostgreSQL database connection",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I implement barcode scanning in my app?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the pattern for Redis pub/sub messaging?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to extract text from a scanned image using Tesseract",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I convert PDF to images in Python?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the best way to handle file uploads in Django?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to set up a Celery task queue with Redis",
+    "should_trigger": false
+  }
+]

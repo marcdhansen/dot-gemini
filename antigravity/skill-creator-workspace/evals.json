@@ -73,6 +73,21 @@
         "Provides an automatic default/fallback when running non-interactively",
         "The fixed code still works interactively (not just hardcoded non-interactive)"
       ]
+    },
+    {
+      "id": 6,
+      "name": "review-progressive-disclosure-violation",
+      "prompt": "Please review this skill for me:\n\n---\nname: deployment-manager\ndescription: Manages deployments to staging and production. Use when deploying a service, rolling back a release, or checking deployment status. Do NOT use for local development.\nmetadata:\n  author: Platform Team\n  version: 1.0.0\n  category: ops\n  tags: [deployment, ops]\n---\n\n# Deployment Manager\n\nManages service deployments across environments.\n\n## When to Use\n- Deploying a new release\n- Rolling back a failed deployment\n\n**Do not use for**: local development or testing.\n\n## Instructions\n\n### Step 1: Select environment\nChoose staging or production.\n\n### Step 2: Run deployment\nExecute the deployment script.\n\n## Environment Reference\n\n| Environment | URL | Region | Auth Method | Timeout | Max Retries | Health Check Path | Rollback Strategy |\n|---|---|---|---|---|---|---|---|\n| staging-us-east | https://staging-us.example.com | us-east-1 | OIDC | 300s | 3 | /health | blue-green |\n| staging-eu-west | https://staging-eu.example.com | eu-west-1 | OIDC | 300s | 3 | /health | blue-green |\n| prod-us-east | https://prod-us.example.com | us-east-1 | mTLS | 600s | 5 | /healthz | canary |\n| prod-eu-west | https://prod-eu.example.com | eu-west-1 | mTLS | 600s | 5 | /healthz | canary |\n| prod-ap-south | https://prod-ap.example.com | ap-south-1 | mTLS | 600s | 5 | /healthz | canary |\n| prod-us-west | https://prod-us-west.example.com | us-west-2 | mTLS | 600s | 5 | /healthz | canary |\n| prod-sa-east | https://prod-sa.example.com | sa-east-1 | mTLS | 600s | 5 | /healthz | canary |\n\n## Error Codes\n\n| Code | Meaning | Recovery Action | Escalation Path | SLA |\n|---|---|---|---|---|\n| DEPLOY_001 | Health check failed | Automatic rollback | Page on-call | 5 min |\n| DEPLOY_002 | Timeout exceeded | Retry with backoff | Create P1 ticket | 15 min |\n| DEPLOY_003 | Auth failure | Rotate credentials | Security team | 30 min |\n| DEPLOY_004 | Quota exceeded | Scale up | Infra team | 1 hour |\n| DEPLOY_005 | Dependency missing | Check manifests | Owner team | 2 hours |\n| DEPLOY_006 | Config invalid | Validate schema | Platform team | 1 hour |\n| DEPLOY_007 | Network partition | Wait and retry | NOC | 15 min |\n| DEPLOY_008 | Certificate expired | Renew cert | Security team | 30 min |\n| DEPLOY_009 | Database migration failed | Rollback migration | DBA team | 30 min |\n| DEPLOY_010 | Feature flag conflict | Disable flag | Product team | 15 min |",
+      "expected_output": "Identifies that the two tables (7 environments, 10 error codes) should be moved to references/ because they exceed 20 rows combined and are lookup data. The SKILL.md body should reference them by name with guidance on when to load.",
+      "files": [],
+      "expectations": [
+        "Identifies the Environment Reference table as a progressive disclosure violation (should be in references/)",
+        "Identifies the Error Codes table as a progressive disclosure violation (should be in references/)",
+        "Explains the rule: tables longer than ~20 rows or lookup data belong in references/, not inline",
+        "Suggests specific filenames for the reference files (e.g. references/environments.md, references/error-codes.md)",
+        "Shows how the SKILL.md body should reference those files (e.g. 'Load references/environments.md for environment URLs and auth methods')",
+        "Does NOT flag the frontmatter, naming, instructions, or CHANGELOG — those are all correct in this skill"
+      ]
     }
   ]
 }
