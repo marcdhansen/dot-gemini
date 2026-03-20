@@ -1,0 +1,1 @@
+/Users/marchansen/.agent/rules/GLOBAL_PROTOCOL.md
