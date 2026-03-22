@@ -1,64 +1,47 @@
 # 🌟 Gemini Agent Configuration
 
-**Scope**: **PROVIDER-SPECIFIC** — This file is ONLY for Gemini/Google-specific configuration.
+**Scope**: PROVIDER-SPECIFIC — Gemini CLI and Antigravity only.
+
 > [!IMPORTANT]
-> **NO UNIVERSAL PROTOCOLS**: Do not add SOP, Initialization, or Finalization procedures here. All universal protocols must reside in `~/.agent/AGENTS.md`.
-
-**Purpose**: Gemini-specific configuration and capabilities.
-
-## 🚀 **Universal Standards**
-
-For universal agent protocols, protocols, and documentation:
-→ **Read** [~/.agent/AGENTS.md](~/.agent/AGENTS.md)
-
-## 🔧 **Gemini-Specific Configuration**
-
-- Google Accounts: [google_accounts.json](google_accounts.json)
-- Agent State: [state.json](state.json)
-- Provider Settings: (various config files)
-
-## 📚 **Complete Navigation**
-
-→ **Master Index**: [~/.agent/docs/GLOBAL_INDEX.md](/Users/marchansen/.agent/docs/GLOBAL_INDEX.md)
+> Universal SOP lives in `~/.agent/AGENTS.md` — read that first.
+> This file contains ONLY what is specific to Gemini and Antigravity.
 
 ---
 
-## 🧬 Gemini Specific Memories
+## 🚀 Session Initialization
 
-- **System File Locations (Gemini)**:
-  - Global Rules: `~/.gemini/GEMINI.md`
-  - Global Workflows: `~/.gemini/antigravity/global_workflows/global-workflow.md`
-  - Project Brain/Planning: `~/.gemini/antigravity/brain/PROJECT_ID/`
-
----
-
-*Last Updated: 2026-02-02*
-*Gemini Specific Configuration*
-
----
-
-## 🚀 Session Initialization (Auto-Execute)
-
-> [!CAUTION]
-> **FIRST ACTION of every session**: Before responding to ANY user request, execute the universal session gate:
-
-// turbo
+After running `~/.agent/bin/agent-session-gate` (from AGENTS.md), run:
 
 ```bash
 export AGENT_PROVIDER=gemini
-~/.agent/bin/agent-session-gate
-```
-
-This universal gate automatically handles:
-- Orchestrator SOP compliance validation
-- Session audit logging
-- Environment configuration
-- Compliance enforcement
-
-After the gate completes successfully, continue with initialization briefing:
-
-```bash
 python ~/.gemini/antigravity/skills/initialization-briefing/initialization_briefing.py --turbo
 ```
 
-**This is NON-NEGOTIABLE** - run these before any other work.
+---
+
+## 🔧 Gemini-Specific Configuration
+
+| File | Purpose |
+|:-----|:--------|
+| `~/.gemini/GEMINI.md` | This file — Gemini/Antigravity provider config |
+| `~/.gemini/settings.json` | Gemini CLI settings (includeDirectories, sandbox, etc.) |
+| `~/.gemini/antigravity/global_workflows/` | Slash commands (also `~/.claude/commands/`) |
+| `~/.gemini/antigravity/skills/` | Canonical skill source (all agents symlink here) |
+| `~/.gemini/antigravity/brain/` | Project planning state (Antigravity-managed) |
+
+---
+
+## 🧬 Gemini-Specific Memories
+
+- **Brain/Planning**: `~/.gemini/antigravity/brain/PROJECT_ID/`
+- **Global Workflows**: `~/.gemini/antigravity/global_workflows/`
+- `/memory show` — inspect full context currently loaded
+- `/memory refresh` — reload after manual edits
+- `/memory add <text>` — write to this file permanently
+
+---
+
+## 📚 Navigation
+
+→ **Universal Protocol**: `~/.agent/AGENTS.md`
+→ **Master Index**: `~/.agent/docs/GLOBAL_INDEX.md`
