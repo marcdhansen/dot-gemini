@@ -1,77 +1,119 @@
 # 🏗️ Cross-IDE & Cross-Agent Compatibility Design
 
-This document outlines the architectural decisions and standards that ensure the Universal Agent Protocol and agentic workflows remain consistent regardless of the Integrated Development Environment (IDE) or the specific AI Agent (Gemini, Claude, etc.) being used.
+This document outlines the architectural decisions that ensure the Universal Agent Protocol
+remains consistent across all IDEs and AI agents.
 
-## 🎯 Core Principles
+---
 
-1. **Shell-Obsessed Tooling**: All critical operations (testing, linting, task management) must be executable via a standard terminal (Zsh/Bash). If a tool requires a GUI or an IDE-specific plugin to function, it is not protocol-compliant.
-2. **Home-Anchored Globals**: All cross-project configuration and "skills" must reside in `~/.gemini/` or `~/.antigravity/`. This ensures that even if an IDE creates its own isolated sandbox, the agent can still reach the core session logic.
-3. **Markdown as the "Common Tongue"**: Standard Github-flavored Markdown is the only approved format for planning and documentation. This ensures perfect readability for LLMs across different providers.
-4. **Path Portability**: All internal documentation links must use **relative paths**. Absolute paths (e.g., `/Users/marchansen/...`) are considered "Toxic Paths" because they break when the workspace is moved or when accessed by an agent with a different home root.
+## 🎯 Core Design Principle: Provider Doc Separation
+
+Each agent reads **two** files at session start:
+1. `~/.agent/AGENTS.md` — universal rules (applies to all agents)
+2. Their provider-specific doc — only what differs per agent
+
+| Agent | Universal rules | Provider-specific |
+|:------|:---------------|:-----------------|
+| Gemini / Antigravity | `~/.agent/AGENTS.md` | `~/.gemini/GEMINI.md` |
+| Claude Code / Claude.ai | `~/.agent/AGENTS.md` (via `~/.claude/CLAUDE.md` symlink) | `~/.claude/README.md` |
+| OpenCode | `~/.agent/AGENTS.md` (via `~/.config/opencode/AGENTS.md` symlink) | `~/.config/opencode/opencode.json` |
+
+**Rule:** If a piece of information applies to all agents, it belongs in `~/.agent/AGENTS.md` — NOT
+in provider docs. Provider docs contain ONLY what is specific to that agent/IDE.
+This avoids duplication and ensures all agents see the same universal rules.
+
+---
+
+## 🏠 Home Directory Structure
+
+```
+~/.agent/          ← Universal hub (dot-agent repo)
+  AGENTS.md        ← Universal instructions — all agents read this
+  BOOTSTRAP.md     ← Paste into web sessions without MCP access
+  bin/             ← Scripts (agent-session-gate, etc.)
+  docs/            ← Documentation
+  skills/          → ~/.gemini/antigravity/skills/  (symlink — see below)
+  commands/        → ~/.gemini/antigravity/global_workflows/  (symlink)
+
+~/.gemini/         ← Gemini + Antigravity (dot-gemini repo)
+  GEMINI.md        ← Gemini/Antigravity-specific config only
+  antigravity/
+    skills/        ← CANONICAL SKILL SOURCE (actual directory)
+    global_workflows/ ← CANONICAL WORKFLOW SOURCE (actual directory)
+
+~/.claude/         ← Claude config (managed by setup.sh)
+  CLAUDE.md        → ~/.agent/AGENTS.md  (symlink)
+  README.md        ← Claude-specific session init (MCP tools, etc.)
+  skills/          → ~/.gemini/antigravity/skills/  (symlink)
+  commands/        → ~/.gemini/antigravity/global_workflows/  (symlink)
+
+~/.config/opencode/ ← OpenCode (dot-opencode repo)
+  AGENTS.md        → ~/.agent/AGENTS.md  (symlink)
+  skills/          → ~/.gemini/antigravity/skills/  (symlink)
+  commands/        → ~/.gemini/antigravity/global_workflows/  (symlink)
+```
+
+---
+
+## ⚠️ The Antigravity Symlink Constraint
+
+Skills and workflows physically live in `~/.gemini/antigravity/` because
+**Antigravity IDE cannot follow symlinks**. All other agents work around this
+by symlinking TO antigravity rather than FROM it.
+
+This is a **workaround, not a design choice**. The intended canonical home
+is `~/.agent/skills/`. When Antigravity gains symlink support, the direction
+will reverse. Until then, all skill development happens in
+`~/.gemini/antigravity/skills/`.
+
+See `~/.agent/docs/architecture/SYMLINKS.md` for the complete symlink map.
+
+---
 
 ## 🛠️ Implementation Standards
 
-### 1. Unified Directory Structure
+### Shell-Obsessed Tooling
+All critical operations must be executable via a standard terminal (zsh/bash).
+If a tool requires a GUI or IDE-specific plugin, it is not protocol-compliant.
 
-| Location | Purpose | Accessibility |
-| :--- | :--- | :--- |
-| `~/.gemini/` | Global Rules, Skills, and Index | Cross-IDE / Cross-Agent |
-| `.agent/rules/` | Project-specific Roadmap & Plan | Project-local |
-| `.beads/` | Task Database (JSONL/SQLite) | Git-versioned / Sync-able |
+### Markdown as Common Tongue
+Standard GitHub-flavored Markdown is the only approved format for planning
+and documentation — readable by all LLM providers.
 
-### 2. The Orchestrator (Process Neutrality)
+### Beads for Task Tracking
+`bd` (Beads) with a git-backed database eliminates centralized project management:
+- Any agent runs `bd ready` to find work
+- Any agent runs `bd sync` to synchronize
+- Source: `~/GitHub/beads` — install: `cd ~/GitHub/beads && go install ./cmd/bd`
 
-The **Orchestrator** skill is implemented as a standalone Python suite (`~/.gemini/antigravity/skills/Orchestrator/`). Instead of relying on IDE "hooks," it is invoked via the standard Python interpreter. This allows any agent capable of running shell commands to perform rigorous Initialization and Finalization validation.
+### The Orchestrator
+Implemented as a standalone Python suite at
+`~/.gemini/antigravity/skills/Orchestrator/`. Invoked via standard Python,
+so any agent that can run shell commands can validate SOP compliance.
 
-### 3. Beads Task Management
+---
 
-By using **Beads** (`bd`) with a Git-backed JSONL database (`.beads/issues.jsonl`), we eliminate the need for centralized project management software.
+## 🚀 Onboarding a New Agent or IDE
 
-- **IDE A** (e.g., VS Code) can run `bd ready`.
-- **Agent B** (e.g., Claude CLI) can run `bd sync`.
-- **Developer C** can view the state in a simple text editor.
+1. Ensure `~/.agent/AGENTS.md` is accessible (symlink or direct read)
+2. Create a provider-specific doc with ONLY agent-specific initialization
+3. Add symlinks to skills and commands pointing at `~/.gemini/antigravity/`
+4. Run `~/dot/setup.sh` to create standard symlinks
 
-### 4. Skill Portability
+See `docs/ONBOARDING.md` for detailed steps.
 
-Each skill in `~/.gemini/antigravity/skills/` contains a `SKILL.md` file. This follows a standardized format that includes:
+---
 
-- **YAML Frontmatter**: For programmatic meta-data.
-- **Markdown Instructions**: For agent consumption.
-- **Python/Shell Scripts**: For automated execution.
+## 🧬 Self-Evolution
 
-This format is understood by both Gemini and other modern agentic frameworks.
+The `reflect` skill captures session learnings. Universal insights update
+`~/.agent/AGENTS.md`. Provider-specific insights update the relevant
+provider doc (`~/.gemini/GEMINI.md`, `~/.claude/README.md`, etc.).
 
-## 🚀 Onboarding a New IDE or Agent
-
-To initialize the Universal Agent Protocol in a new environment (e.g., OpenCode, Claude), follow the standalone guide:
-
-- **[Agent Onboarding Guide](AGENT_ONBOARDING.md)**: A copyable instruction set for bootstrapping new agents.
-
-## 🧬 Self-Evolution Sync
-
-The `reflect` skill is designed to update these global files directly. When an agent "learns" a new preference or fixes a tool friction point, it updates `~/.gemini/GEMINI.md`. This update immediately becomes available to **all other agents and IDEs** working on the same machine.
-
-## 🛰️ Troubleshooting & Fallback Protocols
-
-### 1. Permission Denied (`index.lock` or `git`) in `~/.gemini`
-
-Some agents may be restricted from modifying the global home directory directly.
-
-- **Problem**: `fatal: Unable to create '.../index.lock': Operation not permitted`.
-- **Protocol**:
-    1. Update the files on disk (the agent MUST be able to write).
-    2. Document the change in the session handoff.
-    3. If the agent cannot commit, the user should perform a manual `git commit` in `~/.gemini` at the end of the session.
-
-### 2. Orphaned Processes
-
-If the `agent-init.sh` or a task fails, background processes (like the `beads` daemon or local LLM servers) might be left hanging.
-
-- **Protocol**: Use the `Quality Analyst` skill to identify and prune orphaned binary bloat and temporary files during the Finalization phase.
+---
 
 ## 🔗 Navigation
 
-- **[Global Index](GLOBAL_INDEX.md)**: The entry point for the entire system.
-- **[Universal Agent Protocol](GEMINI.md)**: The universal workflow definitions.
-- **[Session Terminology](NOMENCLATURE.md)**: The shared vocabulary.
-- **[Beads Field Manual](HOW_TO_USE_BEADS.md)**: How to manage tasks across agents.
+- **[Global Index](GLOBAL_INDEX.md)** — entry point for all documentation
+- **[SYMLINKS.md](architecture/SYMLINKS.md)** — complete symlink reference
+- **[ARCHITECTURE.md](architecture/ARCHITECTURE.md)** — four-repo design and rationale
+- **[Beads Guide](BEADS_GUIDE.md)** — task tracking across agents
