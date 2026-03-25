@@ -473,7 +473,8 @@ if len(completed) == len(required):
     exit(0)
 else:
     missing = [p for p in required if p not in completed or not phases.get(p, {}).get('completed', False)]
-    print(f'⚠️  Missing required phases: {', '.join(missing)}')
+    missing_str = ', '.join(missing)
+    print(f'⚠️  Missing required phases: {missing_str}')
     print(f'   Mode: {mode}')
     print(f'   Use: phase-complete <phase>')
     exit(1)
