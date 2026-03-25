@@ -348,10 +348,71 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
 
 
 def check_pr_exists() -> tuple[bool, str]:
-    """Check if a Pull Request exists for the current branch using gh CLI."""
+    """Check if a Pull Request exists for code changes.
+
+    PR Required: Code changes (any code files modified)
+    No PR Required: Docs-only or config-only changes
+
+    Rules:
+    - Code changes (any) → PR required
+    - Docs/config only → No PR required
+    """
     branch, is_feature = check_branch_info()
+
     if not is_feature:
         return True, "No PR required for non-feature branch"
+
+    code_extensions = {
+        ".py",
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".go",
+        ".java",
+        ".rs",
+        ".c",
+        ".cpp",
+        ".h",
+        ".cs",
+    }
+    code_patterns = {"src/", "lib/", "cmd/", "internal/", "pkg/"}
+
+    doc_extensions = {".md", ".txt", ".rst", ".adoc"}
+    config_extensions = {".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".env", ".conf"}
+
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "--cached"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        result2 = subprocess.run(
+            ["git", "diff", "--name-only"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        changed_files = set()
+        changed_files.update(result.stdout.strip().split("\n"))
+        changed_files.update(result2.stdout.strip().split("\n"))
+        changed_files.discard("")
+
+        has_code = False
+        for f in changed_files:
+            if any(f.endswith(ext) for ext in code_extensions) or any(
+                p in f for p in code_patterns
+            ):
+                has_code = True
+                break
+
+        if not has_code:
+            return True, "No code changes (docs/config only) - no PR required"
+
+    except Exception:
+        pass
 
     if not check_tool_available("gh"):
         return False, "gh (GitHub CLI) not available. PR cannot be verified."
