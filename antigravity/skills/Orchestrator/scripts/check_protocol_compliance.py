@@ -1029,6 +1029,68 @@ Examples:
 
     args = parser.parse_args()
 
+    # Auto-detect Turbo mode based on file types (unless explicitly overridden)
+    if not args.turbo:
+        try:
+            result = subprocess.run(
+                ["git", "diff", "--name-only", "--cached"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            result2 = subprocess.run(
+                ["git", "diff", "--name-only"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            changed = set()
+            changed.update(result.stdout.strip().split("\n"))
+            changed.update(result2.stdout.strip().split("\n"))
+            changed.discard("")
+
+            # File types that are safe for Turbo
+            doc_extensions = {
+                ".md",
+                ".txt",
+                ".rst",
+                ".json",
+                ".yaml",
+                ".yml",
+                ".toml",
+                ".ini",
+                ".cfg",
+            }
+            doc_patterns = {"README", "CHANGELOG", "LICENSE", "docs/", ".agent/", ".beads/"}
+
+            is_turbo_safe = True
+            for f in changed:
+                # Skip deleted files
+                if f.startswith("D\t"):
+                    continue
+                clean_f = f.replace("M\t", "").replace("A\t", "").replace("?\t", "")
+
+                # Check if it's a code file
+                code_extensions = {".py", ".sh", ".js", ".ts", ".go", ".c", ".cpp", ".java", ".rs"}
+                if any(clean_f.endswith(ext) for ext in code_extensions):
+                    is_turbo_safe = False
+                    break
+
+                # Check if it's a docs/config file
+                if not any(clean_f.endswith(ext) for ext in doc_extensions) and not any(
+                    p in clean_f for p in doc_patterns
+                ):
+                    # Unknown file type - be conservative, don't auto-Turbo
+                    is_turbo_safe = False
+                    break
+
+            if is_turbo_safe and changed:
+                print("📝 Auto-detected docs/config-only changes - using Turbo Mode")
+                print()
+                args.turbo = True
+        except Exception:
+            pass  # If auto-detection fails, default to Full mode
+
     # Default to status if no option specified
     if not any(
         [
