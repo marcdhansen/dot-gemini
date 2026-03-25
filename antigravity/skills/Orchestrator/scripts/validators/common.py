@@ -2,8 +2,10 @@ import subprocess
 import re
 from pathlib import Path
 
+
 class Colors:
     """ANSI color codes for terminal output."""
+
     GREEN = "\033[92m"
     RED = "\033[91m"
     YELLOW = "\033[93m"
@@ -22,6 +24,11 @@ def check_mark(passed: bool) -> str:
 def warning_mark() -> str:
     """Return warning symbol."""
     return f"{Colors.YELLOW}⚠️{Colors.END}"
+
+
+def skip_mark() -> str:
+    """Return skip symbol for not applicable checks."""
+    return f"{Colors.BLUE}⏭️{Colors.END}"
 
 
 def check_tool_available(tool: str) -> bool:
@@ -54,9 +61,7 @@ def check_tool_version(
         return False, f"Tool '{tool}' not installed"
 
     try:
-        result = subprocess.run(
-            [tool, version_flag], capture_output=True, text=True, timeout=5
-        )
+        result = subprocess.run([tool, version_flag], capture_output=True, text=True, timeout=5)
         if result.returncode != 0:
             output = result.stdout.strip() or result.stderr.strip()
             if not output:

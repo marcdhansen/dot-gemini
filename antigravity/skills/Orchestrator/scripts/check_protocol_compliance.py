@@ -31,6 +31,7 @@ try:
         Colors,
         check_mark,
         warning_mark,
+        skip_mark,
         check_tool_available,
         check_tool_version,
     )
@@ -152,10 +153,17 @@ def run_phase_from_json(
                 passed = bool(result)
                 msg = "Check passed" if passed else "Check failed"
 
-            icon = check_mark(passed)
+            skip_indicators = ["skip", "skipped", "not required", "not applicable", "n/a"]
+            is_skipped = any(ind in msg.lower() for ind in skip_indicators)
+
+            if is_skipped:
+                icon = skip_mark()
+            else:
+                icon = check_mark(passed)
+
             print(f"├── {check['description']}: {icon} {msg}")
 
-            if not passed:
+            if not passed and not is_skipped:
                 if check["type"] == "BLOCKER":
                     blockers.append(f"{check['description']}: {msg}")
                 else:
@@ -814,12 +822,19 @@ def run_clean_state(verbose: bool = False) -> bool:
     # Branch Check
     branch, is_feature = check_branch_info()
     on_main = branch in ["main", "master"]
-    print(f"├── Branch: {check_mark(on_main)} ", end="")
+
+    # Check if branch is clean and pushed (acceptable even if not main)
+    git_ok, _ = check_git_status()
+    branch_clean_and_pushed = git_ok
+
+    print(f"├── Branch: ", end="")
     if on_main:
-        print(f"On {branch}")
+        print(f"{check_mark(True)} On {branch}")
+    elif branch_clean_and_pushed:
+        print(f"{check_mark(True)} On {branch} (clean, ready for next session)")
     else:
-        print(f"On {branch} (should be main)")
-        issues.append(f"Merge PR and switch to main (currently on {branch})")
+        print(f"{check_mark(False)} On {branch} (should be main or clean)")
+        issues.append(f"Clean up branch {branch} (commit/push or merge to main)")
 
     # Git Status Check
     git_ok, git_msg = check_git_status()

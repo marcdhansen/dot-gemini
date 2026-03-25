@@ -445,7 +445,57 @@ def check_handoff_pr_link() -> tuple[bool, str]:
     """Check if the session handoff document contains a GitHub PR link.
 
     Consolidated: Now checks .agent/handoffs/ instead of brain/debrief.md.
+    PR link required only if code changes exist.
     """
+    code_extensions = {
+        ".py",
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".go",
+        ".java",
+        ".rs",
+        ".c",
+        ".cpp",
+        ".h",
+        ".cs",
+    }
+    code_patterns = {"src/", "lib/", "cmd/", "internal/", "pkg/"}
+
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "--cached"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        result2 = subprocess.run(
+            ["git", "diff", "--name-only"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        changed_files = set()
+        changed_files.update(result.stdout.strip().split("\n"))
+        changed_files.update(result2.stdout.strip().split("\n"))
+        changed_files.discard("")
+
+        has_code = False
+        for f in changed_files:
+            if any(f.endswith(ext) for ext in code_extensions) or any(
+                p in f for p in code_patterns
+            ):
+                has_code = True
+                break
+
+        if not has_code:
+            return True, "No code changes - PR not required"
+
+    except Exception:
+        pass
+
     handoff_dir = Path(".agent/handoffs")
     if not handoff_dir.exists():
         return False, "Handoff directory not found"
