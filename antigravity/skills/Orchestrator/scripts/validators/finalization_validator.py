@@ -111,30 +111,13 @@ def check_handoff_exists() -> tuple[bool, str]:
 
 
 def check_debriefing_invoked() -> tuple[bool, str]:
-    """Check if debriefing was recently invoked."""
-    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    if brain_dir.exists():
-        session_dirs = sorted(
-            [d for d in brain_dir.iterdir() if d.is_dir()],
-            key=lambda x: x.stat().st_mtime,
-            reverse=True,
-        )[:3]
+    """DEPRECATED: Use check_handoff_exists instead.
 
-        for session_dir in session_dirs:
-            debrief_path = session_dir / "debrief.md"
-            if debrief_path.exists():
-                try:
-                    mtime = datetime.fromtimestamp(debrief_path.stat().st_mtime)
-                    age = datetime.now() - mtime
-                    if age < timedelta(hours=2):
-                        return (
-                            True,
-                            f"Debrief generated {age.total_seconds() / 60:.0f} minutes ago",
-                        )
-                except Exception:
-                    pass
-
-    return False, "No recent debrief found"
+    Consolidated: Session handoff in .agent/handoffs/ is now the single
+    source of truth for session closure. This function delegates to
+    check_handoff_exists for backwards compatibility.
+    """
+    return check_handoff_exists()
 
 
 def check_code_review_status() -> tuple[bool, str]:
@@ -398,31 +381,29 @@ def check_pr_exists() -> tuple[bool, str]:
 
 
 def check_handoff_pr_link() -> tuple[bool, str]:
-    """Check if the session handoff (debrief.md) contains a GitHub PR link."""
-    brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
-    if not brain_dir.exists():
-        return False, "Brain directory not found"
+    """Check if the session handoff document contains a GitHub PR link.
 
-    session_dirs = sorted(
-        [d for d in brain_dir.iterdir() if d.is_dir()],
-        key=lambda x: x.stat().st_mtime,
-        reverse=True,
-    )[:3]
+    Consolidated: Now checks .agent/handoffs/ instead of brain/debrief.md.
+    """
+    handoff_dir = Path(".agent/handoffs")
+    if not handoff_dir.exists():
+        return False, "Handoff directory not found"
+
+    handoff_files = list(handoff_dir.glob("*-session.md"))
+    handoff_files.extend(list(handoff_dir.glob("*-handoff.md")))
 
     pr_pattern = r"https://github\.com/[^/]+/[^/]+/pull/\d+"
 
-    for session_dir in session_dirs:
-        debrief_path = session_dir / "debrief.md"
-        if debrief_path.exists():
-            try:
-                content = debrief_path.read_text()
-                if "PR Link" in content or "pull request" in content.lower():
-                    if re.search(pr_pattern, content):
-                        return True, f"PR link found in debrief: {debrief_path.name}"
-            except Exception:
-                pass
+    for handoff in handoff_files:
+        try:
+            content = handoff.read_text()
+            if "PR Link" in content or "pull request" in content.lower():
+                if re.search(pr_pattern, content):
+                    return True, f"PR link found in handoff: {handoff.name}"
+        except Exception:
+            pass
 
-    return False, "No GitHub PR link found in recent debrief.md"
+    return False, "No GitHub PR link found in handoff document"
 
 
 def check_pr_decomposition_closure() -> tuple[bool, str]:

@@ -39,6 +39,14 @@ Provide clear summary including:
 - [ ] Beads issues created/closed (specific IDs)
 - [ ] Recommended next steps
 
+### Session Closure Document
+
+The **session handoff document** in `.agent/handoffs/` is the single source of truth for session closure. This consolidates what was previously split between debrief.md and handoff documents.
+
+- **Location**: `.agent/handoffs/{branch-name}-session.md`
+- **Contents**: Work summary, issues, next steps, PR links
+- **Replaces**: debrief.md (deprecated)
+
 ### Strategic Questions
 
 Address these during reflection:
