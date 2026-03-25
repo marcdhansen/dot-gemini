@@ -368,7 +368,7 @@ if command -v bd &> /dev/null; then
     fi
     # Sync beads database
     echo "🔄 Syncing beads database to remote..."
-    bd dolt push || check_success "bd dolt push"
+    bd github sync --push-only || check_success "bd github sync"
 else
     echo "💡 beads not found, skipping issue management"
 fi
