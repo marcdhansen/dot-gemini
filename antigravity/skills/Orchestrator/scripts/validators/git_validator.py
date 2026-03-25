@@ -144,8 +144,41 @@ def check_sop_infrastructure_changes() -> tuple[bool, str]:
         return False, f"SOP infrastructure check error (skipping): {e}"
 
 
+def is_worktree_mode() -> bool:
+    """Detect if we're in worktree mode.
+
+    Worktree mode is active when:
+    - .worktree marker file exists, OR
+    - git worktree list shows multiple worktrees
+    """
+    marker = Path(".worktree")
+    if marker.exists():
+        return True
+
+    try:
+        result = subprocess.run(
+            ["git", "worktree", "list", "--porcelain"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            worktrees = [line for line in result.stdout.split("\n") if line.startswith("worktree ")]
+            return len(worktrees) > 1
+    except Exception:
+        pass
+
+    return False
+
+
 def check_branch_info(*args) -> tuple[str, bool]:
-    """Get current branch and check if it's a feature branch."""
+    """Get current branch and check if it's a feature branch.
+
+    Worktree-aware: In worktree mode, main and work branches are valid.
+
+    Args:
+        *args: If contains "main", checks that current branch is main
+    """
     try:
         result = subprocess.run(
             ["git", "branch", "--show-current"],
@@ -154,6 +187,22 @@ def check_branch_info(*args) -> tuple[str, bool]:
         )
         if result.returncode == 0:
             branch = result.stdout.strip()
+
+            expected_branch = args[0] if args else None
+            in_worktree_mode = is_worktree_mode()
+
+            if in_worktree_mode:
+                if expected_branch == "main" and branch == "main":
+                    return branch, True  # main is valid in worktree mode
+                if expected_branch == "main" and branch == "work":
+                    return branch, True  # work is also acceptable in worktree mode
+                if not expected_branch:
+                    return branch, True  # In worktree mode, any recognized branch is valid
+
+            if expected_branch == "main":
+                is_valid = branch in ["main", "master"]
+                return branch, is_valid
+
             is_feature = branch.startswith(("agent/", "feature/", "chore/"))
             return branch, is_feature
         return "unknown", False
