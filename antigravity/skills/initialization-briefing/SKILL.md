@@ -63,8 +63,60 @@ python ~/.gemini/antigravity/skills/initialization-briefing/initialization_brief
 - Quality gate issues (skipping tests, duplicate markdown files)
 - Git & workflow errors (unpushed changes, branch cleanup)
 - Learning & reflection mistakes (retrospective vs real-time capture)
+- **TDD Violations**: Writing tests AFTER implementation (run `tdd-check` first!)
 
-### 5. Session Checklist
+### 5. Mode Selection: Turbo vs Full SOP
+
+| Mode | Use When | TDD |
+|------|----------|-----|
+| **Turbo** | Internal tools, quick fixes, ad-hoc | Minimal/stub |
+| **Full SOP** | Features, external-facing, multi-session | Full TDD |
+
+**Turbo indicators:** Internal tooling, single session, no external users
+**Full SOP indicators:** User-facing, needs planning, >1 session
+
+### 6. TDD Enforcement
+
+**Before writing any code, run TDD check:**
+
+```bash
+tdd-check src/agent_harness/new_module.py
+```
+
+**Progressive Disclosure by Task Size:**
+
+| Complexity | Time | Requirement |
+|------------|------|-------------|
+| Trivial | <5 min | Exempt (`--exempt --reason`) |
+| Small | 5-30 min | Test stub (`tdd-check` prompts) |
+| Medium+ | >30 min | Full TDD (Red→Green→Refactor) |
+
+**Quick Fixes:** Use exemption to avoid TDD fatigue:
+```bash
+tdd-check <file> --exempt --reason "Config only"
+```
+
+### 6. Session Phase Tracking (NEW)
+
+**Track progress with these commands:**
+
+```bash
+# Check current phase status
+session-status
+
+# Mark a phase complete
+phase-complete 3_planning --notes "Blast radius done"
+phase-complete 4_execution --notes "Implementation complete"
+```
+
+**Required phases by mode:**
+
+| Mode | Required Phases |
+|------|----------------|
+| Turbo | 5, 6, 7 (skip 1-4) |
+| Full | 1, 2, 3, 4, 5, 6, 7 |
+
+### 7. Session Checklist
 
 - Pre-session preparation
 - During session monitoring

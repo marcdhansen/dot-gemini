@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from .common import check_tool_available, Colors
 from .git_validator import check_branch_info, get_active_issue_id
 
+
 def check_reflection_invoked() -> tuple[bool, str]:
     """Check if reflection was recently invoked and follows structured JSON format."""
     input_artifact = Path(".reflection_input.json")
@@ -14,16 +15,16 @@ def check_reflection_invoked() -> tuple[bool, str]:
         try:
             with open(input_artifact, "r") as f:
                 data = json.load(f)
-            
+
             required = ["session_name", "outcome", "technical_learnings", "refactoring_candidates"]
             missing = [field for field in required if field not in data]
-            
+
             if missing:
                 return (
                     False,
                     f"Reflection artifact .reflection_input.json is missing required fields: {', '.join(missing)}",
                 )
-            
+
             mtime = datetime.fromtimestamp(input_artifact.stat().st_mtime)
             age = datetime.now() - mtime
             if age < timedelta(hours=2):
@@ -62,6 +63,33 @@ def check_reflection_invoked() -> tuple[bool, str]:
     return False, "No recent reflection found. Please run /reflect to capture session learnings."
 
 
+def check_handoff_exists() -> tuple[bool, str]:
+    """Check if handoff document exists for current session.
+
+    Global validator - applies to all projects.
+    Checks for .agent/handoffs/{branch-name}-session.md or similar patterns.
+    """
+    handoff_dir = Path(".agent/handoffs")
+
+    if not handoff_dir.exists():
+        return False, "Handoff directory .agent/handoffs/ does not exist"
+
+    # Look for session handoff files
+    handoff_files = list(handoff_dir.glob("*-session.md"))
+    handoff_files.extend(list(handoff_dir.glob("*-handoff.md")))
+
+    if not handoff_files:
+        return False, "No handoff document found in .agent/handoffs/"
+
+    # Check if any handoff has content
+    for handoff in handoff_files:
+        content = handoff.read_text()
+        if len(content.strip()) > 100:
+            return True, f"Handoff found: {handoff.name}"
+
+    return False, "Handoff exists but is empty or too short"
+
+
 def check_debriefing_invoked() -> tuple[bool, str]:
     """Check if debriefing was recently invoked."""
     brain_dir = Path.home() / ".gemini" / "antigravity" / "brain"
@@ -92,6 +120,7 @@ def check_debriefing_invoked() -> tuple[bool, str]:
 def check_code_review_status() -> tuple[bool, str]:
     """Check if code review skill was recently invoked and passed."""
     import sys
+
     code_review_script = (
         Path.home() / ".gemini/antigravity/skills/code-review/scripts/code_review.py"
     )
@@ -151,6 +180,7 @@ def check_handoff_compliance() -> tuple[bool, str]:
 def check_todo_completion() -> tuple[bool, str]:
     """Check if all tasks in task.md are completed (oh-my-opencode pattern)."""
     import sys
+
     enforcer_script = Path.home() / ".agent/scripts/todo-enforcer.py"
     if enforcer_script.exists():
         try:
@@ -228,11 +258,7 @@ def check_linked_repositories() -> tuple[bool, list[str]]:
                         text=True,
                         timeout=2,
                     )
-                    branch = (
-                        branch_res.stdout.strip()
-                        if branch_res.returncode == 0
-                        else "unknown"
-                    )
+                    branch = branch_res.stdout.strip() if branch_res.returncode == 0 else "unknown"
 
                     if branch in ["main", "master"]:
                         errors.append(
@@ -270,11 +296,11 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
     """Check if a P0 PR review issue exists for the current branch."""
     if not check_tool_available("bd"):
         return False, "beads (bd) not available"
-    
+
     branch, is_feature = check_branch_info()
     if not is_feature:
         return True, "Not on feature branch (PR review not required)"
-    
+
     try:
         result = subprocess.run(
             ["bd", "list", "--priority", "P0"],
@@ -292,7 +318,7 @@ def check_pr_review_issue_created() -> tuple[bool, str]:
                 False,
                 f"No P0 PR review issue found for branch '{branch}'. Create one with: bd create --priority P0 'PR Review: {branch}'",
             )
-        
+
         lines = output.split("\n")
         for line in lines:
             line_lower = line.lower()
@@ -383,51 +409,54 @@ def check_pr_decomposition_closure() -> tuple[bool, str]:
     """Verify that decomposed PRs are properly closed per PR Response Protocol."""
     if not check_tool_available("bd") or not check_tool_available("gh"):
         return True, "beads or gh not available (skipping decomposition check)"
-    
+
     try:
         active_issue = get_active_issue_id()
         if not active_issue:
             return True, "No active issue (decomposition check not applicable)"
-        
+
         result = subprocess.run(
             ["bd", "show", active_issue],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        
+
         if result.returncode != 0:
             return True, "Could not query issue details (skipping)"
-        
+
         output = result.stdout
         output_lower = output.lower()
         has_children = "part-of" in output_lower or "child" in output or "epic" in output
-        
+
         if not has_children:
             return True, "No child issues detected (not a decomposition)"
-        
+
         pr_pattern = r"PR #(\d+)|pull/(\d+)"
         pr_matches = re.findall(pr_pattern, output)
-        
+
         if not pr_matches:
             return True, "Parent issue with children but no original PR referenced"
-        
+
         pr_number = next((m[0] or m[1] for m in pr_matches if m[0] or m[1]), None)
-        
+
         if not pr_number:
             return True, "Could not extract PR number from issue"
-        
+
         pr_check = subprocess.run(
             ["gh", "pr", "view", pr_number, "--json", "state", "--jq", ".state"],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        
+
         if pr_check.returncode == 0:
             pr_status = pr_check.stdout.strip()
             if pr_status == "CLOSED":
-                return True, f"Original PR #{pr_number} properly closed (decomposition protocol followed)"
+                return (
+                    True,
+                    f"Original PR #{pr_number} properly closed (decomposition protocol followed)",
+                )
             elif pr_status == "MERGED":
                 return True, f"Original PR #{pr_number} was merged (not decomposed)"
             else:
@@ -435,7 +464,7 @@ def check_pr_decomposition_closure() -> tuple[bool, str]:
                     False,
                     f"PROTOCOL VIOLATION: Original PR #{pr_number} is still OPEN but child issues exist.",
                 )
-        
+
         return True, "Could not verify PR status (skipping)"
     except Exception as e:
         return True, f"Decomposition check error: {e}"
@@ -445,56 +474,54 @@ def check_child_pr_linkage() -> tuple[bool, str]:
     """Validate that child PRs properly reference their parent Epic/issue per PR Response Protocol."""
     if not check_tool_available("bd") or not check_tool_available("gh"):
         return True, "beads or gh not available (skipping linkage check)"
-    
+
     try:
         active_issue = get_active_issue_id()
         if not active_issue:
             return True, "No active issue (linkage check not applicable)"
-        
+
         result = subprocess.run(
             ["bd", "show", active_issue],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        
+
         if result.returncode != 0:
             return True, "Could not query issue details (skipping)"
-        
+
         parent_pattern = r"(?:part.?of|depends.?on|blocks?.?by)[\s:]+(\w+-[\w-]+)"
         parent_matches = re.findall(parent_pattern, result.stdout, re.IGNORECASE)
-        
+
         if not parent_matches:
             return True, "No parent issue detected (not a child PR)"
-        
+
         parent_id = parent_matches[0]
         branch, is_feature = check_branch_info()
         if not is_feature:
             return True, "Not on feature branch"
-        
+
         pr_check = subprocess.run(
             ["gh", "pr", "view", "--json", "body", "--jq", ".body"],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        
+
         if pr_check.returncode != 0:
             return True, "No PR found for current branch"
-        
+
         pr_body = pr_check.stdout.lower()
         parent_mentioned = (
-            parent_id.lower() in pr_body or
-            "parent epic" in pr_body or
-            "part of epic" in pr_body
+            parent_id.lower() in pr_body or "parent epic" in pr_body or "part of epic" in pr_body
         )
-        
+
         if not parent_mentioned:
             return (
                 False,
                 f"PROTOCOL VIOLATION: Child PR does not reference parent issue '{parent_id}'.",
             )
-        
+
         return True, f"Child PR properly references parent issue '{parent_id}'"
     except Exception as e:
         return True, f"Linkage check error: {e}"
@@ -510,3 +537,103 @@ def check_progress_log_exists() -> tuple[bool, str]:
     if log_path.exists():
         return True, f"Progress log found: {log_path.name}"
     return False, f"Progress log missing: {log_path.name}"
+
+
+def check_temp_files() -> tuple[bool, str]:
+    """Check for common temporary files in workspace.
+
+    Global validator - applies to all projects.
+    Flags: .bak, .tmp, .cache, .pyc, __pycache__, node_modules, .env, .DS_Store
+
+    Projects can override with their own check_workspace_cleanup that extends this.
+    """
+    suspicious_patterns = [
+        ".bak",
+        ".tmp",
+        ".cache",
+        ".pyc",
+        "__pycache__",
+        "node_modules",
+        ".DS_Store",
+        ".env",
+        ".venv",
+        "dist/",
+        "build/",
+        ".pytest_cache",
+    ]
+
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if result.returncode != 0:
+            return True, "Could not check for temp files (git not available)"
+
+        untracked = result.stdout.strip().split("\n") if result.stdout.strip() else []
+
+        found = []
+        for f in untracked:
+            if any(pattern in f for pattern in suspicious_patterns):
+                found.append(f)
+
+        if found:
+            return False, f"Temp files detected: {', '.join(found[:10])}"
+
+        return True, "No temp files found"
+
+    except Exception as e:
+        return True, f"Temp file check skipped: {e}"
+
+
+def check_readme_needs_update() -> tuple[bool, str]:
+    """Check if README needs updating based on code changes.
+
+    Global validator - heuristic check for common changes that warrant docs.
+    Looks for: new files in root, new scripts/, new config files.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "--cached"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        # Also check unstaged
+        result2 = subprocess.run(
+            ["git", "diff", "--name-only"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        changed = set()
+        changed.update(result.stdout.strip().split("\n"))
+        changed.update(result2.stdout.strip().split("\n"))
+        changed.discard("")
+
+        # Files that might need docs
+        doc_worthy = [
+            f for f in changed if f.endswith((".py", ".sh")) and not f.startswith("tests/")
+        ]
+
+        readme_exists = Path("README.md").exists()
+
+        if not doc_worthy:
+            return True, "No doc-worthy changes detected"
+
+        if not readme_exists:
+            return False, "README.md missing but code changes exist"
+
+        # Check if README was modified
+        if "README.md" in changed:
+            return True, "README.md updated with changes"
+
+        return True, f"Code changes may need documentation: {', '.join(doc_worthy[:5])}"
+
+    except Exception as e:
+        return True, f"README check skipped: {e}"

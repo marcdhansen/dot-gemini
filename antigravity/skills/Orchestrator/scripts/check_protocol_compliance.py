@@ -19,6 +19,7 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional
 
 # Add universal scripts to path
 sys.path.append(str(Path.home() / ".agent/scripts"))
@@ -26,22 +27,52 @@ sys.path.append(str(Path.home() / ".agent/ledgers"))
 
 # Import modular validators
 try:
-    from validators.common import Colors, check_mark, warning_mark, check_tool_available, check_tool_version
-    from validators.git_validator import check_workspace_integrity, check_git_status, check_sop_infrastructure_changes, check_branch_info, get_active_issue_id, validate_atomic_commits
-    from validators.plan_validator import check_planning_docs, check_beads_issue, check_sop_simplification, check_hook_integrity, check_plan_approval
+    from validators.common import (
+        Colors,
+        check_mark,
+        warning_mark,
+        check_tool_available,
+        check_tool_version,
+    )
+    from validators.git_validator import (
+        check_workspace_integrity,
+        check_git_status,
+        check_sop_infrastructure_changes,
+        check_branch_info,
+        get_active_issue_id,
+        validate_atomic_commits,
+    )
+    from validators.plan_validator import (
+        check_planning_docs,
+        check_beads_issue,
+        check_sop_simplification,
+        check_hook_integrity,
+        check_plan_approval,
+    )
     from validators.code_validator import validate_tdd_compliance
     from validators.finalization_validator import (
-        check_reflection_invoked, check_debriefing_invoked, check_code_review_status,
-        check_handoff_compliance, check_todo_completion, check_linked_repositories,
-        check_pr_review_issue_created, check_pr_exists, check_handoff_pr_link,
-        check_pr_decomposition_closure, check_child_pr_linkage, check_progress_log_exists
+        check_reflection_invoked,
+        check_debriefing_invoked,
+        check_code_review_status,
+        check_handoff_compliance,
+        check_handoff_exists,
+        check_todo_completion,
+        check_linked_repositories,
+        check_pr_review_issue_created,
+        check_pr_exists,
+        check_handoff_pr_link,
+        check_pr_decomposition_closure,
+        check_child_pr_linkage,
+        check_progress_log_exists,
+        check_temp_files,
+        check_readme_needs_update,
     )
 except ImportError as e:
     print(f"Warning: Could not import modular validators: {e}")
     pass
 
 
-def load_json_checklist(phase_name: str) -> dict | None:
+def load_json_checklist(phase_name: str) -> Optional[dict]:
     """Load SOP checklist from workspace JSON."""
     paths = [
         Path(".agent/rules/checklists") / f"{phase_name}.json",
@@ -57,7 +88,9 @@ def load_json_checklist(phase_name: str) -> dict | None:
     return None
 
 
-def run_phase_from_json(phase_name: str, verbose: bool = False) -> tuple[bool, list[str], list[str]]:
+def run_phase_from_json(
+    phase_name: str, verbose: bool = False
+) -> tuple[bool, list[str], list[str]]:
     """Run a checklist phase defined in JSON."""
     data = load_json_checklist(phase_name)
     if not data or "phases" not in data or not data["phases"]:
@@ -78,9 +111,11 @@ def run_phase_from_json(phase_name: str, verbose: bool = False) -> tuple[bool, l
         # Get function from global or imported scope
         # First check globals, then check imported validator modules if needed
         validator = globals().get(validator_name)
-        
+
         if not validator:
-            print(f"├── {check['id']}: {Colors.RED}❌{Colors.END} Validator '{validator_name}' not found")
+            print(
+                f"├── {check['id']}: {Colors.RED}❌{Colors.END} Validator '{validator_name}' not found"
+            )
             blockers.append(f"Missing validator: {validator_name}")
             continue
 
@@ -101,7 +136,7 @@ def run_phase_from_json(phase_name: str, verbose: bool = False) -> tuple[bool, l
                 else:
                     passed = result[0]
                     msg = result[1]
-                
+
                 if isinstance(msg, list):
                     if not msg:
                         msg = "verified"
@@ -113,7 +148,7 @@ def run_phase_from_json(phase_name: str, verbose: bool = False) -> tuple[bool, l
 
             icon = check_mark(passed)
             print(f"├── {check['description']}: {icon} {msg}")
-            
+
             if not passed:
                 if check["type"] == "BLOCKER":
                     blockers.append(f"{check['description']}: {msg}")
@@ -157,11 +192,6 @@ except ImportError:
     validate_initialization = None
 
 
-
-
-
-
-
 def run_initialization(verbose: bool = False) -> bool:
     """Run Initialization validation."""
     # Try JSON-driven approach first
@@ -170,10 +200,10 @@ def run_initialization(verbose: bool = False) -> bool:
         if blockers:
             print(f"{Colors.RED}{Colors.BOLD}❌ INITIALIZATION BLOCKED (JSON){Colors.END}")
             for blocker in blockers:
-                 print(f"  - {blocker}")
+                print(f"  - {blocker}")
             update_progress_ledger("Initialization", "failure", f"Blocked: {blockers}")
             return False
-        
+
         print(f"{Colors.GREEN}{Colors.BOLD}✅ INITIALIZATION COMPLETE (JSON){Colors.END}")
         update_progress_ledger("Initialization", "success", "Clean JSON initialization complete")
         return True
@@ -253,8 +283,7 @@ def run_initialization(verbose: bool = False) -> bool:
 
     # SOP Gate Change Check
     sop_mod_script = (
-        Path.home()
-        / ".gemini/antigravity/skills/sop-modification/scripts/validate_sop_change.py"
+        Path.home() / ".gemini/antigravity/skills/sop-modification/scripts/validate_sop_change.py"
     )
     if sop_mod_script.exists():
         try:
@@ -283,9 +312,7 @@ def run_initialization(verbose: bool = False) -> bool:
     if not approval_ok:
         blockers.append(approval_msg)
     if not progress_ok:
-        warnings.append(
-            "Progress log missing - run /log-progress to initialize context"
-        )
+        warnings.append("Progress log missing - run /log-progress to initialize context")
 
     print()
 
@@ -299,26 +326,20 @@ def run_initialization(verbose: bool = False) -> bool:
         update_progress_ledger("Initialization", "failure", f"Blocked: {blockers}")
         return False
     elif warnings:
-        print(
-            f"{Colors.YELLOW}{Colors.BOLD}⚠️ INITIALIZATION PASSED WITH WARNINGS{Colors.END}"
-        )
+        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ INITIALIZATION PASSED WITH WARNINGS{Colors.END}")
         print()
         print("WARNINGS:")
         for i, warning in enumerate(warnings, 1):
             print(f"  {i}. {warning}")
         print()
         print("Ready for execution (address warnings when possible)")
-        update_progress_ledger(
-            "Initialization", "success", f"Passed with warnings: {warnings}"
-        )
+        update_progress_ledger("Initialization", "success", f"Passed with warnings: {warnings}")
         return True
     else:
         print(f"{Colors.GREEN}{Colors.BOLD}✅ INITIALIZATION COMPLETE{Colors.END}")
         print()
         print("Ready for execution!")
-        update_progress_ledger(
-            "Initialization", "success", "Clean initialization complete"
-        )
+        update_progress_ledger("Initialization", "success", "Clean initialization complete")
         return True
 
 
@@ -347,9 +368,7 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     if not git_ok or not git_clean or sop_infra_escalation:
         print(f"{Colors.RED}{Colors.BOLD}❌ TURBO BLOCKED{Colors.END}")
         if not git_clean:
-            print(
-                f"  {warning_mark()} Code changes detected. Escalate to Full SOP (--init)."
-            )
+            print(f"  {warning_mark()} Code changes detected. Escalate to Full SOP (--init).")
         if sop_infra_escalation:
             print(
                 f"  {warning_mark()} SOP infrastructure changes detected. Full Mode REQUIRED (--init)."
@@ -359,7 +378,6 @@ def run_turbo_initialization(verbose: bool = False) -> bool:
     print(f"{Colors.GREEN}{Colors.BOLD}✅ TURBO READY{Colors.END}")
     print("Ready for administrative tasks (bd create, docs, research).")
     return True
-
 
 
 def run_execution(verbose: bool = False) -> bool:
@@ -416,9 +434,7 @@ def run_execution(verbose: bool = False) -> bool:
     issues_ok, issues_msg = check_beads_issue()
     print(f"├── Beads Issue: {check_mark(issues_ok)} {issues_msg}")
     if not issues_ok:
-        issues.append(
-            "MANDATORY: Current rule requires a Beads issue before implementation"
-        )
+        issues.append("MANDATORY: Current rule requires a Beads issue before implementation")
 
     # MANDATORY Plan Approval Check for Execution
     approval_ok, approval_msg = check_plan_approval()
@@ -474,10 +490,10 @@ def run_finalization(verbose: bool = False) -> bool:
         if blockers:
             print(f"{Colors.RED}{Colors.BOLD}❌ FINALIZATION BLOCKED (JSON){Colors.END}")
             for blocker in blockers:
-                 print(f"  - {blocker}")
+                print(f"  - {blocker}")
             update_progress_ledger("Finalization", "failure", f"Blocked: {blockers}")
             return False
-        
+
         print(f"{Colors.GREEN}{Colors.BOLD}✅ FINALIZATION COMPLETE (JSON){Colors.END}")
         update_progress_ledger("Finalization", "success", "Clean JSON finalization complete")
         return True
@@ -486,9 +502,7 @@ def run_finalization(verbose: bool = False) -> bool:
     print(f"{Colors.BOLD}🛬 FINALIZATION CHECK (Legacy){Colors.END}")
     print("=" * 40)
     print()
-    print(
-        "Finalization focuses on safe landing: code quality, clean git, successful push."
-    )
+    print("Finalization focuses on safe landing: code quality, clean git, successful push.")
     print()
 
     blockers = []
@@ -535,9 +549,7 @@ def run_finalization(verbose: bool = False) -> bool:
     reflect_ok, reflect_msg = check_reflection_invoked()
     print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
-        blockers.append(
-            "Reflection not captured - invoke /reflect (Mandatory for Finalization)"
-        )
+        blockers.append("Reflection not captured - invoke /reflect (Mandatory for Finalization)")
 
     # Linked Repository Validation
     linked_ok, linked_errors = check_linked_repositories()
@@ -579,9 +591,7 @@ def run_finalization(verbose: bool = False) -> bool:
     hook_ok, hook_msg = check_hook_integrity()
     print(f"├── Hook Integrity: {check_mark(hook_ok)} {hook_msg}")
     if not hook_ok:
-        blockers.append(
-            f"Hook integrity failure: {hook_msg} - hooks may have been tampered with"
-        )
+        blockers.append(f"Hook integrity failure: {hook_msg} - hooks may have been tampered with")
 
     # PR Decomposition Closure Check (PR Response Protocol)
     decomp_ok, decomp_msg = check_pr_decomposition_closure()
@@ -591,9 +601,15 @@ def run_finalization(verbose: bool = False) -> bool:
 
     # Child PR Linkage Check (PR Response Protocol)
     linkage_ok, linkage_msg = check_child_pr_linkage()
-    print(f"└── Child PR Linkage: {check_mark(linkage_ok)} {linkage_msg}")
+    print(f"├── Child PR Linkage: {check_mark(linkage_ok)} {linkage_msg}")
     if not linkage_ok:
         blockers.append(f"PR Response Protocol violation: {linkage_msg}")
+
+    # Temp Files Check (Global - applies to all projects)
+    temp_ok, temp_msg = check_temp_files()
+    print(f"└── Temp Files: {check_mark(temp_ok)} {temp_msg}")
+    if not temp_ok:
+        blockers.append(f"Temp files detected: {temp_msg}")
 
     print()
 
@@ -609,18 +625,14 @@ def run_finalization(verbose: bool = False) -> bool:
         update_progress_ledger("Finalization", "failure", f"Blocked: {blockers}")
         return False
     elif warnings:
-        print(
-            f"{Colors.YELLOW}{Colors.BOLD}⚠️ FINALIZATION PASSED WITH WARNINGS{Colors.END}"
-        )
+        print(f"{Colors.YELLOW}{Colors.BOLD}⚠️ FINALIZATION PASSED WITH WARNINGS{Colors.END}")
         print()
         print("WARNINGS:")
         for i, warning in enumerate(warnings, 1):
             print(f"  {i}. {warning}")
         print()
         print("Safe landing! Now proceed to Retrospective.")
-        update_progress_ledger(
-            "Finalization", "success", f"Passed with warnings: {warnings}"
-        )
+        update_progress_ledger("Finalization", "success", f"Passed with warnings: {warnings}")
         return True
     else:
         print(f"{Colors.GREEN}{Colors.BOLD}✅ FINALIZATION COMPLETE{Colors.END}")
@@ -932,9 +944,7 @@ def run_status(verbose: bool = False) -> bool:
     print()
     run_summary(verbose)
     print()
-    print(
-        "Run --init, --execute, --finalize, or --retrospective for detailed phase checks."
-    )
+    print("Run --init, --execute, --finalize, or --retrospective for detailed phase checks.")
 
     return True
 

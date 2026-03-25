@@ -15,6 +15,75 @@ python ~/.gemini/antigravity/skills/skill-making/create_skill.py
 
 ## 🎯 Core Principles
 
+### 0. Research Before Creating (CRITICAL)
+
+**ALWAYS search for existing skills before creating new ones.**
+
+#### Step 1: Check Skill Marketplaces
+
+| Marketplace | URL | Notes |
+|-------------|-----|-------|
+| Anthropic Official | https://github.com/anthropics/skills | Document, PDF, PPT, Excel skills |
+| Alireza Rezvan | https://github.com/alirezarezvani/claude-skills | 183+ skills, 11 platforms |
+| LobeHub | https://lobehub.com/skills | 100,000+ skills |
+| MCP Market | https://mcpmarket.com/tools/skills | MCP-compatible skills |
+| skillsmp.com | https://skillsmp.com | Community skills |
+
+#### Step 2: Check Local Skills
+
+```bash
+# Check already installed skills
+ls ~/.config/opencode/skills/
+ls ~/.claude/skills/
+```
+
+#### Step 3: Web Search
+
+```bash
+# Search for existing implementations
+# Use web search for: "[task] skill claude" or "[task] agent skill"
+```
+
+#### Step 4: Decision Tree
+
+```
+Task identified
+     │
+     ▼
+Search marketplaces ──── Found? ──── YES ──▶ Use/adapt existing
+     │                                        │
+     │ NO                                     ▼
+     ▼                                   Document usage
+Check local skills                              │
+     │                                        │
+     ▼                                   Done
+Web search
+     │
+     ▼
+Found? ──── YES ──▶ Use/adapt existing
+     │
+     │ NO
+     ▼
+Create new skill
+```
+
+#### Step 5: Document Research
+
+```markdown
+## Research Check
+
+1. Anthropic skills: ❌ No [task] skill found
+2. Alireza Rezvan: ❌ No [task] skill
+3. LobeHub: ❌ No relevant skill
+4. Local ~/.config/opencode/skills/: ❌ Not found
+5. Web search: ❌ No suitable implementation
+6. Decision: ✅ Create new [task] skill
+
+Reasoning: [Why existing skills don't meet needs]
+```
+
+---
+
 ### 1. Dual-Mode Design (CRITICAL)
 
 **Every skill must work in both interactive and non-interactive environments from day 1.**

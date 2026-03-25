@@ -416,6 +416,50 @@ fi
 echo "✅ Quality gates validation complete"
 echo
 
+# 5b. Phase Completion Validation
+echo "📋 5b. Phase Completion Validation"
+echo "----------------------------------"
+
+SESSION_FILE="$HOME/.agent/session.json"
+
+if [[ -f "$SESSION_FILE" ]]; then
+    python3 -c "
+import json
+from pathlib import Path
+
+session_file = Path('$SESSION_FILE')
+session = json.loads(session_file.read_text())
+
+mode = session.get('mode', 'unknown')
+phases = session.get('phases', {})
+
+required_full = ['1_context', '2_init', '3_planning', '4_execution', '5_finalization', '6_retrospective', '7_clean_state']
+required_turbo = ['5_finalization', '6_retrospective', '7_clean_state']
+
+required = required_full if mode == 'full' else required_turbo
+completed = [p for p in required if phases.get(p, {}).get('completed', False)]
+
+if len(completed) == len(required):
+    print('✅ All required phases complete')
+    exit(0)
+else:
+    missing = [p for p in required if p not in completed or not phases.get(p, {}).get('completed', False)]
+    print(f'⚠️  Missing required phases: {', '.join(missing)}')
+    print(f'   Mode: {mode}')
+    print(f'   Use: phase-complete <phase>')
+    exit(1)
+"
+    PHASE_CHECK=$?
+    
+    if [[ $PHASE_CHECK -ne 0 ]]; then
+        echo "❌ FINALIZATION BLOCKED: Incomplete phases"
+        exit 1
+    fi
+else
+    echo "⚠️  No session found - cannot validate phases"
+fi
+echo
+
 # 6. Git Operations
 echo "🔀 6. Git Operations"
 echo "-------------------"
