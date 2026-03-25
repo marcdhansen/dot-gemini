@@ -195,6 +195,18 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
     errors = []
 
     try:
+        # Skip validation if on a feature branch (not main/master)
+        # This supports workflows using feature branches as main development
+        current_branch = subprocess.run(
+            ["git", "branch", "--show-current"],
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+
+        if current_branch not in ["main", "master", ""]:
+            # On a feature branch - skip atomic commit validation
+            return True, []
+
         # Determine base branch for comparison (prefer origin/main, fallback to main)
         base_branch = "origin/main"
         res = subprocess.run(

@@ -366,15 +366,6 @@ if command -v bd &> /dev/null; then
         echo ""
         echo "💡 Use: bd comments add <issue-id> '## Implementation Details...'"
     fi
-    
-    # Sync beads database
-    echo "🔄 Syncing beads database..."
-    # Check if remote exists before pushing
-    if bd dolt remote list 2>/dev/null | grep -q .; then
-        bd dolt push || echo "⚠️  Beads push failed (may need remote configured)"
-    else
-        echo "💡 No beads remote configured - skipping push"
-    fi
 else
     echo "💡 beads not found, skipping issue management"
 fi
