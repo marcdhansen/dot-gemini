@@ -125,29 +125,62 @@ else
     echo "$GIT_STATUS"
 fi
 
-# Auto-commit ALL remaining uncommitted changes to prevent RTB failures
+# Prompt agent to handle uncommitted changes (instead of auto-commit)
 if [ ! -z "$GIT_STATUS" ]; then
-    echo "🔧 Auto-committing remaining uncommitted changes..."
+    echo "📝 Uncommitted changes detected:"
+    echo "$GIT_STATUS"
+    echo ""
+    echo "🔧 Choose how to handle uncommitted changes:"
+    echo ""
+    echo "   [1] Commit all (you'll be prompted for message)"
+    echo "   [2] Stage selectively and commit"
+    echo "   [3] Delete untracked temp files, then commit"
+    echo "   [4] Leave uncommitted (not recommended)"
+    echo ""
+    echo "Enter choice (1-4): "
+    read -r CHOICE
     
-    # Stage ALL changes automatically
-    git add -A
+    case "$CHOICE" in
+        1)
+            echo "Enter commit message (will auto-add issue ID if found): "
+            read -r COMMIT_MSG
+            ISSUE_ID=$(git branch --show-current | grep -oE 'agent-[a-z0-9]+' | head -1)
+            if [ -n "$ISSUE_ID" ]; then
+                git add -A
+                git commit -m "$COMMIT_MSG [$ISSUE_ID]"
+            else
+                git add -A
+                git commit -m "$COMMIT_MSG"
+            fi
+            echo "✅ Commit complete"
+            ;;
+        2)
+            echo "Running: git add -i for selective staging..."
+            git add -i
+            echo "Enter commit message: "
+            read -r COMMIT_MSG
+            git commit -m "$COMMIT_MSG"
+            echo "✅ Commit complete"
+            ;;
+        3)
+            echo "Deleting untracked files..."
+            git clean -fd
+            echo "Enter commit message for remaining changes: "
+            read -r COMMIT_MSG
+            git add -A
+            git commit -m "$COMMIT_MSG"
+            echo "✅ Commit complete"
+            ;;
+        4)
+            echo "⚠️  Leaving uncommitted - ensure these are intentional"
+            ;;
+        *)
+            echo "Invalid choice - leaving uncommitted"
+            ;;
+    esac
     
-    # Create auto-commit message with timestamp
-    TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-    git commit -m "finalization-auto-commit: uncommitted changes at $TIMESTAMP
-
-- Auto-committed during finalization process
-- These changes were missed by initial commit check
-- Ensures clean git state before push"
-    
-    if [ $? -eq 0 ]; then
-        echo "✅ Auto-commit successful"
-        # Refresh git status
-        GIT_STATUS=$(git status --porcelain)
-    else
-        echo "❌ Auto-commit failed - manual intervention required"
-        exit 1
-    fi
+    # Refresh git status
+    GIT_STATUS=$(git status --porcelain)
 fi
 
 # Check current branch
