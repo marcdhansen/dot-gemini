@@ -24,7 +24,7 @@ Capture strategic learnings, provide handoff summary, and ensure continuous impr
 
 - [ ] **Reflect**: Run `/reflect` to generate `.reflection_input.json`
 - [ ] **Memory Sync**: Persist learnings to AutoMem/OpenViking
-- [ ] **Handoff**: Include PR link, issues created/closed, next steps
+- [ ] **Handoff**: Update with progress, PR link, issues created/closed, next steps
 - [ ] **Plan Cleanup**: Clear approval marker in `task.md`
 - [ ] **Orchestrator Check**: `check_protocol_compliance.py --retrospective`
 
@@ -41,11 +41,14 @@ Provide clear summary including:
 
 ### Session Closure Document
 
-The **session handoff document** in `.agent/handoffs/` is the single source of truth for session closure. This consolidates what was previously split between debrief.md and handoff documents.
+The **session handoff document** in `.agent/handoffs/` is the single source of truth for session closure. This consolidates:
+
+- debrief.md (deprecated)
+- progress logs (consolidated)
 
 - **Location**: `.agent/handoffs/{branch-name}-session.md`
-- **Contents**: Work summary, issues, next steps, PR links
-- **Replaces**: debrief.md (deprecated)
+- **Contents**: Work summary, progress tracking, issues, next steps, PR links
+- **Updates**: Keep this document updated throughout the session, not just at the end
 
 ### Strategic Questions
 

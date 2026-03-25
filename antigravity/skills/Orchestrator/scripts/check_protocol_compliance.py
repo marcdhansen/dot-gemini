@@ -64,6 +64,7 @@ try:
         check_pr_decomposition_closure,
         check_child_pr_linkage,
         check_progress_log_exists,
+        check_progress_in_handoff,
         check_temp_files,
         check_readme_needs_update,
         check_handoff_beads_id,

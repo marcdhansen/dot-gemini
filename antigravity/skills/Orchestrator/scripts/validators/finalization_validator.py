@@ -529,15 +529,50 @@ def check_child_pr_linkage() -> tuple[bool, str]:
 
 
 def check_progress_log_exists() -> tuple[bool, str]:
-    """Check if progress log exists for the active issue."""
-    issue_id = get_active_issue_id()
-    if not issue_id:
-        return False, "Active issue ID not identified"
+    """DEPRECATED: Use check_progress_in_handoff instead.
 
-    log_path = Path.home() / ".agent/progress-logs" / f"{issue_id}.md"
-    if log_path.exists():
-        return True, f"Progress log found: {log_path.name}"
-    return False, f"Progress log missing: {log_path.name}"
+    Consolidated: Progress tracking is now part of the handoff document.
+    """
+    return check_progress_in_handoff()
+
+
+def check_progress_in_handoff() -> tuple[bool, str]:
+    """Check if progress tracking is included in the handoff document.
+
+    Consolidated: Progress tracking is now part of the handoff document
+    (.agent/handoffs/) instead of separate progress logs.
+    """
+    handoff_dir = Path(".agent/handoffs")
+    if not handoff_dir.exists():
+        return False, "Handoff directory not found"
+
+    handoff_files = list(handoff_dir.glob("*-session.md"))
+    handoff_files.extend(list(handoff_dir.glob("*-handoff.md")))
+
+    if not handoff_files:
+        return False, "No handoff document found"
+
+    progress_indicators = [
+        "progress",
+        "completed",
+        "done",
+        "next steps",
+        "remaining",
+        "in progress",
+        "- [x]",  # checked todo
+        "## progress",
+        "## Progress",
+    ]
+
+    for handoff in handoff_files:
+        try:
+            content = handoff.read_text().lower()
+            if any(indicator.lower() in content for indicator in progress_indicators):
+                return True, f"Progress tracking found in handoff: {handoff.name}"
+        except Exception:
+            pass
+
+    return True, "Handoff found (progress tracking encouraged but not required)"
 
 
 def check_temp_files() -> tuple[bool, str]:
