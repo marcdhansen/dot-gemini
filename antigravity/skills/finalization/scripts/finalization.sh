@@ -715,23 +715,24 @@ import json
 import os
 from datetime import datetime
 
-# Enhanced reflection template with devil's advocate
+devils_mode = os.getenv('DEVILS_MODE', '')
+
 reflection = {
     'timestamp': datetime.now().timestamp(),
-    'mission_name': f'Session Work - {\"Devils Advocate\" if \"$DEVILS_MODE\" == \"--devils-advocate\" else \"Standard\"} Reflection',
+    'mission_name': f'Session Work - {\"Devils Advocate\" if devils_mode == \"--devils-advocate\" else \"Standard\"} Reflection',
     'success_metrics': {
         'Work Completed': True,
-        'Devils Advocate Mode': '$DEVILS_MODE' if \"$DEVILS_MODE\" else \"Standard\"',
+        'Devils Advocate Mode': devils_mode if devils_mode else 'Standard',
         'Reflection Captured': False
     },
     'technical_learnings': [
         'Remember to use the reflect skill before Finalization completion',
         'Systematic reflection ensures knowledge transfer',
-        'Devils advocate mode provides balanced critical analysis' if \"$DEVILS_MODE\" == \"--devils-advocate\" else 'Standard reflection approach'
+        'Devils advocate mode provides balanced critical analysis' if devils_mode == '--devils-advocate' else 'Standard reflection approach'
     ],
     'challenges_overcome': [
         'Reflection skill not found - used fallback method',
-        'Devils advocate integration requires enhancement' if \"$DEVILS_MODE\" == \"--devils-advocate\" else 'Standard reflection workflow'
+        'Devils advocate integration requires enhancement' if devils_mode == '--devils-advocate' else 'Standard reflection workflow'
     ],
     'devils_advocate_feedback': [],
     'quantitative_results': {

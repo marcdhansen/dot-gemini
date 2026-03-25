@@ -46,16 +46,12 @@ class BrowserManager:
 
     def __init__(self, config_path: Optional[Path] = None):
         self.home_dir = Path.home()
-        self.config_path = config_path or (
-            Path(__file__).parent.parent / "config" / "limits.yaml"
-        )
+        self.config_path = config_path or (Path(__file__).parent.parent / "config" / "limits.yaml")
         self.session_file = self.home_dir / ".gemini" / "browser_sessions.json"
         self.audit_log = self.home_dir / ".gemini" / "browser_audit.log"
 
         # Get current agent ID from environment or create one
-        self.agent_id = (
-            os.environ.get("AGENT_ID") or os.environ.get("USER") or "unknown-agent"
-        )
+        self.agent_id = os.environ.get("AGENT_ID") or os.environ.get("USER") or "unknown-agent"
 
         self.config = self._load_config()
         self._ensure_session_dir()
@@ -235,9 +231,7 @@ class BrowserManager:
         try:
             response = requests.get(
                 f"http://localhost:{debug_port}/json",
-                timeout=self.config.get("tab_detection", {}).get(
-                    "tab_detection_timeout", 5
-                ),
+                timeout=self.config.get("tab_detection", {}).get("tab_detection_timeout", 5),
             )
             if response.status_code == 200:
                 tabs_data = response.json()
@@ -307,9 +301,7 @@ class BrowserManager:
         if limits["max_tabs_per_agent"]:
             total_tabs = sum(len(b["tabs"]) for b in agent_browsers)
             if total_tabs >= limits["max_tabs_per_agent"]:
-                warnings.append(
-                    f"High tab count: {total_tabs} >= {limits['max_tabs_per_agent']}"
-                )
+                warnings.append(f"High tab count: {total_tabs} >= {limits['max_tabs_per_agent']}")
 
         # Memory warning
         if limits["max_memory_mb"]:
@@ -324,9 +316,7 @@ class BrowserManager:
             for browser in agent_browsers:
                 age = datetime.now() - browser["start_time"]
                 if age >= timedelta(minutes=limits["max_browser_age_minutes"]):
-                    warnings.append(
-                        f"Old browser: PID {browser['pid']} running for {age}"
-                    )
+                    warnings.append(f"Old browser: PID {browser['pid']} running for {age}")
 
         # Global browser count warning
         if limits["max_browsers_total"]:
@@ -337,9 +327,7 @@ class BrowserManager:
 
         return len(warnings) == 0, warnings
 
-def request_cleanup_permission(
-        self, target_agent: str, browsers: List[Dict]
-    ) -> bool:
+    def request_cleanup_permission(self, target_agent: str, browsers: List[Dict]) -> bool:
         """Request user permission before cleaning other agents' browsers."""
         if not self.config["admin"]["require_permission_for_others"]:
             return True
@@ -347,25 +335,25 @@ def request_cleanup_permission(
         # Check for non-interactive environment
         import sys
         import os
-        
+
         is_non_interactive = (
-            not sys.stdin.isatty() or
-            os.getenv("CI") or 
-            os.getenv("GITHUB_ACTIONS") or
-            os.getenv("AUTOMATED_MODE")
+            not sys.stdin.isatty()
+            or os.getenv("CI")
+            or os.getenv("GITHUB_ACTIONS")
+            or os.getenv("AUTOMATED_MODE")
         )
-        
+
         if is_non_interactive:
-            print(f"\n{Colors.YELLOW}🤖 Non-interactive mode detected - Auto-approving cleanup{Colors.END}")
+            print(
+                f"\n{Colors.YELLOW}🤖 Non-interactive mode detected - Auto-approving cleanup{Colors.END}"
+            )
             print(
                 f"Auto-cleaning {len(browsers)} browser(s) from agent '{target_agent}' (CI/automated environment)"
             )
             return True
 
         print(f"\n{Colors.YELLOW}🔒 Admin Permission Required{Colors.END}")
-        print(
-            f"Attempting to clean up {len(browsers)} browser(s) from agent '{target_agent}'"
-        )
+        print(f"Attempting to clean up {len(browsers)} browser(s) from agent '{target_agent}'")
         print()
 
         total_tabs = 0
@@ -399,15 +387,18 @@ def request_cleanup_permission(
                 # Check for non-interactive environment
                 import sys
                 import os
+
                 is_non_interactive = (
-                    not sys.stdin.isatty() or
-                    os.getenv("CI") or 
-                    os.getenv("GITHUB_ACTIONS") or
-                    os.getenv("AUTOMATED_MODE")
+                    not sys.stdin.isatty()
+                    or os.getenv("CI")
+                    or os.getenv("GITHUB_ACTIONS")
+                    or os.getenv("AUTOMATED_MODE")
                 )
-                
+
                 if is_non_interactive:
-                    print(f"\n{Colors.YELLOW}🤖 Non-interactive mode - Auto-approving cleanup{Colors.END}")
+                    print(
+                        f"\n{Colors.YELLOW}🤖 Non-interactive mode - Auto-approving cleanup{Colors.END}"
+                    )
                     response = "y"  # Auto-approve
                 else:
                     try:
@@ -431,9 +422,7 @@ def request_cleanup_permission(
             print(f"❌ Error requesting permission: {e}")
             return False
 
-    def cleanup_browsers(
-        self, target_agent: Optional[str] = None, force: bool = False
-    ) -> Dict:
+    def cleanup_browsers(self, target_agent: Optional[str] = None, force: bool = False) -> Dict:
         """Cleanup browser processes with permission system."""
         browsers = self.detect_playwright_browsers()
 
@@ -518,9 +507,7 @@ def request_cleanup_permission(
         self._update_session_tracking(targets)
 
         if self.config["cleanup"]["show_cleanup_summary"]:
-            print(
-                f"🧹 Cleanup Summary: {stats['success']}/{stats['attempted']} successful"
-            )
+            print(f"🧹 Cleanup Summary: {stats['success']}/{stats['attempted']} successful")
             if stats["failed"] > 0:
                 print(f"  ⚠️ {stats['failed']} failed")
             if stats["skipped"] > 0:
@@ -557,9 +544,7 @@ def request_cleanup_permission(
         browsers = self.detect_playwright_browsers()
         agent_browsers = [b for b in browsers if b["agent_id"] == self.agent_id]
 
-        print(
-            f"{Colors.BOLD}🌐 Browser Manager Status - Agent: {self.agent_id}{Colors.END}"
-        )
+        print(f"{Colors.BOLD}🌐 Browser Manager Status - Agent: {self.agent_id}{Colors.END}")
         print("=" * 50)
         print()
 
@@ -587,16 +572,12 @@ def request_cleanup_permission(
         print()
 
         # Detailed browser info
-        if agent_browsers and (
-            detailed or self.config["display"]["show_tabs_in_status"]
-        ):
+        if agent_browsers and (detailed or self.config["display"]["show_tabs_in_status"]):
             for browser in agent_browsers:
                 age = datetime.now() - browser["start_time"]
                 tabs = browser.get("tabs", [])
 
-                print(
-                    f"  📍 PID {browser['pid']}: {browser['name']} ({len(tabs)} tabs)"
-                )
+                print(f"  📍 PID {browser['pid']}: {browser['name']} ({len(tabs)} tabs)")
 
                 if self.config["display"]["show_memory_usage"]:
                     print(f"     💾 Memory: {browser['memory_mb']:.0f}MB")
@@ -756,9 +737,7 @@ Examples:
         help="Force cleanup without permission prompts",
     )
 
-    parser.add_argument(
-        "--detailed", "-d", action="store_true", help="Show detailed output"
-    )
+    parser.add_argument("--detailed", "-d", action="store_true", help="Show detailed output")
 
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose debugging output"
@@ -786,13 +765,9 @@ Examples:
             if args.all:
                 target_agent = "all"
 
-            stats = manager.cleanup_browsers(
-                target_agent=target_agent, force=args.force
-            )
+            stats = manager.cleanup_browsers(target_agent=target_agent, force=args.force)
             if not manager.config["cleanup"]["show_cleanup_summary"]:
-                print(
-                    f"Cleanup completed: {stats['success']}/{stats['attempted']} successful"
-                )
+                print(f"Cleanup completed: {stats['success']}/{stats['attempted']} successful")
 
         elif args.command == "finalization-cleanup":
             manager.finalization_cleanup()
@@ -824,9 +799,7 @@ Examples:
                 print(f"{Colors.BLUE}📄 All Browser Tabs:{Colors.END}")
                 for browser in browsers:
                     tabs = browser.get("tabs", [])
-                    print(
-                        f"\n📍 PID {browser['pid']} ({browser['agent_id']}): {len(tabs)} tabs"
-                    )
+                    print(f"\n📍 PID {browser['pid']} ({browser['agent_id']}): {len(tabs)} tabs")
                     for tab in tabs:
                         print(f"  📄 {tab['title']}")
                         if args.verbose:
