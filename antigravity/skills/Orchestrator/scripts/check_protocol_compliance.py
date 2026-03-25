@@ -66,6 +66,11 @@ try:
         check_progress_log_exists,
         check_temp_files,
         check_readme_needs_update,
+        check_handoff_beads_id,
+        check_wrapup_indicator_symmetry,
+        check_wrapup_exclusivity,
+        inject_debrief_to_beads,
+        prune_local_branches,
     )
 except ImportError as e:
     print(f"Warning: Could not import modular validators: {e}")
