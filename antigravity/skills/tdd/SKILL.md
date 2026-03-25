@@ -65,6 +65,29 @@ Use this skill when:
    - NOT because test logic is wrong
    - NOT because assertions are incorrect
 
+5. **🔒 GATE CHECK: Verify Before Proceeding**
+   
+   **CRITICAL**: After writing failing tests, RUN THIS CHECK before writing ANY implementation:
+   
+   ```bash
+   # Check git timestamps - tests MUST be newer than implementation
+   git log -1 --format="%ci" -- tests/ && git log -1 --format="%ci" -- src/
+   
+   # Or use this one-liner to verify:
+   echo "Tests:"; git log -1 --format="%h %s" -- tests/; echo "Src:"; git log -1 --format="%h %s" -- src/
+   ```
+   
+   **If implementation commit is newer than test commit** → ❌ **BLOCKED**
+   - You wrote implementation BEFORE tests - this is a TDD violation
+   - Fix: Create proper test-first workflow:
+     1. `git stash` (save implementation)
+     2. Write failing tests
+     3. `git add tests/ && git commit -m "test: add failing tests for [feature]"`
+     4. `git stash pop` (restore implementation)
+     5. Make tests pass
+   
+   **The SOP now enforces this with `validate_tdd_timestamps` validator in Execution phase**
+
 ---
 
 ### 🟢 Green Phase: Implement Minimum Code
