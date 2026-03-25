@@ -256,13 +256,7 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
                     if commit_count == 0:
                         return True, []
 
-        if commit_count > 1:
-            errors.append(
-                f"Multiple commits detected ({commit_count}). Squash required before merging to ensure atomic history."
-            )
-            errors.append(f"  Run: git rebase -i {base_branch}")
-
-        # Check 2: Detect merge commits
+        # Check 1: Detect merge commits (not allowed)
         result = subprocess.run(
             ["git", "log", "--merges", f"{base_branch}..HEAD", "--oneline"],
             capture_output=True,
@@ -279,24 +273,36 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
         elif result.returncode != 0:
             errors.append(f"Merge commit check failed for range {base_branch}..HEAD")
 
-        # Check 3 & 4: Validate commit message format
-        if commit_count == 1:
-            result = subprocess.run(
-                ["git", "log", "-1", "--pretty=%B"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if result.returncode == 0:
-                commit_msg = result.stdout.strip()
-                issue_pattern = r"\[([a-zA-Z0-9-.]+)\]"
+        # Check 2: Validate each commit has issue ID and conventional format
+        # Per CONTRIBUTING.md: commit in small increments - multiple commits allowed
+        issue_pattern = r"\[([a-zA-Z0-9-.]+)\]"
+        conv_pattern = r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
+
+        result = subprocess.run(
+            ["git", "log", f"--format=%H %s", f"{base_branch}..HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+
+        if result.returncode == 0 and result.stdout.strip():
+            for line in result.stdout.strip().split("\n"):
+                if not line:
+                    continue
+                # Format: "hash message"
+                parts = line.split(" ", 1)
+                commit_hash = parts[0]
+                commit_msg = parts[1] if len(parts) > 1 else ""
+
+                # Check issue ID
                 if not re.search(issue_pattern, commit_msg):
-                    errors.append("Commit message must include Beads issue ID in format [issue-id]")
-                conv_pattern = (
-                    r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
-                )
-                if not re.match(conv_pattern, commit_msg.split("\n")[0]):
-                    errors.append("Commit message does not follow conventional commit format")
+                    errors.append(f"Commit {commit_hash[:7]}: missing issue ID [issue-id]")
+
+                # Check conventional format
+                if not re.match(conv_pattern, commit_msg):
+                    errors.append(
+                        f"Commit {commit_hash[:7]}: doesn't follow conventional format (feat:, fix:, docs:, etc.)"
+                    )
 
         return len(errors) == 0, errors
 
