@@ -59,7 +59,12 @@ Linked_Repositories:
 **GUIDELINES: Operational standards during execution.**
 
 1. **Living Document**: Keep `task.md` updated as the living source of truth.
-2. **Spec-Driven TDD**: Every functional change must start with a specification and a failing test case (Red phase) before implementation (Green phase). **MANDATORY**: All features must include performance benchmarking with measurable speed, memory, and scalability assertions.
+2. **Verify Before Fixing**: Before making any fix, verify the correct solution:
+   - Check current configuration/state (`bd config list`, `bd doctor`, etc.)
+   - Test the proposed command with `--help` or `--dry-run` first
+   - Validate against documentation or existing code patterns
+   - **NEVER assume** - always verify before implementing
+3. **Spec-Driven TDD**: Every functional change must start with a specification and a failing test case (Red phase) before implementation (Green phase). **MANDATORY**: All features must include performance benchmarking with measurable speed, memory, and scalability assertions.
 3. **Internal Research**: If a step fails, investigate logs and documentation before asking the user.
 4. **Decision Log**: Record significant decisions in `implementation_plan.md` or `walkthrough.md`.
 5. **Dynamic Adjustment**: If the plan needs to change, switch to PLANNING mode and update artifacts first.
