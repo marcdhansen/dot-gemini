@@ -366,6 +366,9 @@ if command -v bd &> /dev/null; then
         echo ""
         echo "💡 Use: bd comments add <issue-id> '## Implementation Details...'"
     fi
+    # Sync beads database
+    echo "🔄 Syncing beads database to remote..."
+    bd dolt push || check_success "bd dolt push"
 else
     echo "💡 beads not found, skipping issue management"
 fi
