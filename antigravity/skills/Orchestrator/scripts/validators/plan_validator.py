@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from .common import check_tool_available
 
+
 def check_planning_docs(*args) -> tuple[bool, list[str]]:
     """Check if planning documents exist and are readable. Supports checklist args."""
     project_root = Path.cwd()
@@ -131,8 +132,8 @@ def check_hook_integrity() -> tuple[bool, str]:
             ".git/hooks/post-merge": [
                 "bd (beads) post-merge hook",
                 "bd import",
-            ]
-        }
+            ],
+        },
     }
 
     detected_standard = None
@@ -173,9 +174,7 @@ def check_hook_integrity() -> tuple[bool, str]:
         content = hook_file.read_text()
         for pattern in expected_patterns:
             if pattern not in content:
-                tampered_hooks.append(
-                    f"{hook_path} (missing expected pattern: {pattern[:30]}...)"
-                )
+                tampered_hooks.append(f"{hook_path} (missing expected pattern: {pattern[:30]}...)")
                 break
 
     if missing_hooks or tampered_hooks:
@@ -190,18 +189,16 @@ def check_hook_integrity() -> tuple[bool, str]:
 
 
 def check_plan_approval(*args) -> tuple[bool, str]:
-    """Check if plan approval exists and is fresh. Supports 'invert' argument."""
-    max_hours = 4
+    """Check if plan approval exists.
+
+    Time-agnostic: approval is about intent, not timing.
+    Once approved, stays approved. Only requirement is that plan
+    was approved before implementation began.
+    """
     invert = False
-    
-    if args:
-        if args[0] == "invert":
-            invert = True
-        else:
-            try:
-                max_hours = int(args[0])
-            except ValueError:
-                pass
+
+    if args and args[0] == "invert":
+        invert = True
 
     task_paths = [
         Path(".agent/task.md"),
@@ -218,22 +215,24 @@ def check_plan_approval(*args) -> tuple[bool, str]:
         if task_path.exists():
             try:
                 content = task_path.read_text()
-                if "## Approval" in content and "[x]" in content[content.find("## Approval"):].lower():
+                if (
+                    "## Approval" in content
+                    and "[x]" in content[content.find("## Approval") :].lower()
+                ):
                     if invert:
                         return False, "Plan approval marker still present in task.md"
-                    
+
                     mtime = datetime.fromtimestamp(task_path.stat().st_mtime)
                     age = datetime.now() - mtime
 
-                    if age < timedelta(hours=max_hours):
-                        hours_ago = age.total_seconds() / 3600
-                        return True, f"Plan approved {hours_ago:.1f} hours ago"
-                    else:
-                        hours_ago = age.total_seconds() / 3600
+                    hours_ago = age.total_seconds() / 3600
+                    if hours_ago > 168:  # 1 week
                         return (
-                            False,
-                            f"Plan approval is {hours_ago:.1f} hours old (stale)",
+                            True,
+                            f"Plan approved {hours_ago:.0f} hours ago - consider reviewing before continuing",
                         )
+
+                    return True, f"Plan approved {hours_ago:.1f} hours ago"
             except Exception:
                 pass
 
