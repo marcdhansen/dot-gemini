@@ -1,7 +1,9 @@
 import subprocess
 import re
 from pathlib import Path
+from typing import Optional
 from .common import check_tool_available
+
 
 def check_workspace_integrity(*args) -> tuple[bool, list[str]]:
     """Verify workspace integrity by checking for mandatory directories and files."""
@@ -80,9 +82,9 @@ def check_git_status(turbo: bool = False) -> tuple[bool, str]:
 
 def check_sop_infrastructure_changes() -> tuple[bool, str]:
     """Check if changes involve SOP infrastructure (Orchestrator, skills, SOP docs).
-    
+
     SOP infrastructure changes require Full Mode escalation per the SOP Modification workflow.
-    
+
     Returns:
         tuple[bool, str]: (requires_full_mode, status_message)
     """
@@ -94,7 +96,7 @@ def check_sop_infrastructure_changes() -> tuple[bool, str]:
             text=True,
             timeout=10,
         )
-        
+
         if result.returncode != 0:
             # Try checking staged changes
             result = subprocess.run(
@@ -103,12 +105,12 @@ def check_sop_infrastructure_changes() -> tuple[bool, str]:
                 text=True,
                 timeout=10,
             )
-        
+
         if result.returncode != 0:
             return False, "Could not determine changed files (skipping SOP infrastructure check)"
-        
+
         changed_files = result.stdout.strip().split("\n") if result.stdout.strip() else []
-        
+
         # Define SOP infrastructure patterns
         sop_patterns = [
             ".gemini/antigravity/skills/Orchestrator/scripts/",
@@ -118,7 +120,7 @@ def check_sop_infrastructure_changes() -> tuple[bool, str]:
             ".agent/docs/sop/",
             ".gemini/antigravity/skills/sop-modification/",
         ]
-        
+
         sop_files = []
         for file_path in changed_files:
             if not file_path:
@@ -126,16 +128,16 @@ def check_sop_infrastructure_changes() -> tuple[bool, str]:
             # Check if file matches any SOP infrastructure pattern
             if any(pattern in file_path for pattern in sop_patterns):
                 sop_files.append(file_path)
-        
+
         if sop_files:
             files_str = "\n  - ".join(sop_files)
             return (
                 True,
-                f"SOP infrastructure changes detected (Full Mode required):\n  - {files_str}"
+                f"SOP infrastructure changes detected (Full Mode required):\n  - {files_str}",
             )
-        
+
         return False, "No SOP infrastructure changes detected"
-        
+
     except subprocess.TimeoutExpired:
         return False, "Git command timed out (skipping SOP infrastructure check)"
     except Exception as e:
@@ -159,7 +161,7 @@ def check_branch_info(*args) -> tuple[str, bool]:
         return "unknown", False
 
 
-def get_active_issue_id() -> str | None:
+def get_active_issue_id() -> Optional[str]:
     """Identify the active beads issue ID."""
     # Try branch name first
     branch, _ = check_branch_info()
@@ -171,9 +173,7 @@ def get_active_issue_id() -> str | None:
     # Try bd ready
     if check_tool_available("bd"):
         try:
-            result = subprocess.run(
-                ["bd", "ready"], capture_output=True, text=True, timeout=5
-            )
+            result = subprocess.run(["bd", "ready"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 lines = result.stdout.strip().split("\n")
                 # Skip header and empty lines, find first line with ID: Title pattern
@@ -240,19 +240,21 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
         if commit_count == 0:
             current_branch, _ = check_branch_info()
             if current_branch in ["main", "master", "origin/main"]:
-                 upstream = "@{u}"
-                 res = subprocess.run(["git", "rev-parse", "--verify", upstream], capture_output=True, text=True)
-                 if res.returncode == 0:
-                     result = subprocess.run(
+                upstream = "@{u}"
+                res = subprocess.run(
+                    ["git", "rev-parse", "--verify", upstream], capture_output=True, text=True
+                )
+                if res.returncode == 0:
+                    result = subprocess.run(
                         ["git", "log", "--oneline", f"{upstream}..HEAD"],
                         capture_output=True,
                         text=True,
                         timeout=5,
                     )
-                     commits = [line for line in result.stdout.strip().split("\n") if line]
-                     commit_count = len(commits)
-                     if commit_count == 0:
-                         return True, [] 
+                    commits = [line for line in result.stdout.strip().split("\n") if line]
+                    commit_count = len(commits)
+                    if commit_count == 0:
+                        return True, []
 
         if commit_count > 1:
             errors.append(
@@ -287,12 +289,12 @@ def validate_atomic_commits() -> tuple[bool, list[str]]:
             )
             if result.returncode == 0:
                 commit_msg = result.stdout.strip()
-                issue_pattern = r"\[([a-zA-Z0-9-]+)\]"
+                issue_pattern = r"\[([a-zA-Z0-9-.]+)\]"
                 if not re.search(issue_pattern, commit_msg):
-                    errors.append(
-                        "Commit message must include Beads issue ID in format [issue-id]"
-                    )
-                conv_pattern = r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
+                    errors.append("Commit message must include Beads issue ID in format [issue-id]")
+                conv_pattern = (
+                    r"^(feat|fix|docs|chore|test|refactor|perf|ci|build|style)(\([^)]+\))?: .+"
+                )
                 if not re.match(conv_pattern, commit_msg.split("\n")[0]):
                     errors.append("Commit message does not follow conventional commit format")
 
