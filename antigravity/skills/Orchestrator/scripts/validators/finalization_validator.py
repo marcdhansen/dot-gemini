@@ -9,8 +9,14 @@ from .git_validator import check_branch_info, get_active_issue_id
 
 
 def check_reflection_invoked() -> tuple[bool, str]:
-    """Check if reflection was recently invoked and follows structured JSON format."""
+    """Check if reflection was captured for the current session.
+
+    Session-based: Only require new reflection if there have been new commits
+    since the last reflection. This replaces the time-based check.
+    """
     input_artifact = Path(".reflection_input.json")
+    reflection_mtime = None
+
     if input_artifact.exists():
         try:
             with open(input_artifact, "r") as f:
@@ -25,42 +31,92 @@ def check_reflection_invoked() -> tuple[bool, str]:
                     f"Reflection artifact .reflection_input.json is missing required fields: {', '.join(missing)}",
                 )
 
-            mtime = datetime.fromtimestamp(input_artifact.stat().st_mtime)
-            age = datetime.now() - mtime
-            if age < timedelta(hours=2):
-                return (
-                    True,
-                    f"Reflection captured: Structured reflection captured {age.total_seconds() / 60:.0f} minutes ago",
-                )
-            else:
-                return (
-                    False,
-                    f"No recent reflection: Reflection artifact .reflection_input.json is too old ({age.total_seconds() / 3600:.1f} hours). Please run /reflect again.",
-                )
+            reflection_mtime = datetime.fromtimestamp(input_artifact.stat().st_mtime)
+
         except json.JSONDecodeError:
             return False, "Reflection artifact .reflection_input.json is malformed JSON"
         except Exception as e:
             return False, f"Error validating reflection artifact: {e}"
 
+    # Check reflection_paths as fallback
     reflection_paths = [
         Path(".agent/reflections.json"),
         Path("reflections.json"),
     ]
 
     for path in reflection_paths:
-        if path.exists():
+        if path.exists() and reflection_mtime is None:
             try:
-                mtime = datetime.fromtimestamp(path.stat().st_mtime)
-                age = datetime.now() - mtime
-                if age < timedelta(hours=2):
-                    return (
-                        True,
-                        f"Reflection (legacy) found {age.total_seconds() / 60:.0f} minutes ago. Please generate .reflection_input.json with /reflect.",
-                    )
+                reflection_mtime = datetime.fromtimestamp(path.stat().st_mtime)
             except Exception:
                 pass
 
-    return False, "No recent reflection found. Please run /reflect to capture session learnings."
+    if reflection_mtime is None:
+        return False, "No reflection found. Please run /reflect to capture session learnings."
+
+    # Check if there are new commits OR uncommitted changes since last reflection
+    try:
+        # Check for commits since reflection
+        result = subprocess.run(
+            [
+                "git",
+                "log",
+                "--since={}".format(reflection_mtime.strftime("%Y-%m-%d %H:%M:%S")),
+                "--oneline",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        commits_since = []
+        if result.returncode == 0 and result.stdout.strip():
+            commits_since = [line for line in result.stdout.strip().split("\n") if line]
+
+        # Check for uncommitted changes
+        result2 = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        has_uncommitted = result2.returncode == 0 and bool(result2.stdout.strip())
+
+        if commits_since or has_uncommitted:
+            details = []
+            if commits_since:
+                details.append(f"{len(commits_since)} commits")
+            if has_uncommitted:
+                details.append("uncommitted changes")
+            return (
+                False,
+                f"New work detected since last reflection ({', '.join(details)}). Please run /reflect again.",
+            )
+
+        if result.returncode == 0:
+            commits_since = [line for line in result.stdout.strip().split("\n") if line]
+            if commits_since:
+                return (
+                    False,
+                    f"New commits detected since last reflection ({len(commits_since)} commits). Please run /reflect again.",
+                )
+
+        age = datetime.now() - reflection_mtime
+        return (
+            True,
+            f"Reflection captured: {age.total_seconds() / 60:.0f} minutes ago, no new commits since",
+        )
+
+    except Exception as e:
+        # If we can't check git, fall back to time-based with generous limit
+        age = datetime.now() - reflection_mtime
+        if age < timedelta(hours=24):  # Allow up to 24 hours if git check fails
+            return (
+                True,
+                f"Reflection captured: {age.total_seconds() / 3600:.1f} hours ago (git check failed, using time fallback)",
+            )
+        return False, "No recent reflection found. Please run /reflect."
 
 
 def check_handoff_exists() -> tuple[bool, str]:
