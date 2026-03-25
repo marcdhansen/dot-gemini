@@ -75,6 +75,7 @@ from .finalization_validator import (
     inject_debrief_to_beads,
     check_protocol_compliance_reporting,
     check_handoff_cleanup_info,
+    is_doc_only_session,
 )
 
 __all__ = [

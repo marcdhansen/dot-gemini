@@ -131,6 +131,20 @@ def run_phase_from_json(
         if mode not in check_modes:
             continue
 
+        # Skip doc-only sensitive checks for doc-only sessions (SOP Administrative Exception)
+        if check.get("modes_skip_doc_only", False):
+            # Import the helper function from validators
+            try:
+                from validators.finalization_validator import is_doc_only_session
+
+                if is_doc_only_session():
+                    print(
+                        f"├── {check['description']}: {Colors.GREEN}✓{Colors.END} Skipped for doc-only session"
+                    )
+                    continue
+            except ImportError:
+                pass  # Fall through to run the check
+
         validator_name = check["validator"]
         # Get function from global or imported scope
         # First check globals, then check imported validator modules if needed

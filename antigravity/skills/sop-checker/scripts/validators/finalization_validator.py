@@ -8,6 +8,51 @@ from .common import check_tool_available, Colors
 from .git_validator import check_branch_info, get_active_issue_id
 
 
+def is_doc_only_session() -> bool:
+    """Detect if this session only changed documentation files.
+
+    Checks recent git commits for documentation-only changes.
+    Returns True if ALL changes are .md/.txt files (no code changes).
+    Also checks the most recent commit specifically.
+    """
+    try:
+        # First check the most recent commit (fastest check)
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "HEAD~1..HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode == 0:
+            files = [f.strip() for f in result.stdout.strip().split("\n") if f.strip()]
+            if files:
+                # Check if any non-doc files were changed
+                code_extensions = {".py", ".js", ".ts", ".go", ".rs", ".java", ".c", ".cpp", ".h"}
+                code_files = [f for f in files if any(f.endswith(ext) for ext in code_extensions)]
+                if not code_files:
+                    # All changes are documentation
+                    return True
+
+        # Fallback: check last 5 commits
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "HEAD~5..HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode == 0:
+            files = [f.strip() for f in result.stdout.strip().split("\n") if f.strip()]
+            if not files:
+                return False
+            # Check if all files are documentation
+            doc_extensions = {".md", ".txt", ".rst", ".adoc"}
+            doc_files = [f for f in files if any(f.endswith(ext) for ext in doc_extensions)]
+            return len(doc_files) == len(files)
+    except Exception:
+        pass
+    return False
+
+
 def check_reflection_invoked() -> tuple[bool, str]:
     """Check if reflection was recently invoked and follows structured JSON format."""
     input_artifact = Path(".reflection_input.json")
@@ -639,6 +684,10 @@ def get_pr_size_limits(pr_type: str, changed_files: list) -> tuple[int, int]:
 
 def check_handoff_pr_link() -> tuple[bool, str]:
     """Check if the session handoff (debrief.md) contains a GitHub PR link."""
+    # Skip for doc-only sessions (SOP Administrative Exception)
+    if is_doc_only_session():
+        return True, "Doc-only session: PR not required per SOP Administrative Exception"
+
     # Potential debrief locations
     debrief_paths = [Path("debrief.md")]
 
