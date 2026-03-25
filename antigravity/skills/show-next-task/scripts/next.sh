@@ -1,11 +1,92 @@
 #!/bin/bash
 
-# Next Task Script for LightRAG
+# Next Task Script for Agent Projects
 # Shows what to work on next by running beads ready and providing detailed recommendations
 
-echo "🎯 ALL Available Tasks in the LightRAG Project"
+# Detect current workspace name
+get_workspace_name() {
+    # Try git remote first
+    if command -v git &> /dev/null && git rev-parse --git-dir > /dev/null 2>&1; then
+        REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+        if [ -n "$REMOTE_URL" ]; then
+            # Extract repo name from URL (handles both .git and non-.git URLs)
+            REPO_NAME=$(echo "$REMOTE_URL" | sed 's/.*\/\([^/]*\)\.git$/\1/' | sed 's/.*\/\([^/]*\)$/\1/')
+            if [ -n "$REPO_NAME" ]; then
+                echo "$REPO_NAME"
+                return
+            fi
+        fi
+    fi
+    
+    # Fallback to directory name
+    basename "$(pwd)"
+}
+
+WORKSPACE_NAME=$(get_workspace_name)
+
+echo "🎯 ALL Available Tasks in the $WORKSPACE_NAME Project"
 echo "========================================================="
 echo ""
+
+# ============================================
+# PHASE 0: Check for Open PRs (GitHub Source of Truth)
+# ============================================
+PR_SEEN=0
+if command -v gh &> /dev/null; then
+    PR_JSON=$(gh pr list --state open --json number,title,headRefName,createdAt,url 2>/dev/null)
+    # Check if we got valid JSON output
+    if [ -n "$PR_JSON" ] && [ "$PR_JSON" != "[]" ]; then
+        # Filter out dependabot PRs when counting
+        PR_COUNT=$(echo "$PR_JSON" | python3 -c "import sys,json; prs = [p for p in json.load(sys.stdin) if not p.get('title','').lower().startswith('dependabot') and not p.get('headRefName','').lower().startswith('dependabot/')]; print(len(prs))" 2>/dev/null || echo 0)
+        
+        if [ "$PR_COUNT" -gt 0 ]; then
+            echo "## 🔴 OPEN PRs REQUIRING REVIEW ($PR_COUNT):"
+            echo ""
+            echo "$PR_JSON" | python3 -c "
+import sys, json
+from datetime import datetime
+try:
+    prs = json.load(sys.stdin)
+    # Filter out dependabot PRs
+    prs = [pr for pr in prs if not pr.get('title', '').lower().startswith('dependabot') and not pr.get('headRefName', '').lower().startswith('dependabot/')]
+    for pr in prs:
+        created = pr.get('createdAt', '')
+        try:
+            # Simple date parsing
+            dt = datetime.fromisoformat(created.replace('Z', '+00:00'))
+            now = datetime.now(dt.tzinfo)
+            days = (now - dt).days
+            age = f'{days}d ago'
+        except:
+             age = '...'
+        
+        print(f'  🔍 PR #{pr[\"number\"]}: {pr[\"title\"]}')
+        print(f'     Branch: {pr[\"headRefName\"]} | Age: {age}')
+except:
+    pass
+"
+            echo ""
+            PR_SEEN=1
+        fi
+    fi
+fi
+
+# Fallback: Check for Beads issues with pr:open label if GH didn't show anything (or just as augmentation)
+if [ "$PR_SEEN" -eq 0 ] && command -v bd &> /dev/null; then
+    LABEL_OUTPUT=$(bd query "label='pr:open'" 2>/dev/null)
+    if [ $? -eq 0 ] && echo "$LABEL_OUTPUT" | grep -q "Found [1-9]"; then
+        LABEL_COUNT=$(echo "$LABEL_OUTPUT" | grep -o "Found [0-9]\+" | head -1 | awk '{print $NF}')
+        if [ "$LABEL_COUNT" -gt 0 ]; then
+             echo "## 🔴 ISSUES MARKED AS PR OPEN ($LABEL_COUNT):"
+             echo ""
+             echo "$LABEL_OUTPUT" | grep "^○\|^●" | while read -r line; do
+                 echo "  🏷️ $line"
+             done
+             echo ""
+             PR_SEEN=1
+        fi
+    fi
+fi
 
 # Get the current ready tasks from beads
 if ! command -v bd &> /dev/null; then
@@ -20,31 +101,31 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Run beads started to capture in-progress tasks
-INPROGRESS_OUTPUT=$(bd started 2>/dev/null)
+# Run beads list to capture in-progress tasks
+INPROGRESS_OUTPUT=$(bd list -s in_progress 2>/dev/null)
 if [ $? -ne 0 ]; then
     INPROGRESS_OUTPUT=""
 fi
 
-# Count priorities
-P0_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P0\]' | wc -l | tr -d ' ')
-P1_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P1\]' | wc -l | tr -d ' ')
-P2_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P2\]' | wc -l | tr -d ' ')
-P3_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P3\]' | wc -l | tr -d ' ')
-P4_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P4\]' | wc -l | tr -d ' ')
+# Count priorities (handle both ● and ○ status indicators)
+P0_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P0\]|P0 ' | wc -l | tr -d ' ')
+P1_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P1\]|P1 ' | wc -l | tr -d ' ')
+P2_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P2\]|P2 ' | wc -l | tr -d ' ')
+P3_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P3\]|P3 ' | wc -l | tr -d ' ')
+P4_COUNT=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E '\[P4\]|P4 ' | wc -l | tr -d ' ')
 
 TOTAL_COUNT=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT + P4_COUNT))
 
 # Count and show in-progress tasks
-INPROGRESS_COUNT=$(echo "$INPROGRESS_OUTPUT" | grep -c 'lightrag-' | tr -d ' ')
+INPROGRESS_COUNT=$(echo "$INPROGRESS_OUTPUT" | grep -c 'agent-harness-' | tr -d ' ')
 
 if [ "$INPROGRESS_COUNT" -gt 0 ]; then
     echo "## 🔄 Currently In Progress ($INPROGRESS_COUNT tasks):"
     echo ""
-    echo "$INPROGRESS_OUTPUT" | grep 'lightrag-' | while IFS= read -r line; do
+    echo "$INPROGRESS_OUTPUT" | grep '\-[a-zA-Z0-9]\+' | while IFS= read -r line; do
         # Extract task ID and description
-        TASK_ID=$(echo "$line" | grep -o 'lightrag-[a-zA-Z0-9]\+')
-        DESC=$(echo "$line" | sed 's/.*lightrag-[a-zA-Z0-9]\+: //')
+        TASK_ID=$(echo "$line" | grep -o '[a-zA-Z0-9.-]\+-[a-zA-Z0-9.-]\+' | head -1)
+        DESC=$(echo "$line" | sed "s/.*$TASK_ID: //")
         
         # Extract assignee if present
         if echo "$line" | grep -q "Assigned to:"; then
@@ -74,6 +155,33 @@ if [ "$TOTAL_COUNT" -eq 0 ]; then
     exit 0
 fi
 
+# Check for P0 tasks needing PR review
+REVIEW_P0_TASKS=""
+REVIEW_P0_COUNT=0
+
+if [ "$INPROGRESS_COUNT" -gt 0 ]; then
+    while IFS= read -r line; do
+        if echo "$line" | grep -q '\[● P0\]'; then
+            TASK_ID=$(echo "$line" | grep -o '[a-zA-Z0-9.-]\+-[a-zA-Z0-9.-]\+')
+            if [ -n "$TASK_ID" ]; then
+                # Check for PR URL in comments
+                if bd show "$TASK_ID" 2>/dev/null | grep -qi "PR: http"; then
+                    DESC=$(echo "$line" | sed 's/.*\[● P0\].*: //')
+                    REVIEW_P0_TASKS="${REVIEW_P0_TASKS}👀 **$TASK_ID** (IN REVIEW): $DESC\n"
+                    REVIEW_P0_COUNT=$((REVIEW_P0_COUNT + 1))
+                fi
+            fi
+        fi
+    done <<< "$(echo "$INPROGRESS_OUTPUT" | grep '\-[a-zA-Z0-9]\+')"
+fi
+
+if [ "$REVIEW_P0_COUNT" -gt 0 ]; then
+    echo "## 🔍 NEIGHBORLY REVIEW REQUIRED (P0):"
+    echo ""
+    echo -e "$REVIEW_P0_TASKS"
+    echo ""
+fi
+
 echo "📊 Task Priority Breakdown: P0: $P0_COUNT, P1: $P1_COUNT, P2: $P2_COUNT, P3: $P3_COUNT, P4: $P4_COUNT"
 echo ""
 
@@ -81,17 +189,18 @@ echo ""
 format_tasks() {
     local priority=$1
     local label=$2
-    local count=$(echo "$READY_OUTPUT" | grep "\[● $priority\]" | wc -l | tr -d ' ')
+    local count=$(echo "$READY_OUTPUT" | grep -E '●|○' | grep -E "\[$priority\]|$priority " | wc -l | tr -d ' ')
     
     if [ "$count" -gt 0 ]; then
         echo "## 🎯 $label ($priority):"
         echo ""
         
         # Process tasks line by line
-        echo "$READY_OUTPUT" | grep "\[● $priority\]" | while IFS= read -r line; do
+        echo "$READY_OUTPUT" | grep -E '●|○' | grep -E "\[$priority\]|$priority " | while IFS= read -r line; do
             # Extract task ID and description
-            TASK_ID=$(echo "$line" | grep -o 'lightrag-[a-zA-Z0-9]\+')
-            DESC=$(echo "$line" | sed 's/.*\[● '$priority'\].*: //')
+            TASK_ID=$(echo "$line" | grep -o '[a-zA-Z0-9.-]\+-[a-zA-Z0-9.-]\+' | head -1)
+            # Extract everything after the status indicators and priority
+            DESC=$(echo "$line" | sed "s/.*\] //" | sed "s/\[.*//" | sed "s/\[\]$//")
             
             # Extract type if present
             if echo "$line" | grep -q "\[task\]"; then
@@ -127,12 +236,18 @@ format_tasks "P4" "📝 LOGISTICS & EVENTS"
 
 echo ""
 echo "## 📊 Summary:"
-echo "• Ready tasks: $TOTAL_COUNT | In progress: $INPROGRESS_COUNT"
+echo "• Ready tasks: $TOTAL_COUNT | In progress: $INPROGRESS_COUNT | Needs Review: $REVIEW_P0_COUNT"
 echo ""
 echo "## 🎯 Recommendation:"
 echo ""
 
-if [ "$P0_COUNT" -gt 0 ]; then
+if [ "$PR_SEEN" -eq 1 ]; then
+    echo "TOP PRIORITY: Review open PRs listed above first."
+    echo "Reasoning: Unblocking teammates is the most efficient way to maintain project velocity."
+elif [ "$REVIEW_P0_COUNT" -gt 0 ]; then
+    echo "TOP PRIORITY: Review open PRs for P0 issues listed above first."
+    echo "Reasoning: Unblocking teammates is the most efficient way to maintain project velocity."
+elif [ "$P0_COUNT" -gt 0 ]; then
     echo "Start with P0 tasks first - they are blocking project progress."
 elif [ "$P1_COUNT" -gt 0 ]; then
     echo "Tackle P1 tasks for maximum impact with clear deliverables."
@@ -153,24 +268,64 @@ echo ""
 # Check if roadmap file exists
 ROADMAP_FILE=".agent/rules/ROADMAP.md"
 if [ -f "$ROADMAP_FILE" ]; then
-    # Extract current objective and phase from roadmap
-    CURRENT_OBJ=$(grep -A 5 "## 🎯 Current Objective" "$ROADMAP_FILE" | grep -v "## 🎯" | grep -v "Status:" | grep -v "Result:" | grep -v "Next Step:" | head -1 | sed 's/^- \*\*Task\*\*: //')
-    CURRENT_STATUS=$(grep "Status:" "$ROADMAP_FILE" | head -1 | sed 's/.*Status: //')
-    NEXT_STEP=$(grep "Next Step:" "$ROADMAP_FILE" | head -1 | sed 's/.*Next Step: //')
+    # Extract current phase (first one with unchecked items)
+    CURRENT_PHASE_HEADER=$(grep -n "^## Phase" "$ROADMAP_FILE" | head -n 1)
     
-    echo "📍 **Current Focus:** $CURRENT_OBJ"
-    echo "📊 **Status:** $CURRENT_STATUS"
-    if [ -n "$NEXT_STEP" ]; then
-        echo "➡️ **Next Phase:** $NEXT_STEP"
+    # Try to find a phase that is partially complete or first one with [ ]
+    # Group file by Phase blocks
+    PHASE_BLOCKS=$(awk '/^## Phase/{if (p) print p; p=$0; next} {p=p RS $0} END{print p}' "$ROADMAP_FILE")
+    
+    # Logic: Find first phase with [ ]
+    CURRENT_PHASE_TEXT=$(echo "$PHASE_BLOCKS" | python3 -c "
+import sys
+blocks = sys.stdin.read().split('## Phase')
+for block in blocks[1:]:
+    if '[ ]' in block:
+        print('Phase' + block.split('\n')[0].strip())
+        break
+")
+    
+    if [ -z "$CURRENT_PHASE_TEXT" ]; then
+        # All phases complete? Use the last one.
+        CURRENT_PHASE_TEXT=$(echo "$PHASE_BLOCKS" | tail -n 1 | head -n 1 | sed 's/^## //')
     fi
+
+    # Extract progress for this phase
+    PROGRESS=$(echo "$PHASE_BLOCKS" | python3 -c "
+import sys
+curr = sys.argv[1]
+blocks = sys.stdin.read().split('## Phase')
+for block in blocks[1:]:
+    title = 'Phase' + block.split('\n')[0].strip()
+    if title == curr:
+        done = block.count('[x]')
+        todo = block.count('[ ]')
+        total = done + todo
+        print(f'{done}/{total} items complete')
+        break
+" "$CURRENT_PHASE_TEXT")
+
+    echo "📍 **Current Focus:** $CURRENT_PHASE_TEXT"
+    echo "📊 **Status:** $PROGRESS"
     echo ""
     
-    # Check for phase alignment opportunities
-    if echo "$NEXT_STEP" | grep -iq "phase"; then
-        echo "💡 **Phase Alignment Opportunities:**"
-        echo "• Consider creating supporting tasks for the next phase"
-        echo "• Look for dependencies or prerequisites in the implementation plan"
-        echo "• Review if current tasks align with phase objectives"
+    # Next step: find the phase after current
+    NEXT_PHASE=$(echo "$PHASE_BLOCKS" | python3 -c "
+import sys
+curr = sys.argv[1]
+blocks = sys.stdin.read().split('## Phase')
+found = False
+for block in blocks[1:]:
+    title = 'Phase' + block.split('\n')[0].strip()
+    if found:
+        print(title)
+        break
+    if title == curr:
+        found = True
+" "$CURRENT_PHASE_TEXT")
+
+    if [ -n "$NEXT_PHASE" ]; then
+        echo "➡️ **Next Phase:** $NEXT_PHASE"
         echo ""
     fi
 else

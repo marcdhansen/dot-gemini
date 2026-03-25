@@ -1,0 +1,34 @@
+{
+  "eval_id": 5,
+  "eval_name": "non-interactive-eof-fix",
+  "skill_version": "skill-creator@1.0.0",
+  "expectations": [
+    {
+      "text": "Provides working Python code (not just description of a fix)",
+      "passed": true,
+      "evidence": "references/non-interactive-patterns.md contains complete, copy-paste-ready implementations of is_non_interactive() and safe_input(). The SKILL.md body mentions this reference under compatibility and in Workflow A Step 4."
+    },
+    {
+      "text": "Uses sys.stdin.isatty() or equivalent CI env var check",
+      "passed": true,
+      "evidence": "references/non-interactive-patterns.md is_non_interactive() checks sys.stdin.isatty(), os.getenv('CI'), os.getenv('GITHUB_ACTIONS'), os.getenv('AUTOMATED_MODE') — identical to what was in skill-making."
+    },
+    {
+      "text": "Wraps input() in a try/except that catches EOFError",
+      "passed": true,
+      "evidence": "references/non-interactive-patterns.md safe_input() has explicit except (EOFError, KeyboardInterrupt) block."
+    },
+    {
+      "text": "Provides an automatic default/fallback when running non-interactively",
+      "passed": true,
+      "evidence": "safe_input() returns choices[0] or default when is_non_interactive() is True."
+    },
+    {
+      "text": "The fixed code still works interactively",
+      "passed": true,
+      "evidence": "safe_input() separates non-interactive path (auto-return) from interactive path (full input() with validation). Interactive behaviour is fully preserved."
+    }
+  ],
+  "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0},
+  "note": "Baseline was 5/5. Confirmed no regression — patterns preserved in references/non-interactive-patterns.md."
+}

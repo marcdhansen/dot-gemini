@@ -1,0 +1,8 @@
+# Evaluation outputs (runtime)
+baseline/
+candidate/
+skill-evaluator-evals/
+
+# Python cache
+__pycache__/
+*.pyc

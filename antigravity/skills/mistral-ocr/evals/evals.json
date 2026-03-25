@@ -1,0 +1,67 @@
+{
+  "skill_name": "mistral-ocr",
+  "evals": [
+    {
+      "id": 1,
+      "name": "process-document-ocr",
+      "prompt": "Write a Python async function that processes a PDF document using MistralOCRProvider. The function should take a file_path and document_id, call process_document_ocr, and return the DocumentSectionTree result.",
+      "expected_output": "An async function that returns a DocumentSectionTree with extracted sections",
+      "expectations": [
+        "Function is async with await",
+        "Uses process_document_ocr from src.tools.ocr",
+        "Takes file_path and document_id parameters",
+        "Returns the DocumentSectionTree result",
+        "Properly handles the async nature of the call"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "extract-cross-references",
+      "prompt": "Write a function that extracts cross-references from section body text using parse_cross_references. Given a body text string containing references like 'Article 3.2.4.4' or 'Table 2.1', it should return a list of extracted references.",
+      "expected_output": "A function that returns a list of cross-reference dicts",
+      "expectations": [
+        "Uses parse_cross_references function",
+        "Returns list of dicts with xref_type and target_section_number",
+        "Handles various xref types (article, table, clause, section)",
+        "Can process multi-line body text"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "merge-cross-page-tables",
+      "prompt": "Write a function that merges tables split across page boundaries. Given a list of PageOCRResult objects where page 1 has an incomplete table and page 2 has the continuation, merge them and return the merged pages.",
+      "expected_output": "A function that returns pages with merged tables",
+      "expectations": [
+        "Uses merge_cross_page_tables function",
+        "Handles PageOCRResult objects",
+        "Sets merged_from_pages on the merged table",
+        "Handles column mismatch by setting merge_failed=True"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "redis-ocr-cache",
+      "prompt": "Write a function that implements cache-aside pattern for OCR results. Check Redis cache first using get_cached_ocr_page, and if not found, process the page and cache the result with cache_ocr_page.",
+      "expected_output": "A function that checks cache before processing",
+      "expectations": [
+        "Calls get_cached_ocr_page with document_id and page_hash",
+        "Returns cached result if found",
+        "Processes page if cache miss",
+        "Calls cache_ocr_page to store result",
+        "Uses appropriate cache TTL"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "get-current-provider",
+      "prompt": "Write a function that retrieves the current OCR provider configuration from Redis. Use get_ocr_provider to determine if Mistral or PaddleOCR is currently active.",
+      "expected_output": "A function that returns the provider name",
+      "expectations": [
+        "Calls get_ocr_provider()",
+        "Returns 'mistral' or 'paddle'",
+        "Is async function",
+        "Handles potential errors gracefully"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "eval_id": 5,
+  "eval_name": "non-interactive-eof-fix",
+  "skill_version": "skill-making@1.1.0",
+  "expectations": [
+    {
+      "text": "Provides working Python code (not just description of a fix)",
+      "passed": true,
+      "evidence": "skill-making includes complete, copy-paste-ready safe_input() and is_non_interactive() implementations."
+    },
+    {
+      "text": "Uses sys.stdin.isatty() or equivalent CI env var check (CI, GITHUB_ACTIONS, etc.)",
+      "passed": true,
+      "evidence": "is_non_interactive() checks sys.stdin.isatty(), os.getenv('CI'), os.getenv('GITHUB_ACTIONS'), os.getenv('AUTOMATED_MODE')."
+    },
+    {
+      "text": "Wraps input() in a try/except that catches EOFError",
+      "passed": true,
+      "evidence": "safe_input() has explicit except (EOFError, KeyboardInterrupt) block."
+    },
+    {
+      "text": "Provides an automatic default/fallback when running non-interactively",
+      "passed": true,
+      "evidence": "safe_input() returns default or choices[0] when is_non_interactive() is True."
+    },
+    {
+      "text": "The fixed code still works interactively (not just hardcoded non-interactive)",
+      "passed": true,
+      "evidence": "Pattern explicitly separates interactive and non-interactive paths; interactive path preserves full input() behavior."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

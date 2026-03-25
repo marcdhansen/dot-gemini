@@ -1,10 +1,24 @@
 ---
 name: tdd-beads
-description: Automatic beads issue creation with TDD compliance enforcement for feature development
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
-version: "1.0.0"
-dependencies: [planning, return-to-base, reflect]
+description: >
+  Automatic beads issue creation with TDD compliance enforcement for feature
+  development. Creates TDD-ready branches, worktrees, test templates, and
+  documentation skeletons, then validates test-first commit ordering.
+  Use when starting a new feature that requires both a beads issue and
+  TDD scaffolding set up together.
+  Do NOT use for general beads issue management (use beads-manager) or for
+  non-TDD hotfix workflows.
+compatibility: >
+  Requires bd CLI, git, Python 3.x, and pytest. Scripts live in
+  ~/.gemini/antigravity/skills/tdd-beads/scripts/.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: code-quality
+  tags: [tdd, beads, issue-creation, compliance, feature-development]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
+  dependencies: [planning, finalization, reflect]
 ---
 
 # TDD-Beads Integration Skill

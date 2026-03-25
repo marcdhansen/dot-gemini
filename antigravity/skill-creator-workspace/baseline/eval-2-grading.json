@@ -1,0 +1,43 @@
+{
+  "eval_id": 2,
+  "eval_name": "review-bad-skill",
+  "skill_version": "skill-making@1.1.0",
+  "expectations": [
+    {
+      "text": "Flags the underscore and capital in 'My_SQLHelper' as a naming violation",
+      "passed": false,
+      "evidence": "skill-making has no review workflow and no naming rules. It mentions kebab-case nowhere; create_skill.py actively uses snake_case."
+    },
+    {
+      "text": "Flags the description as too vague / missing negative trigger",
+      "passed": false,
+      "evidence": "No description field quality guidance exists anywhere in skill-making SKILL.md."
+    },
+    {
+      "text": "Flags that instructions are not numbered or actionable",
+      "passed": false,
+      "evidence": "No instruction quality criteria in skill-making."
+    },
+    {
+      "text": "Flags missing or incomplete metadata fields (author, category, tags)",
+      "passed": true,
+      "evidence": "skill-making's SKILL.md template includes metadata with author, version, category, tags — so the skill is aware of these fields, though no explicit review checklist exists to flag their absence."
+    },
+    {
+      "text": "Flags missing CHANGELOG.md",
+      "passed": false,
+      "evidence": "skill-making's own CHANGELOG.md exists but create_skill.py does not produce one, and there is no review checklist."
+    },
+    {
+      "text": "Provides a verdict or summary judgment (not just a list of issues)",
+      "passed": false,
+      "evidence": "No review workflow exists to produce a verdict."
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 5,
+    "total": 6,
+    "pass_rate": 0.17
+  }
+}

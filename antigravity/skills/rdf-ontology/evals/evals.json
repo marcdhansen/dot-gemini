@@ -1,0 +1,65 @@
+{
+  "skill_name": "rdf-ontology",
+  "evals": [
+    {
+      "id": 1,
+      "name": "build-rdf-graph",
+      "prompt": "Write a Python function that builds an RDF graph from ontology data. The ontology has id 'onto-001', name 'NBC 2025', base_iri 'https://onto-aec.ca/nbc/'. Add at least 3 concepts with labels and definitions. Use rdflib with proper namespace bindings.",
+      "expected_output": "A function that creates an rdflib.Graph with ontology metadata and concept nodes",
+      "expectations": [
+        "The function creates a new rdflib.Graph",
+        "Namespaces are bound using g.bind()",
+        "OWL.Ontology type is added to the ontology URI",
+        "At least 3 concepts are added with RDF.type OWL.Class",
+        "Concepts have RDFS.label and RDFS.comment for definitions"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "add-subclass-relationships",
+      "prompt": "Write a function that adds rdfs:subClassOf relationships between concepts in an RDF graph. Given lists of from_concept_id and to_concept_id, add the appropriate triples.",
+      "expected_output": "A function that adds subclass relationships to an existing graph",
+      "expectations": [
+        "Uses RDFS.subClassOf predicate",
+        "Creates URIRef for each concept using the namespace",
+        "Adds triples correctly to the graph",
+        "Returns the updated graph"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "shacl-validation",
+      "prompt": "Write a function that validates an RDF graph using SHACL. It should return whether the graph conforms and list any violations with their severity and message.",
+      "expected_output": "A function that returns validation results with conform status and violations",
+      "expectations": [
+        "Uses pyshacl.validate() or run_shacl_validation()",
+        "Returns conforms boolean",
+        "Parses violations with severity (ERROR/WARNING/INFO)",
+        "Includes violation messages in the return"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "serialize-turtle-format",
+      "prompt": "Write a function that serializes an RDF graph to Turtle format. It should handle the serialization and return the turtle string.",
+      "expected_output": "A function that serializes graph to Turtle format",
+      "expectations": [
+        "Uses g.serialize(format='turtle')",
+        "Returns the serialized string",
+        "Handles potential serialization errors"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "standards-alignment",
+      "prompt": "Write a function that adds SKOS alignment relations between an ontology concept and an IFC/OmniClass standard. Use exactMatch for high-confidence alignments.",
+      "expected_output": "A function that adds standards alignment triples to a graph",
+      "expectations": [
+        "Uses SKOS.exactMatch predicate",
+        "Creates proper URIRefs for both concept and standard",
+        "Can handle different match types (exact, close, broad, narrow)",
+        "Adds confidence as a literal if needed"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I want to build a new skill for my Claude agent that helps with writing SQL queries. It should check for missing WHERE clauses on UPDATE statements, suggest indexes, and format output as a code review. Walk me through creating it from scratch including the SKILL.md and any scripts.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you review this SKILL.md for me and tell me everything that's wrong with it?\n\n---\nname: My_SQLHelper\ndescription: helps with SQL queries and database stuff.\nmetadata:\n  version: 1.0\n---\n\n# SQL Helper\n\nThis skill helps you write SQL. Just ask me about SQL and I'll help.",
+    "should_trigger": true
+  },
+  {
+    "query": "my skill called recipe-helper never loads when users ask things like 'help me plan meals for next week' or 'what should I cook this weekend'. The current description is: 'Finds and adapts recipes for dietary restrictions.' How do I fix the description so it triggers for those queries?",
+    "should_trigger": true
+  },
+  {
+    "query": "What files and folders do I need to create for a new skill called log-analyzer that will help triage Kubernetes pod crash logs? Show me every file with what goes in each one, including frontmatter.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to turn the workflow we just built together for triaging Kubernetes pod crashes into a reusable skill that other agents can use. How should I package it up?",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I write a SKILL.md description field that reliably triggers for the right user queries and doesn't load when it shouldn't? Walk me through the process with an example.",
+    "should_trigger": true
+  },
+  {
+    "query": "my skill-evaluator skill keeps loading whenever users ask about testing Python code, even though it should only be for agent skills. How do I add negative triggers to stop that?",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to improve an existing skill that's producing inconsistent outputs. The instructions section is vague and agents keep doing different things each time. Can you help me refactor it?",
+    "should_trigger": true
+  },
+  {
+    "query": "my skill script crashes in CI with 'EOFError: EOF when reading a line' — the deploy script prompts the user to pick staging or production but that breaks in automated pipelines. How do I fix this following skill best practices?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to package my pdf-extractor skill into a .skill file so I can share it with my team. What's the right approach and what tool do I use?",
+    "should_trigger": true
+  },
+  {
+    "query": "I have a Python data pipeline script that reads user input interactively but I need it to also work headlessly in GitHub Actions. Refactor this function so it handles both cases: def get_target_env(): return input('Deploy to staging or prod? ')",
+    "should_trigger": false
+  },
+  {
+    "query": "write a Python function that safely wraps input() so it doesn't crash when stdin is closed",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I set up a CI/CD pipeline with GitHub Actions for a Python project that runs pytest on every PR?",
+    "should_trigger": false
+  },
+  {
+    "query": "write unit tests for this Python module that parses CSV files and returns a list of dicts",
+    "should_trigger": false
+  },
+  {
+    "query": "explain what YAML frontmatter is and how it's parsed in markdown files",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I write a good README for an open source Python library so developers know how to install and use it?",
+    "should_trigger": false
+  },
+  {
+    "query": "create a markdown project README template for a Python CLI tool with installation, usage, and contributing sections",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to handle KeyboardInterrupt gracefully in my Python CLI so it prints a clean exit message instead of a traceback",
+    "should_trigger": false
+  },
+  {
+    "query": "what's the best way to structure a Python project that has scripts, tests, config files, and a CLI entrypoint?",
+    "should_trigger": false
+  },
+  {
+    "query": "my subprocess is hanging because it's waiting for stdin input that never comes in my non-interactive shell script. How do I fix this?",
+    "should_trigger": false
+  }
+]

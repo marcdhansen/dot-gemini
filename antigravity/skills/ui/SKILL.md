@@ -1,3 +1,23 @@
+---
+name: ui
+description: >
+  Manages the LightRAG web interface, including WebUI development, frontend
+  builds, deployment, accessibility testing, and UX performance optimisation.
+  Use when developing or deploying the WebUI, running frontend tests,
+  analysing page performance, or managing UI deployments across environments.
+  Do NOT use for backend API development or for tasks unrelated to the
+  LightRAG frontend application.
+compatibility: >
+  Requires Node.js with npm for frontend builds (cd lightrag_webui && npm
+  run dev/build). Python 3.x scripts for deployment and testing live in
+  ~/.gemini/antigravity/skills/ui/scripts/.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: frontend
+  tags: [ui, webui, frontend, deployment, accessibility, performance]
+---
+
 # 🌐 UI Skill
 
 **Purpose**: Manages LightRAG web interface, including development, deployment, testing, and user experience optimization.

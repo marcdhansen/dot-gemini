@@ -1,0 +1,33 @@
+{
+  "eval_id": 3,
+  "eval_name": "fix-under-triggering",
+  "skill_version": "skill-making@1.1.0",
+  "expectations": [
+    {
+      "text": "Identifies that 'meal planning' and 'meal prep' are missing from the current description",
+      "passed": false,
+      "evidence": "skill-making has no concept of description triggering. The skill doesn't discuss description fields at all."
+    },
+    {
+      "text": "Suggests specific phrases to add to the description",
+      "passed": false,
+      "evidence": "No triggering guidance exists."
+    },
+    {
+      "text": "Explains the mechanism: Claude matches descriptions to queries by keyword/concept coverage",
+      "passed": false,
+      "evidence": "Triggering mechanism is not discussed anywhere in skill-making."
+    },
+    {
+      "text": "Produces a revised description draft (not just advice)",
+      "passed": false,
+      "evidence": "No description-writing workflow to produce a draft from."
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 4,
+    "total": 4,
+    "pass_rate": 0.0
+  }
+}

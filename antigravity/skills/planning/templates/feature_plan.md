@@ -4,6 +4,7 @@
 
 **Feature Name:** {{feature_name}}
 **Task ID:** {{task_id}}
+**Beads Issue:** {{beads_issue_id}} ({{beads_issue_status}})
 **Created:** {{creation_date}}
 **Priority:** {{priority}}
 **Estimated Duration:** {{estimated_duration}}
@@ -19,12 +20,51 @@
 - {{this}}
 {{/each}}
 
-## Success Criteria
+## API Design
 
-{{#each success_criteria}}
+{{#if is_api_change}}
 
-- [ ] {{this}}
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+{{#each api_endpoints}}
+| {{method}} | {{path}} | {{description}} |
 {{/each}}
+
+### Request Format
+
+```json
+{{request_example}}
+```
+
+### Response Format
+
+```json
+{{response_example}}
+```
+
+### Breaking Changes
+
+{{#each breaking_changes}}
+
+- {{this}}
+{{/each}}
+{{#unless breaking_changes}}
+- None
+{{/unless}}
+
+### Backward Compatibility
+
+- [ ] Full backward compatible
+- [ ] Requires version bump
+- [ ] Deprecated endpoints remain available until:
+
+{{else}}
+
+*No API changes for this feature.*
+
+{{/if}}
 
 ## Blast Radius Analysis
 
@@ -180,6 +220,17 @@
 {{#each documentation_updates}}
 
 - {{type}}: {{description}}
+{{/each}}
+
+## Beads Issue Tracking
+
+{{#each beads_issues}}
+
+### {{issue_id}}
+- **Type:** {{type}}
+- **Status:** {{status}}
+- **Priority:** {{priority}}
+- **Created:** {{created_date}}
 {{/each}}
 
 ## Approval

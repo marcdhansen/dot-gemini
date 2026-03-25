@@ -1,0 +1,28 @@
+{
+  "eval_id": 3,
+  "eval_name": "fix-under-triggering",
+  "skill_version": "skill-creator@1.0.0",
+  "expectations": [
+    {
+      "text": "Identifies that 'meal planning' and 'meal prep' are missing from the current description",
+      "passed": true,
+      "evidence": "Workflow C under-triggering: 'Ask for 3 example queries that should have triggered but didn't. Compare against the description field word by word. Identify missing keywords or user-intent phrases.' Applied to 'meal planning' / 'weekly meal prep' vs 'Helps users find and adapt recipes for dietary restrictions' — gap is immediately identifiable."
+    },
+    {
+      "text": "Suggests specific phrases to add to the description",
+      "passed": true,
+      "evidence": "Workflow C: 'Suggest concrete additions — and produce a revised description draft.' Not just advice — a draft is required."
+    },
+    {
+      "text": "Explains the mechanism: Claude matches descriptions to queries by keyword/concept coverage",
+      "passed": true,
+      "evidence": "Workflow C explains: 'descriptions should focus on the user's intent, not the skill's implementation.' Notes page expands: 'A great skill that never triggers is invisible.' The principle is present even if not phrased as a technical mechanism."
+    },
+    {
+      "text": "Produces a revised description draft (not just advice)",
+      "passed": true,
+      "evidence": "Workflow C explicitly says 'produce a revised description draft' — not 'suggest improvements'. This is an action step, not guidance."
+    }
+  ],
+  "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0}
+}

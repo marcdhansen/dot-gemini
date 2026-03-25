@@ -1,0 +1,38 @@
+{
+  "eval_id": 2,
+  "eval_name": "review-bad-skill",
+  "skill_version": "skill-creator@1.0.0",
+  "expectations": [
+    {
+      "text": "Flags the underscore and capital in 'My_SQLHelper' as a naming violation",
+      "passed": true,
+      "evidence": "Workflow B instructs: load references/spec.md, evaluate against each checklist item. spec.md item 1 under 'Naming': 'No underscores, capitals, or spaces in name or folder.' Also listed as #1 in Common Violations. Would be flagged as a Critical issue."
+    },
+    {
+      "text": "Flags the description as too vague / missing negative trigger",
+      "passed": true,
+      "evidence": "spec.md Frontmatter checklist: 'description includes WHAT and WHEN' and 'description includes at least one negative trigger'. 'Helps with SQL queries and database stuff' fails both. Common Violations #2: 'Missing negative trigger' and #4: 'Vague description without user-intent phrases'."
+    },
+    {
+      "text": "Flags that instructions are not numbered or actionable",
+      "passed": true,
+      "evidence": "spec.md Instructions checklist: 'Steps are numbered and in a logical order' and 'Each step says what TO DO, not just what to know'. 'Just ask me about SQL' fails both. Would appear as a Quality issue."
+    },
+    {
+      "text": "Flags missing or incomplete metadata fields (author, category, tags)",
+      "passed": true,
+      "evidence": "spec.md Frontmatter checklist: 'metadata has author, version, category, tags'. The example skill only has 'version: 1.0' — missing author, category, tags."
+    },
+    {
+      "text": "Flags missing CHANGELOG.md",
+      "passed": true,
+      "evidence": "spec.md Housekeeping checklist: 'CHANGELOG.md exists with at least a [1.0.0] entry'. Not present in the example skill. Would appear under Housekeeping issues."
+    },
+    {
+      "text": "Provides a verdict or summary judgment",
+      "passed": true,
+      "evidence": "Workflow B explicitly ends with '### Verdict: [Ready to ship / Needs fixes / Major rework required]'. The structured report format is defined directly in SKILL.md body."
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}
+}

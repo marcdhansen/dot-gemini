@@ -1,0 +1,38 @@
+{
+  "eval_id": 1,
+  "eval_name": "new-skill-from-scratch",
+  "skill_version": "skill-creator@1.0.0",
+  "expectations": [
+    {
+      "text": "Proposes a kebab-case skill name",
+      "passed": true,
+      "evidence": "Workflow A Step 4 + references/spec.md both mandate kebab-case. create_skill.py enforces via to_kebab() which converts underscores/spaces to hyphens and rejects capitals."
+    },
+    {
+      "text": "Drafts a description field with WHAT + WHEN",
+      "passed": true,
+      "evidence": "Workflow A Step 4 frontmatter rules explicitly require WHAT+WHEN. Scaffold stub includes inline [TODO] reminder in the description field."
+    },
+    {
+      "text": "Description includes at least one negative trigger",
+      "passed": true,
+      "evidence": "Both Workflow A Step 4 and spec.md mandate 'Do NOT use for...' in the description. Scaffold template includes this as a TODO."
+    },
+    {
+      "text": "Produces numbered, actionable step-by-step workflow instructions",
+      "passed": true,
+      "evidence": "Workflow A Step 4: 'Instructions with numbered, actionable steps (say what TO DO, not just what to know).' Scaffold template generates numbered Step 1/Step 2 stubs."
+    },
+    {
+      "text": "Mentions or drafts a CHANGELOG.md",
+      "passed": true,
+      "evidence": "create_skill.py generates CHANGELOG.md automatically. Step 6 quality checklist (references/spec.md) includes CHANGELOG as a required housekeeping check."
+    },
+    {
+      "text": "Does NOT use underscores in the skill name or folder name",
+      "passed": true,
+      "evidence": "to_kebab() in create_skill.py: re.sub(r'[\\s_]+', '-', name). Spec checklist item 1 is the underscore check."
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}
+}

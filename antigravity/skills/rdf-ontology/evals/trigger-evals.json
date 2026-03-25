@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I need to build an RDF graph from my ontology data and serialize it to Turtle format",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I validate my ontology against SHACL constraints to check for violations?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the best way to add owl:equivalentClass relationships between concepts in rdflib?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to align my ontology concepts with IFC 4.3 standards using SKOS exactMatch",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I detect circular subclass relationships in my RDF graph?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the pattern for serializing to JSON-LD format in rdflib?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to apply OWL 2 RL reasoning to infer additional axioms from my ontology",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I enforce V-006 (no IFC namespace) when building concept IRIs?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to export my ontology in multiple formats (Turtle, RDF/XML, JSON-LD)",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the pattern for adding skos:closeMatch alignments with confidence scores?",
+    "should_trigger": true
+  },
+  {
+    "query": "write unit tests for my Python module",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I create a PostgreSQL database schema?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the best way to model a social network graph in Neo4j?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to set up a MongoDB replica set",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I create REST APIs with FastAPI?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the pattern for Kubernetes pod scaling?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to optimize my Elasticsearch queries",
+    "should_trigger": false
+  },
+  {
+    "query": "How do I set up OAuth2 authentication in my app?",
+    "should_trigger": false
+  },
+  {
+    "query": "What's the best way to handle file uploads in Flask?",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to set up CI/CD pipelines with GitHub Actions",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,69 @@
+{
+  "skill_name": "aec-domain",
+  "evals": [
+    {
+      "id": 1,
+      "name": "validate-deontic-completeness",
+      "prompt": "Write a Python function that validates V-001 (Deontic Completeness). A concept with constraint_deontic of SHALL or SHALL_NOT must have at least one applicable_occupancy_group. If it doesn't, return a RuleResult with passed=False and an appropriate error message.",
+      "expected_output": "A function that returns a RuleResult for V-001 validation",
+      "expectations": [
+        "Function checks if constraint_deontic is SHALL or SHALL_NOT",
+        "Function checks if applicable_occupancy_groups has at least one entry",
+        "Returns RuleResult with passed=False if validation fails",
+        "Includes appropriate error message",
+        "Returns RuleResult with passed=True if validation passes"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "assign-risk-tier",
+      "prompt": "Write a function that assigns a risk tier (1-4) to a concept based on its source section and properties. Tier 1 is for fire/egress/structural/accessibility. Tier 4 is for scope/definitions. Default is Tier 3.",
+      "expected_output": "A function that returns an integer risk tier",
+      "expectations": [
+        "Returns 1 for fire/egress/structural/accessibility sections",
+        "Returns 1 for SHALL/SHALL_NOT with occupancy groups",
+        "Returns 4 for scope/definitions sections",
+        "Returns 3 as default",
+        "Takes concept dict as input"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "validate-fire-rating-monotonicity",
+      "prompt": "Write a function that validates V-002 (Fire Rating Monotonicity). A subclass must have a fire resistance rating greater than or equal to its parent. The concept and parent both have minimumFireResistanceRating properties.",
+      "expected_output": "A function that validates fire rating inheritance",
+      "expectations": [
+        "Compares child and parent fire ratings",
+        "Returns passed=False if child rating < parent rating",
+        "Returns passed=True if child rating >= parent rating",
+        "Handles missing ratings appropriately",
+        "Returns RuleResult with appropriate message"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "check-ifc-namespace",
+      "prompt": "Write a function that checks V-006 (IFC Namespace Isolation). A concept IRI must not start with any IFC namespace prefix like 'https://standards.buildingsmart.org/IFC/'.",
+      "expected_output": "A function that validates IRI doesn't use IFC namespace",
+      "expectations": [
+        "Checks against multiple IFC prefixes",
+        "Returns passed=False if IRI starts with IFC prefix",
+        "Returns passed=True for valid IRIs",
+        "Includes appropriate error message about V-006 violation"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "validate-alignment-confidence",
+      "prompt": "Write a function that validates V-014 (Alignment Strength Gate). For skos:exactMatch, confidence must be >= 0.90. For owl:equivalentClass, confidence must be >= 0.95.",
+      "expected_output": "A function that validates alignment confidence thresholds",
+      "expectations": [
+        "Checks exactMatch confidence >= 0.90",
+        "Checks equivalentClass confidence >= 0.95",
+        "Returns passed=False if thresholds not met",
+        "Returns passed=True if thresholds met",
+        "Handles different alignment types"
+      ]
+    }
+  ]
+}

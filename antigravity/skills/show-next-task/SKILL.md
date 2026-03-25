@@ -1,8 +1,22 @@
 ---
 name: show-next-task
-description: Shows what to work on next in the LightRAG project by running beads ready and providing intelligent recommendations
-disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Glob, Grep
+description: >
+  Shows what to work on next in the LightRAG project by running bd ready
+  and providing intelligent priority-based recommendations. Use when
+  starting a session and deciding what task to pick up, or any time the
+  current task completes and the next one needs to be chosen.
+  Do NOT use to bypass task prioritisation or skip directly to a specific
+  task; use it to discover what the team has determined is highest priority.
+compatibility: >
+  Requires bd CLI and Bash. Script at
+  ~/.gemini/antigravity/skills/show-next-task/scripts/next.sh.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: project-management
+  tags: [task-management, beads, prioritisation, next-task, roadmap]
+  disable-model-invocation: true
+  allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # Show Next Task Skill
@@ -27,12 +41,34 @@ This skill performs comprehensive task analysis:
 6. Suggests new feature development and issue creation to keep the plan moving
 7. Offers concrete next steps to get started immediately
 
-## Implementation
+## ⚠️ Finding Scripts in This Skill
 
-The skill executes:
+Glob ignores hidden directories like `.config`. Always specify the path explicitly:
 
 ```bash
-./.agent/skills/show-next-task/scripts/next.sh
+# The skill lists the location of the helper script as:
+# ./scripts/next.sh
+# but this location is relative to the SKILL.md file, not the project.
+# You can use glob to find the script, but only if you include the prefix path.
+
+# ❌ Won't find scripts
+glob(pattern="**/next.sh")
+
+# ✅ Correct
+glob(path="~/.config/opencode", pattern="**/next.sh")
+
+# If you still can't find it, use the full path:
+/Users/marchansen/.gemini/antigravity/skills/show-next-task/scripts/next.sh
+```
+
+## Implementation
+
+The skill executes next.sh, which is in the ./scripts directory relative to the SKILL.md file,
+NOT THE PROJECT
+
+```bash
+#NOTE that the . is relative to the SKILL.md file, not the project!!!
+./scripts/next.sh
 ```
 
 ## Workflow Analysis
@@ -64,6 +100,11 @@ The skill delivers:
 
 ## Decision Logic
 
+**P0 PR Review Available**: Absolute top priority. Unblocking teammates is critical for project velocity.
+
+- Recommendation: Review open PRs for P0 issues first.
+- Reasoning: Blocks teammate progress and project merging.
+
 **P0 Available**: Immediate attention required
 
 - Recommendation: Start with P0 tasks first
@@ -92,7 +133,7 @@ This skill integrates with:
 
 ## Example Output
 
-```
+```text
 🎯 ALL Available Tasks in the LightRAG Project
 =========================================================
 📊 Task Priority Breakdown: P0: 1, P1: 2, P2: 7
@@ -111,9 +152,60 @@ This skill integrates with:
 
 ## Error Handling
 
+This skill follows the **fail-loud** principle: always report problems immediately rather than silently falling back.
+
+### Script Discovery
+
+The skill executes `scripts/next.sh` from the current working directory. If not found:
+
+1. **Do NOT silently fall back to `bd ready`** - this hides the problem
+2. **Report the error clearly** - explain what was expected and what's missing
+3. **Exit with non-zero code** - force the issue to be fixed
+
+Example error message:
+
+```
+ERROR: scripts/next.sh not found.
+
+This skill requires scripts/next.sh to function.
+The script should exist in the project directory.
+
+To fix: Create the missing script or update this skill's implementation.
+```
+
+### Glob Tool Limitation
+
+When searching for files, be aware of glob limitations:
+
+- The `glob` tool excludes `.config` directories by default (security practice)
+- If searching in `~/.config/`, use explicit `path` parameter:
+
+  ```python
+  # Wrong - will not find files in ~/.config/
+  glob(pattern="**/next.sh")
+  
+  # Correct - explicitly specify path
+  glob(path="~/.config", pattern="**/next.sh")
+  ```
+
+For more details, see **AGENTS.md** (Glob Tool Limitation section).
+
+### Reporting Issues
+
+Per AGENTS.md guidelines:
+
+- **Verify script exists** before executing (use `ls` or glob)
+- **Report broken scripts immediately** - do NOT silently work around
+- **Test before relying** - run the command manually first
+- **Document workarounds** if you find a fix
+
+### Beads Errors
+
 The skill gracefully handles:
 
 - Beads daemon not running
 - No ready tasks available
 - Command execution failures
 - Network connectivity issues
+
+But these are expected operational issues - the skill should handle them with helpful messages.

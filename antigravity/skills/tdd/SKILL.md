@@ -1,6 +1,22 @@
 ---
-name: TDD
-description: Test-Driven Development best practices for all code changes
+name: tdd
+description: >
+  Test-Driven Development workflow and best practices. Enforces the
+  Red-Green-Refactor cycle: write failing tests first, implement code to
+  pass them, then refactor. Use when writing tests before implementation,
+  starting a new feature or bug fix, or needing guidance on what tests to
+  write first.
+  Do NOT use for running an existing test suite or generating coverage
+  reports (use test-runner instead). Do NOT use for documentation-only
+  changes or metadata edits.
+compatibility: >
+  Requires pytest (or equivalent test framework) and git. No scripts to
+  run; instructions guide the TDD workflow directly.
+metadata:
+  author: Workshop Team
+  version: "1.0.0"
+  category: code-quality
+  tags: [tdd, testing, red-green-refactor, quality, test-first]
 ---
 
 # 🧪 TDD (Test-Driven Development) Skill
@@ -259,6 +275,39 @@ Before considering work complete:
 - [ ] **Loopholes identified and closed**
 - [ ] **Performance requirements met (if applicable)**
 - [ ] **Regression tests added (for bug fixes)**
+
+---
+
+## Core Principle: Fail Loudly
+
+TDD enforces the "Fail Loudly" principle through its cycle:
+
+### Red Phase: Fail Visibly
+
+- Tests **must fail** before implementation
+- Failure is **visible and immediate**
+- You see exactly **what's missing**
+
+### Green Phase: Verify Success
+
+- Tests **must pass** after implementation
+- Success is **verifiable and repeatable**
+- No "it works but I don't know why"
+
+### No Silent Failures
+
+TDD prevents silent failures by:
+
+1. **Explicit expectations**: Tests define what "success" means
+2. **Immediate feedback**: Run tests after every change
+3. **No guessed behavior**: If tests pass, behavior is correct
+4. **Regression protection**: Future changes that break things fail loudly
+
+This aligns with the coding principles:
+- **Fail Loudly**: Make errors visible and actionable
+- **Detect early**: Tests catch issues at development time
+
+See coding-principles.md (in .agent/rules/) for the full set of principles.
 
 ---
 

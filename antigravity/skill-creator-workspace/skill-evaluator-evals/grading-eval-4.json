@@ -1,0 +1,38 @@
+{
+  "eval_id": 4,
+  "eval_name": "triggering-diagnosis",
+  "skill_version": "skill-evaluator@1.0.0",
+  "expectations": [
+    {
+      "text": "Identifies that 'write a commit message' and 'commit description' are missing from the current description",
+      "passed": true,
+      "evidence": "Workflow C and Example 3 both instruct: inspect the current description for missing keywords and concepts. The current description 'Formats git commit messages following conventional commits spec' contains no user-intent phrases — clear guidance to identify this gap."
+    },
+    {
+      "text": "Explains WHY the description misses: it describes the format spec, not the user's intent",
+      "passed": true,
+      "evidence": "The Anthropic skill-creator guidance (which skill-evaluator references implicitly) emphasizes: 'focus on the user's intent, what they are trying to achieve, vs. the implementation details.' Workflow C instructs analyzing why queries miss. This reasoning would be produced."
+    },
+    {
+      "text": "Suggests specific phrases to add — not just general advice",
+      "passed": true,
+      "evidence": "Workflow C Step (in Example 3): 'Propose a revised description with specific additions.' The skill's instructions are concrete enough to produce specific phrase suggestions."
+    },
+    {
+      "text": "Produces a concrete revised description draft — not just advice",
+      "passed": true,
+      "evidence": "Example 3 Step 3 explicitly says 'Propose a revised description' — not 'suggest improvements'. The skill directs producing a draft."
+    },
+    {
+      "text": "Mentions run_loop.py for automated optimization if in Claude Code",
+      "passed": true,
+      "evidence": "Example 3 Step 4: 'In Claude Code: run run_loop.py to find the best description automatically.' Explicit mention with reference to run-commands.md."
+    },
+    {
+      "text": "Does NOT suggest fixing the instructions body — correctly identifies this as a description problem",
+      "passed": true,
+      "evidence": "SKILL.md Notes section: 'Don't fix a triggering problem by rewriting the skill instructions — fix the description.' This is an explicit rule that the agent would follow."
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}
+}

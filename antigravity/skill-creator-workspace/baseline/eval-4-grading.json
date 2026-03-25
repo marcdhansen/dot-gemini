@@ -1,0 +1,43 @@
+{
+  "eval_id": 4,
+  "eval_name": "scaffold-file-structure",
+  "skill_version": "skill-making@1.1.0",
+  "expectations": [
+    {
+      "text": "Uses 'log-analyzer' (kebab-case, no underscores)",
+      "passed": false,
+      "evidence": "create_skill.py converts 'log-analyzer' to 'log_analyzer' via replace('-', '_')."
+    },
+    {
+      "text": "Includes SKILL.md as a required file",
+      "passed": true,
+      "evidence": "_create_skill_md() creates SKILL.md at skill root."
+    },
+    {
+      "text": "Includes CHANGELOG.md with at least a [1.0.0] placeholder",
+      "passed": false,
+      "evidence": "create_skill.py does not create CHANGELOG.md. Only creates: SKILL.md, scripts/skill_name.py, tests/, config/defaults.yaml, README.md."
+    },
+    {
+      "text": "Does NOT include a README.md inside the skill folder",
+      "passed": false,
+      "evidence": "_create_readme() explicitly creates README.md inside the skill folder."
+    },
+    {
+      "text": "SKILL.md frontmatter includes name, description, and metadata fields",
+      "passed": false,
+      "evidence": "_create_skill_md() generates a body-only SKILL.md with no YAML frontmatter at all."
+    },
+    {
+      "text": "If scripts/ is included, files are placed under scripts/ not at skill root",
+      "passed": true,
+      "evidence": "Main script is created at scripts/{skill_name}.py — correct placement."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 4,
+    "total": 6,
+    "pass_rate": 0.33
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "eval_id": 2,
+  "eval_name": "baseline-before-change",
+  "skill_version": "skill-evaluator@1.0.0",
+  "expectations": [
+    {
+      "text": "Explicitly says baseline must be established BEFORE making any changes",
+      "passed": true,
+      "evidence": "Workflow D Step 1: 'Baseline first — Do not skip this even when you're confident the change is safe.' Example 2 opens with the exact phrase 'Stop: Let me establish a baseline first before we touch anything'."
+    },
+    {
+      "text": "Checks whether evals.json exists — offers to create it if missing",
+      "passed": true,
+      "evidence": "Example 2 Step 2: 'Check if evals.json exists — if not, run Workflow A to create it.' This is explicit."
+    },
+    {
+      "text": "Runs or describes running output quality evals on the current pdf skill first",
+      "passed": true,
+      "evidence": "Example 2 Step 3: 'Run Workflow B to baseline output quality; record scores.' Workflow B is inline-runnable."
+    },
+    {
+      "text": "Mentions triggering baseline and explains how to run it (even if user is in Claude.ai)",
+      "passed": true,
+      "evidence": "Example 2 Step 4: 'Ask user to run triggering baseline from Claude Code (or estimate if unavailable).' Run commands are in references/run-commands.md."
+    },
+    {
+      "text": "Records baseline scores before proceeding to the rewrite",
+      "passed": true,
+      "evidence": "Example 2 Step 5: 'Record baseline scores prominently and confirm before proceeding.' baseline-summary.json format in references/schemas.md."
+    },
+    {
+      "text": "Does NOT proceed with the rewrite before the baseline step is complete",
+      "passed": true,
+      "evidence": "Workflow D is sequential: Step 1 (baseline) must complete before Step 2 (change). The example makes this explicit with 'confirm before proceeding'."
+    }
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}
+}
