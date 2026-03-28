@@ -790,6 +790,12 @@ else
     echo "💡 No global memory directory found"
 fi
 
+# 10. Trace Audit - Self-Report Verification
+echo
+echo "📋 10. Trace Audit - Intent/Action Verification"
+echo "=============================================="
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/trace_logger.py audit 2>/dev/null || echo "⚠️ Trace logger not available"
+
 echo
 echo "🎉 Finalization Workflow Complete!"
 echo "========================="

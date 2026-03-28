@@ -51,6 +51,7 @@ try:
         check_plan_approval,
     )
     from validators.code_validator import validate_tdd_compliance
+    from validators.trace_validator import check_trace_integrity, print_trace_audit
     from validators.finalization_validator import (
         check_beads_github_sync,
         check_reflection_invoked,
@@ -565,6 +566,13 @@ def run_finalization(verbose: bool = False) -> bool:
     print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
         blockers.append("Reflection not captured - invoke /reflect (Mandatory for Finalization)")
+
+    # Trace Integrity Check (Prevents silent failures and workarounds)
+    trace_ok, trace_msg = check_trace_integrity()
+    print(f"├── Trace Integrity: {check_mark(trace_ok)} {trace_msg}")
+    if not trace_ok:
+        blockers.append("Trace issues detected - see audit below")
+        print_trace_audit()
 
     # Beads GitHub Sync Check (MANDATORY - ensures issues pushed to GitHub for multi-agent coordination)
     beads_sync_ok, beads_sync_msg = check_beads_github_sync()
