@@ -26,9 +26,14 @@ TRACE_FILE = os.environ.get("TRACE_FILE", ".agent/session-trace.jsonl")
 
 
 class TraceLogger:
-    def __init__(self, trace_file: str = TRACE_FILE):
-        self.trace_file = Path(trace_file)
+    def __init__(self, trace_file: str = None):
+        if trace_file is None:
+            trace_file = TRACE_FILE
+        # Make path absolute to avoid cwd issues
+        self.trace_file = Path(trace_file).resolve()
         self.trace_file.parent.mkdir(parents=True, exist_ok=True)
+        # Persistent archive for cross-session history
+        self.archive_file = self.trace_file.parent / "trace-archive.jsonl"
 
     def log(self, intent: str, action: str, outcome: str, evidence: str = "", details: dict = None):
         """Log an intent/action/outcome triple."""
@@ -47,6 +52,82 @@ class TraceLogger:
 
         return entry
 
+    def archive(self):
+        """Archive current session traces to persistent storage for cross-session analysis."""
+        entries = self.read()
+        if not entries:
+            return {"archived": 0, "message": "No entries to archive"}
+
+        # Read existing archive
+        archived_entries = []
+        if self.archive_file.exists():
+            with open(self.archive_file, "r") as f:
+                for line in f:
+                    try:
+                        archived_entries.append(json.loads(line.strip()))
+                    except json.JSONDecodeError:
+                        continue
+
+        # Add current entries with session marker
+        session_id = os.environ.get("SESSION_ID", datetime.utcnow().strftime("%Y%m%d-%H%M%S"))
+        for entry in entries:
+            entry["session_id"] = session_id
+            archived_entries.append(entry)
+
+        # Write back
+        with open(self.archive_file, "w") as f:
+            for entry in archived_entries:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+        # Clear current trace file
+        self.trace_file.unlink(missing_ok=True)
+
+        return {"archived": len(entries), "total": len(archived_entries)}
+
+    def get_history(self, limit: int = 100) -> list:
+        """Get archived trace history for cross-session analysis."""
+        if not self.archive_file.exists():
+            return []
+
+        entries = []
+        with open(self.archive_file, "r") as f:
+            for line in f:
+                try:
+                    entries.append(json.loads(line.strip()))
+                except json.JSONDecodeError:
+                    continue
+
+        return entries[-limit:]
+
+    def get_patterns(self) -> dict:
+        """Analyze archived traces for patterns (recurring issues, frequent actions, etc.)."""
+        history = self.get_history(limit=500)
+        if not history:
+            return {"message": "No history available"}
+
+        # Count patterns
+        action_counts = {}
+        outcome_counts = {}
+        issue_types = {}
+
+        for entry in history:
+            action = entry.get("action", "unknown")
+            outcome = entry.get("outcome", "unknown")
+
+            action_counts[action] = action_counts.get(action, 0) + 1
+            outcome_counts[outcome] = outcome_counts.get(outcome, 0) + 1
+
+            # Track outcomes that indicate problems
+            if "fail" in outcome.lower() or "error" in outcome.lower():
+                issue_types[action] = issue_types.get(action, 0) + 1
+
+        return {
+            "total_entries": len(history),
+            "action_counts": dict(sorted(action_counts.items(), key=lambda x: -x[1])[:10]),
+            "outcome_counts": outcome_counts,
+            "problem_actions": dict(sorted(issue_types.items(), key=lambda x: -x[1])[:5]),
+        }
+
     def read(self):
         """Read all trace entries."""
         if not self.trace_file.exists():
@@ -60,6 +141,63 @@ class TraceLogger:
                 except json.JSONDecodeError:
                     continue
         return entries
+
+    def _verify_evidence(self, evidence: str, outcome: str, action: str) -> list:
+        """
+        Verify evidence is real, not placeholder or fabricated.
+
+        Returns list of issues found.
+        """
+        issues = []
+        evidence_lower = evidence.lower().strip()
+
+        # Check for placeholder evidence
+        placeholders = ["...", "n/a", "na", "none", "placeholder", "test", "todo", "tbd", "pending"]
+        if evidence_lower in placeholders:
+            issues.append(
+                {
+                    "type": "placeholder_evidence",
+                    "message": f"Evidence is placeholder: '{evidence}'",
+                }
+            )
+            return issues
+
+        # Check for success with no meaningful output
+        if outcome == "success" and len(evidence) < 5:
+            issues.append(
+                {
+                    "type": "suspicious_success",
+                    "message": f"Claimed success but evidence is minimal: '{evidence}'",
+                }
+            )
+
+        # Check for evidence that claims output but is empty
+        if "output:" in evidence_lower and len(evidence) < 20:
+            issues.append(
+                {
+                    "type": "fabricated_output",
+                    "message": f"Evidence claims output but is minimal: '{evidence}'",
+                }
+            )
+
+        # Check for suspiciously uniform evidence (copy-paste pattern)
+        entries = self.read()
+        evidence_counts = {}
+        for e in entries:
+            ev = e.get("evidence", "")
+            if ev:
+                evidence_counts[ev] = evidence_counts.get(ev, 0) + 1
+
+        # If same evidence appears 3+ times, suspicious
+        if evidence and evidence_counts.get(evidence, 0) >= 3:
+            issues.append(
+                {
+                    "type": "repetitive_evidence",
+                    "message": f"Evidence repeated {evidence_counts[evidence]} times - may be fabricated",
+                }
+            )
+
+        return issues
 
     def verify(self) -> dict:
         """
@@ -120,6 +258,10 @@ class TraceLogger:
                             "message": f"Failure logged but user not informed: {evidence}",
                         }
                     )
+
+            # Check 4: Evidence verification - detect fake/placeholder evidence
+            evidence_issues = self._verify_evidence(evidence, outcome, action)
+            issues.extend(evidence_issues)
 
         passed = len(issues) == 0
 
@@ -272,6 +414,8 @@ if __name__ == "__main__":
 
     subparsers.add_parser("verify", help="Verify trace integrity")
     subparsers.add_parser("audit", help="Generate audit report")
+    subparsers.add_parser("archive", help="Archive current session traces to history")
+    subparsers.add_parser("patterns", help="Show patterns from archived history")
 
     subparsers.add_parser("log", help="Log an entry")
     parser.add_argument("--intent", help="Intent")
@@ -291,6 +435,14 @@ if __name__ == "__main__":
             print(f"  - {issue['message']}")
     elif args.command == "audit":
         print(logger.generate_audit_report())
+    elif args.command == "archive":
+        result = logger.archive()
+        print(f"Archived {result['archived']} entries. Total history: {result['total']}")
+    elif args.command == "patterns":
+        import json
+
+        patterns = logger.get_patterns()
+        print(json.dumps(patterns, indent=2))
     elif args.command == "log":
         logger.log(args.intent, args.action, args.outcome, args.evidence)
     else:

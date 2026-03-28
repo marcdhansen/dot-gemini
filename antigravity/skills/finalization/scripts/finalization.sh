@@ -796,6 +796,19 @@ echo "📋 10. Trace Audit - Intent/Action Verification"
 echo "=============================================="
 python ~/.gemini/antigravity/skills/Orchestrator/scripts/trace_logger.py audit 2>/dev/null || echo "⚠️ Trace logger not available"
 
+# 10b. Archive Traces for Cross-Session History
+echo
+echo "📦 10b. Archiving Traces for Historical Analysis"
+echo "================================================"
+ARCHIVE_RESULT=$(python ~/.gemini/antigravity/skills/Orchestrator/scripts/trace_logger.py --archive 2>/dev/null || echo "failed")
+echo "Archive result: $ARCHIVE_RESULT"
+
+# Show patterns from historical traces
+echo
+echo "📊 Historical Pattern Analysis"
+echo "=============================="
+python ~/.gemini/antigravity/skills/Orchestrator/scripts/trace_logger.py patterns 2>/dev/null || echo "No historical data yet"
+
 echo
 echo "🎉 Finalization Workflow Complete!"
 echo "========================="
