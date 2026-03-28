@@ -52,6 +52,7 @@ try:
     )
     from validators.code_validator import validate_tdd_compliance
     from validators.finalization_validator import (
+        check_beads_github_sync,
         check_reflection_invoked,
         check_debriefing_invoked,
         check_code_review_status,
@@ -564,6 +565,12 @@ def run_finalization(verbose: bool = False) -> bool:
     print(f"├── Reflection: {check_mark(reflect_ok)} {reflect_msg}")
     if not reflect_ok:
         blockers.append("Reflection not captured - invoke /reflect (Mandatory for Finalization)")
+
+    # Beads GitHub Sync Check (MANDATORY - ensures issues pushed to GitHub for multi-agent coordination)
+    beads_sync_ok, beads_sync_msg = check_beads_github_sync()
+    print(f"├── Beads Sync: {check_mark(beads_sync_ok)} {beads_sync_msg}")
+    if not beads_sync_ok:
+        blockers.append(f"Beads GitHub sync not done: {beads_sync_msg}")
 
     # Linked Repository Validation
     linked_ok, linked_errors = check_linked_repositories()

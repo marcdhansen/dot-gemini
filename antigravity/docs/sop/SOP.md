@@ -201,6 +201,21 @@ Blocking_Behavior: Any "false" → SESSION BLOCKED
 - **Nomenclature**: Refer to [NOMENCLATURE.md](NOMENCLATURE.md) for detailed definitions of modern agentic terms (Initialization, Execution, Finalization).
 - **Atomic Start Protocol**: Never write a line of code or a plan without a specific Beads ID. When building compliance tools (like Orchestrator), you must *manually* simulate the compliance check before starting work to avoid the "Bootstrap Paradox".
 
+## 🤖 Model Choice Limitations
+
+**MANDATORY**: Agents must strictly use **FREE** models (e.g., local Qwen, local Llama, Gemini Flash). 
+**Exception**: Models from Anthropic (Claude Opus, Sonnet, Haiku) are permitted even if they are paid.
+
+### Approved Models List
+- `qwen2.5-coder:7b` (Local/Free)
+- `gemini-2.5-flash` (Free tier)
+- `gemini-3-flash-preview` (Free tier)
+- `antigravity-claude-sonnet-4-5` (Anthropic Exception)
+- `antigravity-claude-sonnet-4-5-thinking` (Anthropic Exception)
+- `antigravity-claude-opus-4-5-thinking` (Anthropic Exception)
+
+*Do NOT use paid Gemini Pro models or other paid third-party APIs unless explicitly approved.*
+
 ---
 
 ## Agent Memories

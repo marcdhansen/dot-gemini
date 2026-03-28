@@ -7,6 +7,33 @@ from datetime import datetime, timedelta
 from .common import check_tool_available, Colors
 from .git_validator import check_branch_info, get_active_issue_id
 
+def check_beads_github_sync() -> tuple[bool, str]:
+    """Check if bd github sync --push-only was run during this session."""
+    session_file = Path(".agent/session_state.json")
+
+    if not session_file.exists():
+        return False, "No active session found - run check_protocol_compliance.py init first"
+
+    try:
+        session_data = json.loads(session_file.read_text())
+        if session_data.get("status") != "active":
+            return False, "No active session - run check_protocol_compliance.py init first"
+
+        commands = session_data.get("commands", [])
+        sync_called = any("bd github sync --push-only" in c.get("command", "") for c in commands)
+
+        if sync_called:
+            return True, "Beads GitHub sync recorded during session"
+
+        return (False, "Beads GitHub sync not recorded. Run: bd github sync --push-only && python check_protocol_compliance.py record-command --cmd \"bd github sync --push-only\"")
+
+    except json.JSONDecodeError:
+        return False, "Session file is malformed"
+    except Exception as e:
+        return False, f"Error checking beads sync: {e}"
+
+
+
 
 def check_reflection_invoked() -> tuple[bool, str]:
     """Check if reflection was captured for the current session.

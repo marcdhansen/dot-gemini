@@ -50,6 +50,8 @@
 ### [Phase 5: Finalization](phases/05_finalization.md) — MANDATORY
 
 - [ ] **Quality Gates**: Run linters, tests, pre-commit hooks
+- [ ] **Code Review**: Run automated static analysis, then **invoke another agent** for human review
+- [ ] **Auto-File Issues**: Agent must create beads issues for any bugs/feedback from review without asking for approval
 - [ ] **Git Sync**: Commit all changes, squash into atomic commit
 - [ ] **🔒 PR Creation**: **MANDATORY** for code changes
 - [ ] **Beads Update**: Update/close issues
@@ -78,6 +80,7 @@
 | Beads issue exists | **BLOCKER** (for Execution) |
 | Plan approval fresh (<4h) | **BLOCKER** |
 | Quality gates passed | **BLOCKER** |
+| **Code review completed** | **BLOCKER** (auto + human) |
 | Git status clean | **BLOCKER** |
 | PR created for code changes | **BLOCKER** |
 | Reflect invoked | **BLOCKER** |

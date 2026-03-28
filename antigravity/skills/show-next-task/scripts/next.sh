@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Next Task Script for LightRAG
+# Next Task Script
 # Shows what to work on next by running beads ready and providing detailed recommendations
 
-echo "🎯 ALL Available Tasks in the LightRAG Project"
+echo "🎯 ALL Available Tasks"
 echo "========================================================="
 echo ""
 
@@ -20,35 +20,35 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Run beads started to capture in-progress tasks
-INPROGRESS_OUTPUT=$(bd started 2>/dev/null)
+# Run bd list for in-progress tasks
+INPROGRESS_OUTPUT=$(bd list --status in_progress 2>/dev/null)
 if [ $? -ne 0 ]; then
     INPROGRESS_OUTPUT=""
 fi
 
-# Count priorities
-P0_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P0\]' | wc -l | tr -d ' ')
-P1_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P1\]' | wc -l | tr -d ' ')
-P2_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P2\]' | wc -l | tr -d ' ')
-P3_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P3\]' | wc -l | tr -d ' ')
-P4_COUNT=$(echo "$READY_OUTPUT" | grep '\[● P4\]' | wc -l | tr -d ' ')
+# Count priorities (format is "● P0" not "[● P0]")
+P0_COUNT=$(echo "$READY_OUTPUT" | grep '● P0' | wc -l | tr -d ' ')
+P1_COUNT=$(echo "$READY_OUTPUT" | grep '● P1' | wc -l | tr -d ' ')
+P2_COUNT=$(echo "$READY_OUTPUT" | grep '● P2' | wc -l | tr -d ' ')
+P3_COUNT=$(echo "$READY_OUTPUT" | grep '● P3' | wc -l | tr -d ' ')
+P4_COUNT=$(echo "$READY_OUTPUT" | grep '● P4' | wc -l | tr -d ' ')
 
 TOTAL_COUNT=$((P0_COUNT + P1_COUNT + P2_COUNT + P3_COUNT + P4_COUNT))
 
 # Count and show in-progress tasks
-INPROGRESS_COUNT=$(echo "$INPROGRESS_OUTPUT" | grep -c 'lightrag-' | tr -d ' ')
+INPROGRESS_COUNT=$(echo "$INPROGRESS_OUTPUT" | grep -c 'openloop-' | tr -d ' ') || INPROGRESS_COUNT=0
 
 if [ "$INPROGRESS_COUNT" -gt 0 ]; then
     echo "## 🔄 Currently In Progress ($INPROGRESS_COUNT tasks):"
     echo ""
-    echo "$INPROGRESS_OUTPUT" | grep 'lightrag-' | while IFS= read -r line; do
+    echo "$INPROGRESS_OUTPUT" | grep 'openloop-' | while IFS= read -r line; do
         # Extract task ID and description
-        TASK_ID=$(echo "$line" | grep -o 'lightrag-[a-zA-Z0-9]\+')
-        DESC=$(echo "$line" | sed 's/.*lightrag-[a-zA-Z0-9]\+: //')
+        TASK_ID=$(echo "$line" | grep -o 'openloop-[a-zA-Z0-9.-]*' | head -1)
+        DESC=$(echo "$line" | sed 's/.*openloop-[a-zA-Z0-9.-]*: //')
         
-        # Extract assignee if present
-        if echo "$line" | grep -q "Assigned to:"; then
-            ASSIGNEE=$(echo "$line" | grep -o "Assigned to: [^\\]*" | sed 's/Assigned to: //')
+        # Extract assignee if present (JSON output has assignee field)
+        if echo "$line" | grep -q '"assignee"'; then
+            ASSIGNEE=$(echo "$line" | grep -o '"assignee":"[^"]*"' | sed 's/"assignee":"//' | sed 's/"$//')
             ASSIGNEE_TEXT=" - $ASSIGNEE"
         else
             ASSIGNEE_TEXT=""
@@ -81,17 +81,17 @@ echo ""
 format_tasks() {
     local priority=$1
     local label=$2
-    local count=$(echo "$READY_OUTPUT" | grep "\[● $priority\]" | wc -l | tr -d ' ')
+    local count=$(echo "$READY_OUTPUT" | grep "● $priority" | wc -l | tr -d ' ')
     
     if [ "$count" -gt 0 ]; then
         echo "## 🎯 $label ($priority):"
         echo ""
         
         # Process tasks line by line
-        echo "$READY_OUTPUT" | grep "\[● $priority\]" | while IFS= read -r line; do
-            # Extract task ID and description
-            TASK_ID=$(echo "$line" | grep -o 'lightrag-[a-zA-Z0-9]\+')
-            DESC=$(echo "$line" | sed 's/.*\[● '$priority'\].*: //')
+        echo "$READY_OUTPUT" | grep "● $priority" | while IFS= read -r line; do
+            # Extract task ID and description (format: ○ openloop-xxx ● P0 Title)
+            TASK_ID=$(echo "$line" | grep -o 'openloop-[a-zA-Z0-9.-]*' | head -1)
+            DESC=$(echo "$line" | sed 's/.*● '$priority' //')
             
             # Extract type if present
             if echo "$line" | grep -q "\[task\]"; then

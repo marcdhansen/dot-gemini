@@ -1,13 +1,13 @@
 ---
 name: show-next-task
-description: Shows what to work on next in the LightRAG project by running beads ready and providing intelligent recommendations
+description: Shows what to work on next in this project by running beads ready and providing intelligent recommendations
 disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
 # Show Next Task Skill
 
-The `show-next-task` skill provides intelligent guidance on what to work on next in the LightRAG project. It answers the question "What should we work on next?" with actionable recommendations.
+The `show-next-task` skill provides intelligent guidance on what to work on next in this project. It answers the question "What should we work on next?" with actionable recommendations.
 
 ## Usage
 
@@ -86,18 +86,18 @@ This skill integrates with:
 - **Beads Task Management**: `bd ready` command for task discovery
 - **Project Roadmap**: `.agent/rules/ROADMAP.md` for phase alignment
 - **Implementation Planning**: `.agent/rules/ImplementationPlan.md` for detailed guidance
-- **LightRAG Protocols**: Project priorities and workflow standards
+- **Project Protocols**: Project priorities and workflow standards
 - **Agent Coordination**: Session status and multi-agent workflows
 - **Git Operations**: Branch creation and task assignment workflows
 
 ## Example Output
 
 ```
-🎯 ALL Available Tasks in the LightRAG Project
+🎯 ALL Available Tasks
 =========================================================
 📊 Task Priority Breakdown: P0: 1, P1: 2, P2: 7
 🎯 HIGH PRIORITY (P1):
-⚡ lightrag-abc: Implement feature X
+⚡ agent-abc: Implement feature X
 🎯 Recommendation: Start with P0 tasks first - they are blocking project progress.
 🚀 Next Steps: • Start recommended task: `bd start <task-id>`
 🗺️ Roadmap Analysis & Feature Development:
