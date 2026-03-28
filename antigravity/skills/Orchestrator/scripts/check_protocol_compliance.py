@@ -51,7 +51,11 @@ try:
         check_plan_approval,
     )
     from validators.code_validator import validate_tdd_compliance
-    from validators.trace_validator import check_trace_integrity, print_trace_audit
+    from validators.trace_validator import (
+        check_trace_integrity,
+        check_trace_clear,
+        print_trace_audit,
+    )
     from validators.finalization_validator import (
         check_beads_github_sync,
         check_reflection_invoked,

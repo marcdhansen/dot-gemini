@@ -65,6 +65,24 @@ def print_trace_audit():
     print(report)
 
 
+def check_trace_clear() -> tuple[bool, str]:
+    """
+    Check that previous session traces are clear (no unresolved issues).
+
+    This runs at initialization to catch any incomplete workflows from prior sessions.
+
+    Returns (passed, message) tuple.
+    """
+    result = verify_trace()
+
+    if result["passed"]:
+        return True, "No unresolved trace issues from previous sessions"
+
+    # There are issues - this is a warning, not a blocker
+    issues = result.get("issues", [])
+    return False, f"{len(issues)} unresolved trace issues from previous session"
+
+
 if __name__ == "__main__":
     # Test
     print("Trace Integrity Check:")
