@@ -34,23 +34,26 @@ Delegate a task to another agent or process and get the result back.
 ### CLI
 
 ```bash
-# Local: run a review script
-python -m agent_harness.scripts.call_subagent \
+# Local: run a review script (with auto-tracing)
+PYTHONPATH=src python -m agent_harness.scripts.call_subagent \
   --task "bash scripts/agent-review.sh /tmp/pr.diff" \
   --backend local --json
 
 # Peer: ask another agent to review
-python -m agent_harness.scripts.call_subagent \
+PYTHONPATH=src python -m agent_harness.scripts.call_subagent \
   --task "Please review PR #42 on marcdhansen/agent-harness" \
   --backend peer --target left --json
 
 # OpenClaw: delegate to orchestrator
-python -m agent_harness.scripts.call_subagent \
+PYTHONPATH=src python -m agent_harness.scripts.call_subagent \
   --task "code-review" \
   --backend openclaw \
   --context '{"pr_number": "42", "repo": "marcdhansen/agent-harness"}' \
   --json
 ```
+
+**Auto-tracing**: All invocations are automatically traced to prevent silent failures.
+The trace system logs intent, action, and outcome to `.agent/session-trace.jsonl`.
 
 ### Python API
 
